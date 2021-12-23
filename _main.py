@@ -3,7 +3,10 @@ import sys
 import librosa
 import librosa.display
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
+
+matplotlib.use('TkAgg')
 
 def _main():
   filename = sys.argv[1]
@@ -27,12 +30,27 @@ def _main():
   beat_times = librosa.frames_to_time(beat_frames, sr=samplingrate)
   #print(beat_times)
 
-  #plt.figure()
-  #librosa.display.waveplot(y=waveform, sr=samplingrate)
-  #plt.show()
+  print(len(waveform))
 
-  segments = librosa.effects.split(waveform)
+  segments = librosa.effects.split(waveform, top_db=40)
+
   print("segs", segments)
+
+  sss = []
+  for s in segments:
+    sss = sss + list(s)
+
+  print("sss", sss)
+
+  segt = librosa.samples_to_time(sss)
+  print(segt)
+
+  # todo - Only take intervals that are long enough.
+
+  plt.figure()
+  librosa.display.waveshow(y=waveform, sr=samplingrate)
+  plt.vlines(segt, ymin=-1, ymax=1)
+  plt.show()
 
 if __name__ == '__main__':
   _main()
