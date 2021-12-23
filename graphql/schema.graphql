@@ -1,0 +1,181 @@
+# Note: after editing, run `npm run codegen` to generate new TS types.
+# Or, if you are running `npm run dev`, that will happen automatically.
+# Also this might be helpful:
+#   https://benoitboure.com/how-to-use-typescript-with-appsync-lambda-resolvers
+
+# Omitted as suggested https://spec.graphql.org/June2018/.
+# schema {
+#   query: Query
+#   mutation: Mutation
+# }
+
+type Query {
+  """Read a single collection by ID, or null if not found."""
+  readCollection(id: ID!): Collection
+  """Read all of the collections."""
+  readCollections: [Collection!]!
+  """Get an AuthenticatedUser node from which to read a user's data."""
+  readAuthenticate(accessToken: String!): AuthenticatedUser!
+}
+
+type Mutation {
+  """Create a collection with auto-assigned ID."""
+  createCollection(accessToken: String!, input: CollectionInput!): Collection
+  """Add a new Cast to a Collection. TODO - implement. """
+  createCast(collectionId: ID!, input: CastInput!): Cast!
+
+  """
+  Create a new user (sign up). As is standard, user/pass are passed over
+  HTTPS to the server and passed to Cognito.
+  A wallet is also generated.
+  """
+  createUser(username: String!, password: String!): User!
+  """Create a new user session (sign in)."""
+  createSession(username: String!, password: String!): Session!
+  """Refresh a session (get new keys with later expiration)."""
+  refreshSession(username: String!, refreshToken: String!): Session!
+}
+
+"""Various points of metadata that our types might store."""
+type Metadata {
+  createdAt: String
+}
+
+"""The type of media or data stored in the NFTs represented by a collection."""
+enum MediaType {
+  """Images are natively stored in the NFTs.""" 
+  IMAGE
+}
+
+"""The method by which elements of a collection are assisgned to principals."""
+enum AssignmentType {
+  """NFTs are assigned directly to principles."""
+  DIRECT
+  """NFTs can be assigned by anyone with a token or URL to themself."""
+  TOKEN
+  """NFTs can be assigned by anyone to themself."""
+  OPEN
+}
+
+"""A series of NFTs before they are minted."""
+type Collection {
+  id: ID!
+
+  # The name of this collection.
+  title: String!
+  # The type of data stored in the elements of this collection.
+  mediaType: MediaType!
+  # The mode through which NFTs from this collection get assigned.
+  assignmentType: AssignmentType!
+  # Iff the NFTs represented by this collection's elements are
+  # transferable after they are claimed. We should never allow this
+  # to change since the underlying NFTs will never change transferability.
+  nftsAreTransferable: Boolean!
+
+  # The individual elements that compose this collection that NFTs will
+  # be made from.
+  casts: [Cast!]!
+}
+
+input CollectionInput {
+  title: String!
+  mediaType: MediaType!
+  assignmentType: AssignmentType!
+  nftsAreTransferable: Boolean!
+  casts: [CastInput!]!
+}
+
+"""
+A unique item of a Collection. Each one represents an NFT. The underlying
+NFT may or may not have atually been minted yet, since minting only happens
+when an NFT is claimed.
+"""
+type Cast {
+  id: ID!
+
+  # The main data of this element which will be used as the data associated
+  # with the NFT once it is minted.
+  data: CastData!
+
+  # The principal who was first assigned this element, or null if none
+  # have been assigned. If not null, this is not necessarily the principal that
+  # currently owns the NFT. Once set, this value will never change or
+  # be set to null. Even non-directly assigned NFTs get assigned, generally
+  # right before being claimed or simaltaneously.
+  assignedPrincipal: Principal
+
+  # True if this element has been claimed, otherwise false. Will always be false if
+  # {assignedPrincipal} is null since an element must be assigned
+  # prior to being claimed. Once set to true, this value will never be
+  # set false, even if the underlying NFT disappears / transfers.
+  isClaimed: Boolean!
+}
+
+input CastInput {
+  data: CastDataInput!
+}
+
+"""
+The main data associated with a collection element. Its form will depend on
+the MediaType of the collection.
+"""
+type CastData {
+  mimeType: String!
+  uri: String!
+}
+
+input CastDataInput {
+  mimeType: String!
+  uri: String!
+}
+
+"""A platform user."""
+type User {
+  """This user's sign in username."""
+  username: String!
+  """This user's principal."""
+  principal: Principal!
+}
+
+"""
+A node that represents successful authentication. All properties
+of this node are accessible to the authenticated user who has
+queried AuthenticatedUser. The access token's claims have been
+verified.
+}
+"""
+type AuthenticatedUser {
+  accessToken: String!
+
+  """The verified claimed userId (Cognito sub)."""
+  userId: String!
+  """The verified claimed username."""
+  username: String!
+
+  collections: [Collection!]!
+  user: User!
+}
+
+"""A login session (sessions are currently implemented by Cognito)."""
+type Session {
+  accessToken: String
+  refreshToken: String
+}
+
+"""The decentralized identifier of a platform user."""
+type Principal {
+  publicAddress: ID!
+  secretKey: ID!
+  password: String!
+  stxPrivateKey: String!
+
+  """The NFTs on the blockchain that this principal owns."""
+  nfts: [Nft!]!
+}
+
+"""Representation of an actual NFT that's on the blockchain."""
+type Nft {
+  """These properties subject to change."""
+  mimeType: String!
+  uri: String!
+}

@@ -1,0 +1,17 @@
+# This file configures the graphql code generator that makes our TS files
+# based on our graphql schema.
+
+overwrite: true
+schema: "graphql/schema.graphql"
+#documents: "app/**/*.graphql"
+generates:
+  app/generated/graphql-schema.tsx:
+    plugins:
+      - "typescript"
+      - "typescript-operations"
+      - "typescript-react-apollo"
+      #- "typescript-graphql-files-modules"
+      #- "typescript-document-nodes"
+  #./graphql.schema.json:
+  #  plugins:
+  #    - "introspection"
