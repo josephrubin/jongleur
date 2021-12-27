@@ -13,6 +13,7 @@
   --color-brand: #d4f3ff;
   --color-brand-trans: #d4f3ffcc;
   --color-brand-light: #ebf9ff;
+  --color-brand-dark: #73d7ff;
 }
 
 html {
@@ -99,6 +100,10 @@ input:where([type="button"]), input:where([type="submit"]), button {
 input:where([type="button"]):hover, input:where([type="submit"]):hover, button:hover {
   background-color: var(--color-brand);
   box-shadow: 2px 2px 1px lightgray;
+}
+
+input:where([type="button"]):active, input:where([type="submit"]):active, button:active {
+  box-shadow: none;
 }
 
 .brand-hover:hover {

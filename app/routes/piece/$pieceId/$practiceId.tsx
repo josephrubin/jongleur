@@ -1,8 +1,15 @@
+import { createRef, useRef, useState } from "react";
 import { Link, LinksFunction } from "remix";
 import { Timeline } from "~/components/timeline";
 import { Waveform } from "~/components/waveform";
+import { Spinner } from "~/components/spinner";
 
 export default function PracticeId() {
+  const uploadFormRef = createRef<HTMLFormElement>();
+  const fileInputRef = createRef<HTMLInputElement>();
+
+  const [currentlyUploading, setCurrentlyUploading] = useState<boolean>(false);
+
   let samples = [3, 5, 3, 7, 8, 5, 3, 2, 3, 4, 1, 2, 1, 2, 7, 8, 7, 5, 7, 4, 4, 6, 7, 6, 1, 4, 3, 4, 4, 5];
   samples = samples.concat(samples, samples, samples, samples, samples, samples);
 
@@ -38,11 +45,35 @@ export default function PracticeId() {
       <div className="timeline-container">
         <Timeline selectedNodeIndex={1} />
       </div>
-      <button>+ Upload Recording</button>
+      <form method="POST" encType="multipart/form-data" ref={uploadFormRef}>
+        <label>
+          <button type="button" disabled={currentlyUploading} onClick={() => fileInputRef.current?.click()}>+ Upload Recording</button>
+          <span className="upload-status-hint">{currentlyUploading && <Spinner />}</span>
+          <input
+            type="file"
+            name="recordingFile"
+            accept=".ogg"
+            ref={fileInputRef}
+            style={{display: "none"}}
+            onChange={(e) => inputFileOnChange(e, setCurrentlyUploading, uploadFormRef.current)}
+          />
+        </label>
+      </form>
       <p className="hint">
+        <br />
+        <i>Note you can only upload .ogg files. Use ffmpeg to convert.</i>
         <br />
         <i>Note the waveform and the timeline are scrollable.</i>
       </p>
     </div>
   );
+}
+
+function inputFileOnChange(event, setCurrentlyUploading: (v: boolean) => void, form: HTMLFormElement) {
+  const files = event.target.files;
+  if (files && files.length >= 1 && files[0]) {
+    console.log("got file", files[0]);
+    setCurrentlyUploading(true);
+    form.submit();
+  }
 }

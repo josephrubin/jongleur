@@ -45,3 +45,13 @@
   display: grid;
   grid-template-columns: 1fr 4.5fr;
 }
+
+.upload-status-hint {
+  margin-left: 12px;
+}
+
+.spinner {
+  vertical-align: middle;
+  margin-left: 8px;
+  margin-bottom: 2px;
+}
