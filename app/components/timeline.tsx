@@ -1,7 +1,11 @@
 import { NoneDataSource } from "@aws-cdk/aws-appsync";
 import { readPieces } from "~/modules/pieces.server";
 
-export function Timeline() {
+interface TimelineProps {
+  readonly selectedNodeIndex: number;
+}
+
+export function Timeline(props: TimelineProps) {
   const practices = [
     {date: "Jun 1, 2021"},
     {date: "Jun 1, 2021"},
@@ -24,17 +28,32 @@ export function Timeline() {
     {date: "Jun 1, 2021"},
   ];
 
-  const { containerStyle, listStyle, itemStyle, dotStyle, tooltipStyle, leftArrowStyle, rightArrowStyle } = getStyles(practices);
-  console.log(listStyle);
+  const {
+    containerStyle,
+    listStyle,
+    itemStyle,
+    selectedItemStyle,
+    dotStyle,
+    tooltipStyle,
+    leftArrowStyle,
+    rightArrowStyle,
+  } = getStyles(practices);
 
+  console.log("Sel", props.selectedNodeIndex);
 
   return (
     <div style={containerStyle}>
       <ol style={listStyle}>
         <li style={leftArrowStyle}></li>
-        {practices.map(practice =>
+        {practices.map((practice, index) =>
           <>
-            <li key={practice.id} style={itemStyle} className="brand-hover">
+            <li
+              key={practice.id}
+              style={{
+                ...itemStyle, ...(index === props.selectedNodeIndex ? selectedItemStyle : {}),
+              }}
+              className="brand-hover"
+            >
               <div style={dotStyle}></div>
               <div style={tooltipStyle}>
                 {practice.date}
@@ -75,6 +94,9 @@ function getStyles(practices: Practice[]) {
       position: "relative",
       borderRadius: "6px",
       paddingTop: "6px",
+    },
+    selectedItemStyle: {
+      backgroundColor: "var(--color-brand)",
     },
     dotStyle: {
       height: "18px",

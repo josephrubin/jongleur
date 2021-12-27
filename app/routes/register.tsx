@@ -1,5 +1,12 @@
 import { ActionFunction, Form, redirect, useActionData } from "remix";
 import { createUser } from "~/modules/users.server";
+import registerStyles from "../styles/routes/register.css";
+
+export const links: LinksFunction = () => {
+  return [
+    {rel: "stylesheet", href: registerStyles},
+  ];
+};
 
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
@@ -30,8 +37,8 @@ export default function Register() {
   }
   else {
     return (
-      <div>
-        <h1>Sign Up</h1>
+      <div className="register-container">
+        <h1>🎶&nbsp; Music Awaits! Join Us!</h1>
         <Form method="post">
           <label>
           Username

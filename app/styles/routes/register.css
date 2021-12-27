@@ -1,0 +1,7 @@
+.remix-app__main {
+  background-image: url("/tape2-large.jpg");
+  background-color: #FBFCFE;
+  background-repeat: no-repeat;
+  background-position: right bottom;
+  background-size: 840px;
+}

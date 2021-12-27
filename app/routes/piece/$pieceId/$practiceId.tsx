@@ -2,7 +2,7 @@ import { Link, LinksFunction } from "remix";
 import { Timeline } from "~/components/timeline";
 import { Waveform } from "~/components/waveform";
 
-export default function RecordingId() {
+export default function PracticeId() {
   let samples = [3, 5, 3, 7, 8, 5, 3, 2, 3, 4, 1, 2, 1, 2, 7, 8, 7, 5, 7, 4, 4, 6, 7, 6, 1, 4, 3, 4, 4, 5];
   samples = samples.concat(samples, samples, samples, samples, samples, samples);
 
@@ -29,14 +29,14 @@ export default function RecordingId() {
       <p className="practice-summary">
         # hours of practice · # average segment length · #bpm approximate tempo · # hours on this piece in total
       </p>
-      <h3>Found {segments.length} segments in this practice recording.</h3>
+      <h3>Found {segments.length} segments in this practice recording</h3>
       <p>
         Mouse over part of the waveform to see your practice segments. Click on a segment to hear it.
       </p>
-      <h3>Timeline</h3>
+      <h3>All of your practice sessions</h3>
       { /* A horizontally scrolling box to contain the session timeline. */ }
       <div className="timeline-container">
-        <Timeline />
+        <Timeline selectedNodeIndex={1} />
       </div>
       <button>+ Upload Recording</button>
       <p className="hint">

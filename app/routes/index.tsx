@@ -23,7 +23,7 @@ export const links: LinksFunction = () => {
 };
 
 export const loader: LoaderFunction = async () => {
-  const pieces: Piece[] = [
+  let pieces: Piece[] = [
     {title: "blag"},
     {title: "blooh"},
     {title: "blargh"},
@@ -85,6 +85,7 @@ export const loader: LoaderFunction = async () => {
     {title: "blargh"},
     {title: "quuuz"},
   ];
+  pieces = pieces.concat(...pieces, ...pieces);
 
   const recentPieces = pieces.splice(0, 5);
 

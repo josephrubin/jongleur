@@ -1,5 +1,12 @@
 import { ActionFunction, Form, redirect, useActionData } from "remix";
 import { createSession, createSessionRedirect } from "~/modules/users.server";
+import loginStyles from "../styles/routes/login.css";
+
+export const links: LinksFunction = () => {
+  return [
+    {rel: "stylesheet", href: loginStyles},
+  ];
+};
 
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
@@ -34,7 +41,7 @@ export default function Register() {
 
   return (
     <div>
-      <h1>Sign In</h1>
+      <h1>🎻&nbsp; Let's Get Practicing!</h1>
       <Form method="post">
         <label>
           Username
@@ -44,7 +51,7 @@ export default function Register() {
           Password
           <input name="password" type="password" />
         </label>
-        <input type="submit" value="Continue!" />
+        <input type="submit" value="Carry On!" />
       </Form>
     </div>
   );
