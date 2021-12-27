@@ -11,6 +11,7 @@
   --font-body: -apple-system, "Segoe UI", Helvetica Neue, Helvetica, Roboto,
     Arial, sans-serif, system-ui, "Apple Color Emoji", "Segoe UI Emoji";
   --color-brand: #d4f3ff;
+  --color-brand-trans: #d4f3ffcc;
   --color-brand-light: #ebf9ff;
 }
 
@@ -100,6 +101,10 @@ input:where([type="button"]):hover, input:where([type="submit"]):hover, button:h
   box-shadow: 2px 2px 1px lightgray;
 }
 
+.brand-hover:hover {
+  box-shadow: 2px 2px 1px lightgray;
+  background-color: var(--color-brand-trans);
+}
 
 .sr-only {
   position: absolute;

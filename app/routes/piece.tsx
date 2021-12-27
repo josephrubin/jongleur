@@ -16,6 +16,18 @@ export const loader: LoaderFunction = async () => {
   const pieces: Piece[] = [
     {title: "blag"},
     {title: "blooh"},
+    {title: "qwer"},
+    {title: "iowjr"},
+    {title: "blag"},
+    {title: "blooh"},
+    {title: "qwer"},
+    {title: "blag"},
+    {title: "blooh"},
+    {title: "qwer"},
+    {title: "iowjr"},
+    {title: "blag"},
+    {title: "blooh"},
+    {title: "qwer"},
   ];
 
   return {
@@ -32,7 +44,7 @@ export default function Practice() {
         <ol>
           {pieces.map(piece =>
             <li key={piece.id}>
-              <Link to="./">Piece name</Link>
+              <Link to="./">Piece name {piece.title}</Link>
             </li>
           )}
         </ol>

@@ -1,4 +1,5 @@
 import { Link, LinksFunction } from "remix";
+import { Timeline } from "~/components/timeline";
 import { Waveform } from "~/components/waveform";
 
 export default function RecordingId() {
@@ -33,8 +34,15 @@ export default function RecordingId() {
         Mouse over part of the waveform to see your practice segments. Click on a segment to hear it.
       </p>
       <h3>Timeline</h3>
-      <span>blah <Link to="./../2">blah</Link> recordings here</span>
+      { /* A horizontally scrolling box to contain the session timeline. */ }
+      <div className="timeline-container">
+        <Timeline />
+      </div>
       <button>+ Upload Recording</button>
+      <p className="hint">
+        <br />
+        <i>Note the waveform and the timeline are scrollable.</i>
+      </p>
     </div>
   );
 }
