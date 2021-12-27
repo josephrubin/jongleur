@@ -9,3 +9,39 @@
   border-radius: 8px;
   border: 1px solid black;
 }
+
+.waveform-container {
+  overflow-x: scroll;
+}
+
+.pieces-side-nav {
+  float: left;
+  height: 99vh;
+  padding: 32px;
+  padding-left: 0px;
+  margin-right: 32px;
+  border-right: 1px solid lightgray;
+}
+
+.pieces-side-nav ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pieces-side-nav ol li {
+}
+
+.practice-summary {
+  color: gray;
+  font-size: smaller;
+}
+
+.practice-session-container {
+  overflow-x: hidden;
+}
+
+.piece-container {
+  display: grid;
+  grid-template-columns: 1fr 4.5fr;
+}

@@ -91,14 +91,14 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
     ClientId: USER_POOL_CLIENT_ID,
   })).UserPoolClient?.ClientSecret;
   if (!cognitoAppSecret) {
-    returnError("Error getting Cognito app secret.");
+    throw "Error getting Cognito app secret.";
   }
   function calculateSecretHash(message: string): string {
     if (cognitoAppSecret) {
       return calculateSecretHashWithKey(message, cognitoAppSecret);
     }
     else {
-      returnError("Attempt to calculate secret hash without Cognito app secret.");
+      throw "Attempt to calculate secret hash without Cognito app secret.";
     }
   }
 
@@ -115,7 +115,7 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
       }
       catch {
         console.log("verification error");
-        returnResult(null);
+        return null;
       }
 
       const decodedAccessToken = jwt_decode(accessToken) as DecodedAccessToken;
@@ -126,37 +126,37 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
         username: decodedAccessToken.username,
       };
 
-      returnResult(authenticatedUser);
+      return authenticatedUser;
     }
-    else if (fieldName === "readCollections") {
-      // Return all collections.
-      const errorMessage = "Error fetching collections";
+    else if (fieldName === "readPieces") {
+      // Return all pieces.
+      const errorMessage = "Error fetching pieces";
       try {
-        const { Items: collections } = await dynamoDbDocumentClient.scan({
-          TableName: COLLECTION_TABLE,
+        const { Items: pieces } = await dynamoDbDocumentClient.scan({
+          TableName: PIECE_TABLE,
         });
-        returnResultIfExists(collections, `${errorMessage}.`);
+        return pieces;
       }
       catch (err) {
-        returnError(`${errorMessage}: ${String(err)}`);
+        throw `${errorMessage}: ${String(err)}`;
       }
     }
-    else if (fieldName === "readCollection") {
-      // Return a single collection by id.
+    else if (fieldName === "readPiece") {
+      // Return a single piece by id.
       const { id } = args as QueryReadCollectionArgs;
 
       try {
-        const { Item: collection } = await dynamoDbDocumentClient.get({
-          TableName: COLLECTION_TABLE,
+        const { Item: piece } = await dynamoDbDocumentClient.get({
+          TableName: PIECE_TABLE,
           Key: {
             id: id,
           },
         });
-        // Return the collection we found or null to signal that we didn't find one.
-        returnResult(collection);
+        // Return the piece we found or null to signal that we didn't find one.
+        return piece;
       }
       catch (err) {
-        returnError(`Error fetching collection with id ${id}: ${String(err)}`);
+        throw `Error fetching piece with id ${id}: ${String(err)}`;
       }
     }
   }
@@ -313,10 +313,10 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
             nfts: [],
           },
         };
-        returnResult(user);
+        return user;
       }
       catch (err) {
-        returnError(`Error creating user: ${String(err)}.`);
+        throw `Error creating user: ${String(err)}.`;
       }
     }
     else if (fieldName === "createSession") {
@@ -342,11 +342,11 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
             accessToken: accessToken,
             refreshToken: refreshToken,
           };
-          returnResult(session);
+          return session;
         }
         else {
           // Authentication worked but no tokens were created.
-          returnError("Authentication did not fail but tokens were not created.");
+          throw "Authentication did not fail but tokens were not created.";
         }
       }
       catch {

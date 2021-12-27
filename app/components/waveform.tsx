@@ -1,4 +1,5 @@
 import React, { createRef, useEffect, useState } from "react";
+import { fillRoundedRect } from "../modules/drawing";
 
 interface SegmentIndices {
   readonly startIndex: number;
@@ -12,6 +13,8 @@ interface WaveformProps {
   readonly samples: number[]
   // Segment the waveform using each (startIndex, endIndex) pair.
   readonly segments: SegmentIndices[]
+  // The callback to invoke when a segment is clicked.
+  readonly onClickSegment?: (segmentIndex: number) => void
 }
 
 /** A visualisaion of a waveform's samples. */
@@ -41,6 +44,7 @@ export function Waveform(props: WaveformProps) {
       ref={canvasRef}
       height={props.height}
       width={(widthPerSample + gapBetweenSamples) * props.samples.length}
+      className={mouseOverSegmentIndex !== null ? "pointer-cursor" : ""}
       onMouseMove={
         (event) => void setMouseOverSegmentIndex(
           mouseOverWaveform(event,
@@ -53,7 +57,16 @@ export function Waveform(props: WaveformProps) {
       onMouseOut={
         () => void setMouseOverSegmentIndex(null)
       }
-    ></canvas>
+      onClick={
+        () => {
+          if (mouseOverSegmentIndex !== null && props.onClickSegment) {
+            props.onClickSegment(mouseOverSegmentIndex);
+          }
+        }
+      }
+    >
+      Your browser does not support canvas. Please switch to a newer browser.
+    </canvas>
   );
 }
 
@@ -96,8 +109,16 @@ function drawWaveform(
   segments: SegmentIndices[],
   mouseOverSegmentIndex: number | null
 ) {
+  // Height reserved for markings along the bottom.
+  const markingsHeight = 18;
+  // Number of segments between each notch marking.
+  const notchIncrement = 100;
+  const waveHeight = height - markingsHeight;
+
   const outsideSegmentColor = "gray";
-  const segmentColors = ["blue", "red", "yellow", "green"];
+  const segmentColors = ["blue", "red", "green"];
+  const mouseOverSegmentBoxColor = "#d4f3ff";
+  const textColor = "black";
 
   // Optionally apply a filter to our samples, mostly so outlier
   // points don't shrink the waveform.
@@ -108,7 +129,20 @@ function drawWaveform(
   const normalizedSamples = amplitudeSamples.map(sample => sample / maxSample);
 
   const ctx = canvas.getContext("2d");
+
   if (ctx) {
+    ctx.clearRect(0, 0, (widthPerSample + gapBetweenSamples) * amplitudeSamples.length, height);
+
+    // Draw a box around the currently hovered segment.
+    if (mouseOverSegmentIndex !== null) {
+      const segment = segments[mouseOverSegmentIndex];
+      const segmentWidth = (widthPerSample + gapBetweenSamples) * (1 + segment.endIndex - segment.startIndex);
+      const segmentX = (widthPerSample + gapBetweenSamples) * (segment.startIndex - 0.5);
+      ctx.fillStyle = mouseOverSegmentBoxColor;
+      fillRoundedRect(ctx, Math.round(segmentX), 0, Math.round(segmentWidth), waveHeight, 6);
+    }
+
+    // Draw the wave by rendering each sample.
     let currentSegmentIndex = 0;
     normalizedSamples.forEach((sample, index) => {
       // Decide how to color this sample.
@@ -117,22 +151,26 @@ function drawWaveform(
         ctx.fillStyle = outsideSegmentColor;
       }
       else {
-        if (mouseOverSegmentIndex !== null && mouseOverSegmentIndex === currentSegmentIndex) {
-          ctx.fillStyle = "purple";
-        }
-        else {
-          ctx.fillStyle = segmentColors[currentSegmentIndex % segmentColors.length];
-        }
+        ctx.fillStyle = segmentColors[currentSegmentIndex % segmentColors.length];
       }
 
       // Draw a rectangle to represent this sample.
-      const scaledSample = sample * height;
+      const scaledSample = sample * waveHeight;
+      const sampleX = index * (gapBetweenSamples + widthPerSample);
       ctx.fillRect(
-        index * (gapBetweenSamples + widthPerSample),
-        (height - scaledSample) / 2,
+        sampleX + 1,
+        (waveHeight - scaledSample) / 2,
         widthPerSample,
         scaledSample
       );
+
+      // Write the current sample number every few samples.
+      if (index % notchIncrement === 0) {
+        ctx.fillStyle = textColor;
+        ctx.textBaseline = "top";
+        ctx.font = "10px Arial";
+        ctx.fillText(String(index), sampleX, waveHeight + 1);
+      }
 
       if (currentSegment && index >= currentSegment.endIndex) {
         currentSegmentIndex++;

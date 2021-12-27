@@ -1,6 +1,6 @@
 import type { MetaFunction, LoaderFunction, LinksFunction } from "remix";
 import { useLoaderData, json, Link } from "remix";
-import { Waveform } from "~/components/audio";
+import { Waveform } from "~/components/waveform";
 import practiceStyles from "../styles/routes/practice.css";
 
 // https://remix.run/api/conventions#meta
@@ -12,7 +12,8 @@ export const meta: MetaFunction = () => {
 };
 
 interface LoaderData {
-  readonly pieces: Piece;
+  readonly pieces: Piece[];
+  readonly recentPieces: Piece[];
 }
 
 export const links: LinksFunction = () => {
@@ -25,45 +26,118 @@ export const loader: LoaderFunction = async () => {
   const pieces: Piece[] = [
     {title: "blag"},
     {title: "blooh"},
+    {title: "blargh"},
+    {title: "quuuz"},
+    {title: "blag"},
+    {title: "blooh"},
+    {title: "blargh"},
+    {title: "quuuz"},
+    {title: "blag"},
+    {title: "blag"},
+    {title: "blag"},
+    {title: "blooh"},
+    {title: "blargh"},
+    {title: "quuuz"},
+    {title: "blooh"},
+    {title: "blargh"},
+    {title: "quuuz"},
+    {title: "blooh"},
+    {title: "blargh"},
+    {title: "quuuz"},
+    {title: "blag"},
+    {title: "blag"},
+    {title: "blooh"},
+    {title: "blargh"},
+    {title: "quuuz"},
+    {title: "blag"},
+    {title: "blooh"},
+    {title: "blargh"},
+    {title: "quuuz"},
+    {title: "blag"},
+    {title: "blag"},
+    {title: "blag"},
+    {title: "blooh"},
+    {title: "blargh"},
+    {title: "quuuz"},
+    {title: "blooh"},
+    {title: "blargh"},
+    {title: "quuuz"},
+    {title: "blooh"},
+    {title: "blargh"},
+    {title: "quuuz"},
+    {title: "blooh"},
+    {title: "blargh"},
+    {title: "quuuz"},
+    {title: "blag"},
+    {title: "blooh"},
+    {title: "blargh"},
+    {title: "quuuz"},
+    {title: "blag"},
+    {title: "blag"},
+    {title: "blag"},
+    {title: "blooh"},
+    {title: "blargh"},
+    {title: "quuuz"},
+    {title: "blooh"},
+    {title: "blargh"},
+    {title: "quuuz"},
+    {title: "blooh"},
+    {title: "blargh"},
+    {title: "quuuz"},
   ];
+
+  const recentPieces = pieces.splice(0, 5);
 
   return {
     pieces,
+    recentPieces,
   };
 };
 
 export default function Index() {
-  const { pieces } = useLoaderData<LoaderData>();
+  const { pieces, recentPieces } = useLoaderData<LoaderData>();
+  const signedIn = false;
+  const userName = "Joseph";
 
   return (
     <>
-      <h1>Practice</h1>
+      <div className="welcome-blurb">
+        {signedIn ? (
+          <>
+            <h1>👋 Hey, {userName}!</h1>
+            Thanks for signing in. There's no time to waste, play on!
+          </>
+        ) : (
+          <>
+            <h1>🎹&nbsp; Come Join the Party!</h1>
+            There's so much music to learn! <Link to="./register">Make an account</Link> so you can practice like a pro.
+          </>
+        )}
+      </div>
+      {signedIn && (
+        <>
+          <h1>🕑&nbsp; Recently Played</h1>
+          <ol className="practice-pieces">
+            {recentPieces.map(piece =>
+              <li key={piece.id} className="practice-piece">
+                <Link to={`./piece/${piece.id}/1`}>
+                  <div>Piece: {piece.title}</div>
+                </Link>
+              </li>
+            )}
+          </ol>
+        </>
+      )}
+      <h1>🎵&nbsp; All From Scarlatti</h1>
       <ol className="practice-pieces">
         {pieces.map(piece =>
           <li key={piece.id} className="practice-piece">
-            <Link to={`./${piece.id}`}>
+            <Link to={`./piece/${piece.id}/1`}>
               <div>Piece: {piece.title}</div>
             </Link>
           </li>
         )}
       </ol>
-      <Waveform
-        height={100}
-        samples={[1, 2, 4, 8, 16, 3, 55, 2, 3, 2, 45, 3, 4, 20, 33, 4, 5, 6, 21]}
-        segments={[
-          {startIndex: 0, endIndex: 1},
-        ]}
-      />
-      <br />
-      <Waveform
-        height={100}
-        samples={[3, 5, 3, 7, 8, 5, 3, 2, 3, 4, 1, 2, 1, 2, 7, 8, 7, 5, 7, 4, 4, 6, 7, 6, 1, 4, 3, 4, 4, 5]}
-        segments={[
-          {startIndex: 0, endIndex: 9},
-          {startIndex: 14, endIndex: 23},
-          {startIndex: 25, endIndex: 29},
-        ]}
-      />
     </>
   );
 }

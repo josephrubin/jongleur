@@ -10,6 +10,8 @@
   --color-border: hsl(0, 0%, 82%);
   --font-body: -apple-system, "Segoe UI", Helvetica Neue, Helvetica, Roboto,
     Arial, sans-serif, system-ui, "Apple Color Emoji", "Segoe UI Emoji";
+  --color-brand: #d4f3ff;
+  --color-brand-light: #ebf9ff;
 }
 
 html {
@@ -26,10 +28,10 @@ html {
   outline: auto;
 }
 
-:focus {
+/*:focus {
   outline: var(--color-links) solid 2px;
   outline-offset: 2px;
-}
+}*/
 
 html,
 body {
@@ -64,18 +66,40 @@ hr {
 }
 
 input:where([type="text"]),
+input:where([type="password"]),
 input:where([type="search"]) {
   display: block;
   border: 1px solid var(--color-border);
-  width: 100%;
+  border-radius: 6px;
+  width: 40%;
   font: inherit;
   line-height: 1;
   height: calc(1ch + 1.5em);
-  padding-right: 0.5em;
-  padding-left: 0.5em;
+  padding: 1em;
+  padding-top: 1.5em;
+  padding-bottom: 1.5em;
+  margin-bottom: 1em;
   background-color: hsl(0 0% 100% / 20%);
   color: var(--color-foreground);
 }
+
+label {
+  line-height: 2.4rem;
+}
+
+input:where([type="button"]), input:where([type="submit"]), button {
+  border: 1px solid lightgray;
+  background-color: var(--color-brand-light);
+  border-radius: 6px;
+  margin-top: 12px;
+  padding: 1em;
+}
+
+input:where([type="button"]):hover, input:where([type="submit"]):hover, button:hover {
+  background-color: var(--color-brand);
+  box-shadow: 2px 2px 1px lightgray;
+}
+
 
 .sr-only {
   position: absolute;
@@ -91,7 +115,7 @@ input:where([type="search"]) {
 
 .container {
   --gutter: 16px;
-  width: 1024px;
+  width: 1152px;
   max-width: calc(100% - var(--gutter) * 2);
   margin-right: auto;
   margin-left: auto;
@@ -109,9 +133,10 @@ input:where([type="search"]) {
 }
 
 .remix-app__header {
-  padding-top: 1rem;
-  padding-bottom: 1rem;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
   border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-brand-light);
 }
 
 .remix-app__header-content {
@@ -172,7 +197,7 @@ input:where([type="search"]) {
   }
 }
 
-@media screen and (min-width: 1024px) {
+@media screen and (min-width: 1152px) {
   .remix__page {
     --gap: 4rem;
   }
@@ -213,4 +238,38 @@ input:where([type="search"]) {
 .remix__form > * {
   margin-top: 0;
   margin-bottom: 0;
+}
+
+.pointer-cursor {
+  cursor: pointer;
+}
+
+.practice-pieces {
+  padding: 0;
+  padding-top: 12px;
+  padding-bottom: 36px;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 36px;
+}
+
+.practice-piece {
+  display: inline-block;
+  width: 128px;
+  text-align: center;
+  border-radius: 6px;
+  background-color: var(--color-brand);
+}
+
+.practice-piece:hover {
+  box-shadow: 2px 2px 1px lightgray;
+}
+
+.practice-piece a div {
+  padding: 12px;
+}
+
+.welcome-blurb {
+  margin-bottom: 48px;
 }

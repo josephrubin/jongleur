@@ -20,11 +20,6 @@ import { getAccessToken, getUserSession } from "./modules/users.server";
 export const links: LinksFunction = () => {
   return [
     { rel: "stylesheet", href: globalStylesUrl },
-    {
-      rel: "stylesheet",
-      href: darkStylesUrl,
-      media: "(prefers-color-scheme: dark)",
-    },
   ];
 };
 

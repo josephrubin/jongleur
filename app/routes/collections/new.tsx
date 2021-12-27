@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Form, ActionFunction, redirect, useMatches } from "remix";
 import { AssignmentType, CollectionInput, MediaType } from "~/generated/graphql-schema";
-import { createCollection } from "~/modules/collections.server";
+import { createCollection } from "~/modules/pieces.server";
 import { getAccessToken } from "~/modules/users.server";
 
 /* Submit a new collection to the server. */

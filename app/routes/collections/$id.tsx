@@ -1,5 +1,5 @@
 import { useCatch, useLoaderData, LoaderFunction } from "remix";
-import { readCollection } from "~/modules/collections.server";
+import { readCollection } from "~/modules/pieces.server";
 
 export const loader: LoaderFunction = async function loader({ params }) {
   const collection = await readCollection(params.id);

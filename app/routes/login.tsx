@@ -40,13 +40,11 @@ export default function Register() {
           Username
           <input name="username" type="text" />
         </label>
-        <br />
         <label>
           Password
           <input name="password" type="password" />
         </label>
-        <br /><br />
-        <input type="submit" value="Start session" />
+        <input type="submit" value="Continue!" />
       </Form>
     </div>
   );
