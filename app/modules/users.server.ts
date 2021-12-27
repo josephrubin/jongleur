@@ -44,9 +44,9 @@ export async function createSession(args: MutationCreateSessionArgs) {
 
 const storage = createCookieSessionStorage({
   cookie: {
-    name: "Agora_Session",
+    name: "Jongleur_Session",
     secure: process.env.NODE_ENV === "production",
-    secrets: ["ThisIsMySecretTODOLoadFromEnv"],
+    secrets: ["ThisIsMySecretTODOLoadFromEnvBetter"], // TODO: load secret from env.
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 24 * 30,

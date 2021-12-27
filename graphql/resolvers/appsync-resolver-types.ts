@@ -8,7 +8,7 @@
 /**
  * Type for lambda handlers that resolve AppSync requests.
  */
-export type AsrLambdaHandler = (event: AsrEvent, context: AsrContext, callback: AsrCallback) => void
+export type AsrLambdaHandler = (event: AsrEvent, context: AsrContext) => AsrLambdaResponse
 
 /**
  * Type for the event object passed to AppSync lambda resolvers.
@@ -21,7 +21,7 @@ export interface AsrEvent {
     readonly selectionSetList: string[],
     readonly selectionSetGraphQL: string,
     readonly fieldName: string,
-    readonly parentTypeName: "Query" | "Mutation",
+    readonly parentTypeName: string,
     readonly variables: object
   }
 }
@@ -40,13 +40,11 @@ export interface AsrContext {
   readonly awsRequestId: string
 }
 
-/**
- * Type for the callback function passed to AppSync lambda resolvers.
- */
-export type AsrCallback = (errorMessage: string | null, result: object | null) => never;
+/** The response type returned from our lambda. */
+type AsrLambdaResponse = void;
 
 /**
- * Type for a decoded AccessToken JWT
+ * Type for a decoded Cognito AccessToken JWT.
  */
 export interface DecodedAccessToken {
   readonly sub: string,

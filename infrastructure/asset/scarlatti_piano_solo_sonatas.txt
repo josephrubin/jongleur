@@ -1,0 +1,557 @@
+k_index, l_index, p_index, cz_index, key
+1, 366, 57, 6, D minor
+2, 388, 58, 7, G major
+3, 378, 59, 8, A minor
+4, 390, 60, 9, G minor
+5, 367, 61, 10, D minor
+6, 479, 62, 11, F major
+7, 379, 63, 12, A minor
+8, 488, 64, 13, G minor
+9, 413, 65, 14, D minor
+10, 370, 66, 15, D minor
+11, 352, 67, 17, C minor
+12, 489, 68, 18, G minor
+13, 486, 69, 19, G major
+14, 387, 70, 20, G major
+15, 374, 71, 21, E minor
+16, 397, 72, 22, B flat major
+17, 384, 73, 23, F major
+18, 416, 74, 24, D minor
+19, 383, 75, 25, F minor
+20, 375, 76, 26, E major
+21, 363, 77, 27, D major
+22, 360, 78, 28, C minor
+23, 411, 79, 29, D major
+24, 495, 80, 30, A major
+25, 481, 81, 31, F sharp minor
+26, 368, 82, 32, A major
+27, 449, 83, 33, B minor
+28, 373, 84, 34, E major
+29, 461, 85, 36, D major
+30, 499, 86, 199, G minor
+31, 231, 19, 59, G minor
+32, 423, 14, –, D minor
+33, 424, 130, 58, D major
+34, S7, 15, –, D minor
+35, 386, 20, 35, G minor
+36, 245, 91, 61, A minor
+37, 406, 2, 62, C minor
+38, 478, 97, 60, F major
+39, 391, 53, 65, A major
+40, 357, 119, –, C minor
+41, –, 37, 198, D minor
+42, S36, 120, –, B flat major
+43, 40, 133, –, G minor
+44, 432, 116, 175, F major
+45, 265, 230, 93, D major
+46, 25, 179, –, E major
+47, 46, 115, –, B flat major
+48, 157, 87, –, C minor
+49, 301, 178, –, C major
+50, 440, 144, 181, F minor
+51, 20, 151, –, E flat major
+52, 267, 41, –, D minor
+53, 261, 161, 173, D major
+54, 241, 147, 53, A minor
+55, 335, 117, 161, G major
+56, 356, 50, 57, C minor
+57, S38, 108, –, B flat major
+58, 158, 39, –, C minor
+59, 71, 22, –, F major
+60, 13, 29, –, G minor
+61, 136, 16, –, A minor
+62, 45, 49, –, A major
+63, 84, 32, –, G major
+64, 58, 33, –, D minor
+65, 195, 142, –, A major
+66, 496, 134, 98, B flat major
+67, 32, 125, –, F sharp minor
+68, 114, 7, –, E flat major
+69, 382, 42, 115, F minor
+70, 50, 21, –, B flat major
+71, 81, 17, –, G major
+72, 401, 1, –, C major
+73, 217, 30, –, C minor
+74, 94, 34, –, A major
+75, 53, 35, –, G major
+76, 185, 23, –, G minor
+77, 168, 10, –, D minor
+78, 75, 26, –, F major
+79, 80, 204, –, G major
+80, –, 28, –, G major
+81, 271, 13, –, E minor
+82, 30, 25, –, F major
+83, S31, 31, –, A major
+84, 10, 45, –, C minor
+85, 166, 24, –, F major
+86, 403, 122, –, C major
+87, 33, 43, –, B minor
+88, 36, 8, –, G minor
+89, 211, 12, –, D minor
+90, 106, 9, –, D minor
+91, 176, 11, –, G major
+92, 362, 44, –, D minor
+93, 336, 38, –, G minor
+94, –, 27, –, F major
+95, 358, –, 83, C major
+96, 465, 210, 79, D major
+97, –, 5, –, G minor
+98, 325, 219, –, E minor
+99, 317, 135, –, C minor
+100, 355, 232, 105, C major
+101, 494, 156, 74, A major
+102, 89, 88, –, G minor
+103, 233, 233, –, G major
+104, 442, 109, 117, G major
+105, 204, 90, –, G major
+106, 437, 197, 107, F major
+107, 474, 98, 106, F major
+108, 249, 92, 167, G minor
+109, 138, 290, –, A minor
+110, 469, 129, –, A minor
+111, 130, 99, –, G minor
+112, 298, 94, 63, B flat major
+113, 345, 160, 52, A major
+114, 344, 141, –, A major
+115, 407, 100, 64, C minor
+116, 452, 111, 76, C minor
+117, 244, 181, 108, C major
+118, 122, 266, –, D major
+119, 415, 217, 68, D major
+120, 215, 146, 84, D minor
+121, 181, 93, –, G minor
+122, 334, 118, –, D major
+123, 111, 180, –, E flat major
+124, 232, 110, 48, G major
+125, 487, 152, 1, G major
+126, 402, 128, 2, C minor
+127, 186, 198, 3, A flat major
+128, 296, 199, –, B flat minor
+129, 460, 148, –, C minor
+130, 190, 272, –, A flat major
+131, 300, 154, 4, B flat minor
+132, 457, 295, 77, C major
+133, 282, 218, 90, C major
+134, 221, 143, 51, E major
+135, 224, 234, 78, E major
+136, 377, 113, 109, E major
+137, 315, 231, –, D major
+138, 464, 95, –, D minor
+139, 6, 126, –, C minor
+140, 107, 127, –, D major
+141, 422, 271, 118, D minor
+142, –, 240, –, F sharp minor
+143, –, 267, –, C major
+144, –, 316, –, G major
+145, 369, 105, –, D major
+146, 349, 106, –, G major
+147, 376, 48, 116, E minor
+148, 64, 291, –, A minor
+149, 93, 241, –, A minor
+150, 117, 205, –, F major
+151, 330, 238, –, F major
+152, 179, 114, –, G major
+153, 445, 235, –, G major
+154, 96, 183, –, B flat major
+155, 197, 208, –, B flat major
+156, 101, 248, 104, C major
+157, 405, 391, –, C major
+158, 4, 123, –, C minor
+159, 104, 418, 71, C major
+160, 15, 131, –, D major
+161, 417, 216, –, D major
+162, 21, 162, –, E major
+163, 63, 206, –, E major
+164, 59, 274, –, D major
+165, 52, 292, –, C major
+166, 51, 190, –, C major
+167, 329, 200, –, F major
+168, 280, 182, –, F major
+169, 331, 247, –, G major
+170, 303, 164, –, C major
+171, 77, 153, –, G major
+172, S40, 313, 112, B flat major
+173, 447, 51, 179, B minor
+174, 410, 149, –, C minor
+175, 429, 136, –, A minor
+176, 163, 163, 111, D minor
+177, 364, 184, –, D major
+178, 162, 392, 127, D major
+179, 177, 89, 16, G minor
+180, 272, 192, 85, G major
+181, 194, 253, –, A major
+182, 139, 207, 5, A major
+183, 473, 150, 114, F minor
+184, 189, 102, –, F minor
+185, 173, 121, –, F minor
+186, 72, 46, –, F minor
+187, 285, 145, –, F minor
+188, 239, 213, –, A minor
+189, 143, 257, –, B flat major
+190, 250, 256, 113, B flat major
+191, 207, 18, –, D minor
+192, 216, 322, 102, E flat major
+193, 142, 254, –, E flat major
+194, 28, 479, –, F major
+195, S18, 185, –, F major
+196, 38, 244, –, G minor
+197, 147, 124, –, B minor
+198, 22, 132, –, E minor
+199, 253, 276, –, C major
+200, 54, 242, –, C major
+201, 129, 252, 180, G major
+202, 498, 173, 110, B flat major
+203, 380, 96, –, E minor
+204a, –, 170, –, F minor
+204b, –, 255, –, F minor
+205, S23, 171, –, F major
+206, 257, 307, 94, E major
+207, 371, 140, –, E major
+208, 238, 315, –, A major
+209, 428, 209, –, A major
+210, 123, 293, –, G major
+211, 133, 277, 49, A major
+212, 135, 155, 182, A major
+213, 108, 288, –, D minor
+214, 165, 430, –, D major
+215, 323, 281, 80, E major
+216, 273, 320, 66, E major
+217, 42, 287, –, A minor
+218, 392, 237, 101, A minor
+219, 393, 278, –, A major
+220, 342, 309, –, A major
+221, 259, 215, –, A major
+222, 309, 236, –, A major
+223, 214, 188, 133, D major
+224, 268, 225, 134, D major
+225, 351, 202, –, C major
+226, 112, 101, –, C minor
+227, 347, 52, –, B minor
+228, 399, 224, –, B flat major
+229, 199, 139, 135, B flat major
+230, 354, 47, –, C minor
+231, 409, 393, –, C major
+232, 62, 317, –, E minor
+233, 467, 497, 136, E minor
+234, 49, 286, –, G minor
+235, 154, 172, –, G major
+236, 161, 201, –, D major
+237, 308, 446, –, D major
+238, 27, 55, –, F minor
+239, 281, 56, –, F minor
+240, S29, 368, –, G major
+241, 180, 431, 137, G major
+242, 202, 243, –, C major
+243, 353, 394, –, C major
+244, 348, 298, 75, B major
+245, 450, 299, –, B major
+246, 260, 296, 88, C sharp minor
+247, 256, 297, 81, C sharp minor
+248, S35, 187, –, B flat major
+249, 39, 424, –, B flat major
+250, 174, 461, –, C major
+251, 305, 314, –, C major
+252, 159, 203, –, E flat major
+253, 320, 239, –, E flat major
+254, 219, 186, –, C minor
+255, 439, 226, –, C major
+256, 228, 480, –, F major
+257, 169, 138, 138, F major
+258, 178, 494, –, D major
+259, 103, 469, 54, G major
+260, 124, 304, 56, G major
+261, 148, 300, 166, B major
+262, 446, 301, –, B major
+263, 321, 283, –, E minor
+264, 466, 308, –, E major
+265, S32, 168, 121, A minor
+266, 48, 251, –, B flat major
+267, 434, 363, –, B flat major
+268, 41, 369, –, A major
+269, 307, 432, –, A major
+270, 459, 481, –, C major
+271, 155, 447, –, C major
+272, 145, 518, –, B flat major
+273, 398, 174, –, B flat major
+274, 297, 491, –, F major
+275, 328, 330, 122, F major
+276, S20, 433, –, F major
+277, 183, 275, –, D major
+278, S15, 434, 162, D major
+279, 468, 306, –, A major
+280, 237, 395, –, A major
+281, 56, 289, –, D major
+282, 484, 166, –, D major
+283, 318, 482, 123, G major
+284, 90, 169, –, G major
+285, 91, 321, –, A major
+286, 394, 410, –, A major
+287, S 9, 310, –, D major
+288, 57, 311, –, D major
+289, 78, 249, –, G major
+290, 85, 396, –, G major
+291, 61, 282, –, E minor
+292, 24, 223, –, E minor
+293, S44, 157, –, B minor
+294, 67, 470, –, D minor
+295, 270, 211, –, D minor
+296, 198, 305, –, F major
+297, S19, 448, –, F major
+298, S6, 194, 87, D major
+299, 210, 268, 82, D major
+300, 92, 312, –, A major
+301, 493, 361, –, A major
+302, 7, 279, –, C minor
+303, 9, 212, –, C minor
+304, 88, 492, –, G major
+305, 322, 397, –, G major
+306, 16, 456, –, E flat major
+307, 115, 449, –, E flat major
+308, 359, 318, –, C major
+309, 454, 333, –, C major
+310, 248, 284, –, B flat major
+311, 144, 227, –, B flat major
+312, 264, 334, –, D major
+313, 192, 398, 120, D major
+314, 441, 505, –, G major
+315, 235, 54, 119, G minor
+316, 299, 193, –, F major
+317, 66, 258, –, F major
+318, 31, 302, –, F sharp major
+319, 35, 303, –, F sharp major
+320, 341, 335, –, A major
+321, 258, 450, –, A major
+322, 483, 360, –, A major
+323, 95, 411, –, A major
+324, 332, 285, –, G major
+325, 37, 451, –, G major
+326, 201, 336, 128, C major
+327, 152, 399, 129, C major
+328, S27, 485, –, G major
+329, S5, 337, –, C major
+330, 55, 222, –, C major
+331, 18, 471, –, B flat major
+332, 141, 519, –, B flat major
+333, 269, 338, –, D major
+334, 100, 412, –, B flat major
+335, S10, 339, –, D major
+336, 337, 262, –, D major
+337, S26, 340, –, G major
+338, 87, 400, –, G major
+339, 251, 189, –, C major
+340, 105, 420, –, C major
+341, 140, 103, –, A minor
+342, 191, 341, –, A major
+343, 291, 495, 165, A major
+344, 295, 221, –, A major
+345, 306, 342, –, D major
+346, 60, 250, –, D major
+347, 126, 294, 177, G minor
+348, 127, 462, 178, G major
+349, 170, 452, –, F major
+350, 230, 413, –, F major
+351, S34, 165, –, B flat major
+352, S13, 343, –, D major
+353, 313, 401, –, D major
+354, 68, 486, –, F major
+355, S22, 344, –, F major
+356, 443, 488, –, C major
+357, S45, 270, –, C major
+358, 412, 457, –, D major
+359, 448, 425, –, D major
+360, 400, 520, –, B flat major
+361, 247, 214, –, B flat major
+362, 156, 159, –, C minor
+363, 160, 104, –, C minor
+364, 436, 345, 125, F minor
+365, 480, 112, 126, F minor
+366, 119, 263, 89, F major
+367, 172, 453, 130, F major
+368, S30, 506, 131, A major
+369, 240, 259, 132, A major
+370, 316, 346, –, E flat major
+371, 17, 264, –, E flat major
+372, 302, 402, 168, G major
+373, 98, 158, –, G minor
+374, 76, 472, –, G major
+375, 389, 414, –, G major
+376, 34, 246, –, B minor
+377, 263, 245, 124, B minor
+378, 276, 347, 99, F major
+379, 73, 107, –, F major
+380, 23, 483, 100, E major
+381, 225, 323, 92, E major
+382, S33, 508, –, A minor
+383, 134, 269, –, A minor
+384, 2, 487, –, C major
+385, 284, 220, –, C major
+386, 171, 137, 164, F minor
+387, 175, 415, 163, F minor
+388, 414, 370, –, D major
+389, 482, 331, –, D major
+390, 234, 348, –, G major
+391, 79, 364, –, G major
+392, 246, 371, –, B flat major
+393, 74, 326, –, B flat major
+394, 275, 349, –, E minor
+395, 65, 273, –, E major
+396, 110, 435, –, D minor
+397, 208, 325, –, D major
+398, 218, 493, 69, C major
+399, 274, 458, –, C major
+400, 213, 228, 86, D major
+401, 365, 436, –, D major
+402, 427, 496, –, E minor
+403, 470, 437, –, E major
+404, 222, 489, –, A major
+405, 43, 438, –, A major
+406, 5, 509, –, C major
+407, S4, 521, –, C major
+408, 346, 350, –, B minor
+409, 150, 403, –, B minor
+410, S43, 372, –, B flat major
+411, 69, 351, –, B flat major
+412, 182, 463, –, G major
+413, 125, 416, –, G major
+414, 310, 373, –, D major
+415, S11, 175, –, D major
+416, 149, 454, –, D major
+417, 462, 40, –, D minor
+418, 26, 510, –, F major
+419, 279, 524, –, F major
+420, S2, 352, 169, C major
+421, 252, 459, 170, C major
+422, 451, 511, 141, C major
+423, 102, 455, 143, C major
+424, 289, 374, 142, G major
+425, 333, 426, 144, G major
+426, 128, 500, 45, G minor
+427, 286, 464, 145, G major
+428, 131, 353, 46, A major
+429, 132, 439, 47, A major
+430, 463, 329, 50, D major
+431, 83, 365, –, G major
+432, 288, 465, 171, G major
+433, 453, 440, 172, G major
+434, 343, 498, 176, D minor
+435, 361, 466, 174, D major
+436, 109, 404, –, D major
+437, 278, 499, 139, F major
+438, 381, 467, 140, F major
+439, 47, 473, –, B flat major
+440, 97, 328, –, B flat major
+441, S39, 375, 146, B flat major
+442, 319, 229, 147, B flat major
+443, 418, 376, 148, D major
+444, 420, 441, 149, D minor
+445, 385, 468, 150, F major
+446, 433, 177, 72, F major
+447, 294, 191, 151, F sharp minor
+448, 485, 261, 152, F sharp minor
+449, 444, 405, 153, G major
+450, 338, 422, 44, G minor
+451, 243, 366, 103, A minor
+452, –, 195, –, A major
+453, –, 280, –, A major
+454, 184, 423, 154, G major
+455, 209, 354, 155, G major
+456, 491, 377, 156, A major
+457, 292, 442, 157, A major
+458, 212, 260, 43, D major
+459, S14, 167, –, D minor/major
+460, 324, 378, 158, C major
+461, 8, 324, –, C major
+462, 438, 474, 95, F minor
+463, 471, 512, 96, F minor
+464, 151, 460, –, C major
+465, 242, 406, 159, C major
+466, 118, 501, –, F minor
+467, 476, 513, –, F minor
+468, 226, 507, 41, F major
+469, 431, 514, 73, F major
+470, 304, 379, –, G major
+471, 82, 327, –, G major
+472, 99, 475, –, B flat major
+473, 229, 355, –, B flat major
+474, 203, 502, 37, E flat major
+475, 220, 319, 97, E flat major
+476, 340, 427, 38, G minor
+477, 290, 419, 70, G major
+478, 12, 503, –, D major
+479, S16, 380, –, D major
+480, S8, 381, –, D major
+481, 187, 504, 39, F minor
+482, 435, 356, 40, F major
+483, 472, 407, 42, F major
+484, 419, 428, –, D major
+485, 153, 490, –, C major
+486, 455, 515, –, C major
+487, 205, 421, 55, C major
+488, S37, 382, –, B flat major
+489, S41, 522, –, B flat major
+490, 206, 476, 91, D major
+491, 164, 484, –, D major
+492, 14, 443, –, D major
+493, S24, 383, –, G major
+494, 287, 444, –, G major
+495, 426, 384, –, E major
+496, 372, 332, –, E major
+497, 146, 357, –, B minor
+498, 350, 367, –, B minor
+499, 193, 477, –, A major
+500, 492, 358, –, A major
+501, 137, 385, –, C major
+502, 3, 408, –, C major
+503, 196, 196, –, B flat major
+504, 29, 265, –, B flat major
+505, 326, 386, –, F major
+506, 70, 409, –, F major
+507, 113, 478, –, E flat major
+508, 19, 516, –, E flat major
+509, 311, 387, –, D major
+510, 277, 525, –, D minor
+511, 314, 388, –, D major
+512, 339, 359, –, D major
+513, S3, 176, –, C major
+514, 1, 389, –, C major
+515, 255, 417, –, C major
+516, S12, 523, –, D minor
+517, 266, 517, 190, D minor
+518, 116, 390, –, F major
+519, 475, 445, 189, F minor
+520, 86, 362, –, G major
+521, 408, 429, –, G major
+522, S25, 526, –, G major
+523, 490, 527, 197, G major
+524, 283, 528, –, F major
+525, 188, 529, 194, F major
+526, 456, 530, 193, C minor
+527, 458, 531, –, C major
+528, 200, 532, –, B flat major
+529, 327, 533, 188, B flat major
+530, 44, 534, –, E major
+531, 430, 535, 67, E major
+532, 223, 536, 187, A minor
+533, 395, 537, 186, A major
+534, 11, 538, –, D major
+535, 262, 539, 185, D major
+536, 236, 540, –, A major
+537, 293, 541, –, A major
+538, 254, 542, –, G major
+539, 121, 543, –, G major
+540, S17, 544, –, F major
+541, 120, 545, –, F major
+542, 167, 546, –, F major
+543, 227, 547, –, F major
+544, 497, 548, –, B flat major
+545, 500, 549, –, B flat major
+546, 312, 550, –, G minor
+547, S28, 551, –, G major
+548, 404, 552, –, C major
+549, S1, 553, –, C major
+550, S42, 554, –, B flat major
+551, 396, 555, 184, B flat major
+552, 421, 556, –, D minor
+553, 425, 557, 183, D minor
+554, S21, 558, –, F major
+555, 477, 559, –, F minor

@@ -18,15 +18,27 @@ import jwt_decode from "jwt-decode";
 
 // See https://github.com/aws/aws-sdk-js-v3/tree/main/lib/lib-dynamodb.
 
-// Constants from the environment.
-const DYNAMODB_REGION = process.env.AGORA_DYNAMODB_REGION;
-const COGNITO_REGION = process.env.AGORA_DYNAMODB_REGION;
-const COLLECTION_TABLE = process.env.AGORA_COLLECTION_TABLE;
-const CAST_TABLE = process.env.AGORA_CAST_TABLE;
-const PRINCIPAL_TABLE = process.env.AGORA_PRINCIPAL_TABLE;
+// Our infra file guarantees certain env variables form the
+// otherwise unknown environment.
+interface JongEnv {
+  readonly JONG_DYNAMODB_REGION: string;
+  readonly JONG_COGNITO_REGION: string;
+  readonly JONG_PIECE_TABLE: string;
+  readonly JONG_PRACTICE_TABLE: string;
+  readonly JONG_USER_POOL_ID: string;
+  readonly JONG_USER_POOL_CLIENT_ID: string;
+}
+const jongEnv = process.env as unknown as JongEnv;
 
-const USER_POOL_ID = process.env.AGORA_USER_POOL_ID!;
-const USER_POOL_CLIENT_ID = process.env.AGORA_USER_POOL_CLIENT_ID!;
+// Constants from the environment.
+const DYNAMODB_REGION = jongEnv.JONG_DYNAMODB_REGION;
+const COGNITO_REGION = jongEnv.JONG_DYNAMODB_REGION;
+const PIECE_TABLE = jongEnv.JONG_PIECE_TABLE;
+const PRACTICE_TABLE = jongEnv.JONG_PRACTICE_TABLE;
+//const PRINCIPAL_TABLE = process.env.JONG_PRINCIPAL_TABLE;
+
+const USER_POOL_ID = jongEnv.JONG_USER_POOL_ID;
+const USER_POOL_CLIENT_ID = jongEnv.JONG_USER_POOL_CLIENT_ID;
 
 // Our connection to DynamoDB. Created when this lambda starts.
 const dynamoDbDocumentClient = DynamoDBDocument.from(
@@ -56,7 +68,7 @@ interface TypeWithId {
  * @param context the lambda execution context.
  * @param callback the function to call with errors / results.
  */
-const lambdaHandler: AsrLambdaHandler = async (event, context, callback) => {
+const lambdaHandler: AsrLambdaHandler = async (event) => {
   // The name of the parent we are resolving inside and the field we're resolving.
   const { parentTypeName, fieldName } = event.info;
   // Arguments to the GraphQL field.
@@ -70,19 +82,6 @@ const lambdaHandler: AsrLambdaHandler = async (event, context, callback) => {
   const source = event.source;
 
   console.log(`Resolve field ${fieldName} on parent ${parentTypeName}.`);
-
-  // Prettier functions for continuing with result or error.
-  function returnResult(result: object|undefined|null): never {
-    return callback(null, result || null);
-  }
-  function returnError(errorMessage: string): never {
-    return callback(errorMessage, null);
-  }
-
-  // Return the result if it's available, otherwise fail with an error.
-  function returnResultIfExists(resultObject: object | undefined, errorMessage: string) {
-    resultObject ? returnResult(resultObject) : returnError(errorMessage);
-  }
 
   // Our Cognito client app secret used to auth requests to Cognito.
   // We get it on every request because it might change.

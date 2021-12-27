@@ -1,0 +1,11 @@
+.practice-piece-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.practice-piece-card {
+  display: block;
+  border-radius: 8px;
+  border: 1px solid black;
+}

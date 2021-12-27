@@ -10,19 +10,15 @@
 # }
 
 type Query {
-  """Read a single collection by ID, or null if not found."""
-  readCollection(id: ID!): Collection
-  """Read all of the collections."""
-  readCollections: [Collection!]!
+  """Read all of the pieces."""
+  readPieces: [Piece!]!
   """Get an AuthenticatedUser node from which to read a user's data."""
   readAuthenticate(accessToken: String!): AuthenticatedUser!
 }
 
 type Mutation {
-  """Create a collection with auto-assigned ID."""
-  createCollection(accessToken: String!, input: CollectionInput!): Collection
-  """Add a new Cast to a Collection. TODO - implement. """
-  createCast(collectionId: ID!, input: CastInput!): Cast!
+  """Create a new practice recording of a piece."""
+  createPractice(accessToken: String!, pieceId: ID!, input: PracticeInput!): Practice
 
   """
   Create a new user (sign up). As is standard, user/pass are passed over
@@ -36,97 +32,21 @@ type Mutation {
   refreshSession(username: String!, refreshToken: String!): Session!
 }
 
-"""Various points of metadata that our types might store."""
-type Metadata {
-  createdAt: String
-}
-
-"""The type of media or data stored in the NFTs represented by a collection."""
-enum MediaType {
-  """Images are natively stored in the NFTs.""" 
-  IMAGE
-}
-
-"""The method by which elements of a collection are assisgned to principals."""
-enum AssignmentType {
-  """NFTs are assigned directly to principles."""
-  DIRECT
-  """NFTs can be assigned by anyone with a token or URL to themself."""
-  TOKEN
-  """NFTs can be assigned by anyone to themself."""
-  OPEN
-}
-
-"""A series of NFTs before they are minted."""
-type Collection {
+"""An individual composition that a user can practice."""
+type Piece {
   id: ID!
 
-  # The name of this collection.
+  # The name of this piece.
   title: String!
-  # The type of data stored in the elements of this collection.
-  mediaType: MediaType!
-  # The mode through which NFTs from this collection get assigned.
-  assignmentType: AssignmentType!
-  # Iff the NFTs represented by this collection's elements are
-  # transferable after they are claimed. We should never allow this
-  # to change since the underlying NFTs will never change transferability.
-  nftsAreTransferable: Boolean!
-
-  # The individual elements that compose this collection that NFTs will
-  # be made from.
-  casts: [Cast!]!
 }
 
-input CollectionInput {
-  title: String!
-  mediaType: MediaType!
-  assignmentType: AssignmentType!
-  nftsAreTransferable: Boolean!
-  casts: [CastInput!]!
+"""A practice session on a particular piece."""
+type Practice {
+  duration: Int
 }
 
-"""
-A unique item of a Collection. Each one represents an NFT. The underlying
-NFT may or may not have atually been minted yet, since minting only happens
-when an NFT is claimed.
-"""
-type Cast {
-  id: ID!
-
-  # The main data of this element which will be used as the data associated
-  # with the NFT once it is minted.
-  data: CastData!
-
-  # The principal who was first assigned this element, or null if none
-  # have been assigned. If not null, this is not necessarily the principal that
-  # currently owns the NFT. Once set, this value will never change or
-  # be set to null. Even non-directly assigned NFTs get assigned, generally
-  # right before being claimed or simaltaneously.
-  assignedPrincipal: Principal
-
-  # True if this element has been claimed, otherwise false. Will always be false if
-  # {assignedPrincipal} is null since an element must be assigned
-  # prior to being claimed. Once set to true, this value will never be
-  # set false, even if the underlying NFT disappears / transfers.
-  isClaimed: Boolean!
-}
-
-input CastInput {
-  data: CastDataInput!
-}
-
-"""
-The main data associated with a collection element. Its form will depend on
-the MediaType of the collection.
-"""
-type CastData {
-  mimeType: String!
-  uri: String!
-}
-
-input CastDataInput {
-  mimeType: String!
-  uri: String!
+input PracticeInput {
+  duration: Int
 }
 
 """A platform user."""
@@ -152,7 +72,7 @@ type AuthenticatedUser {
   """The verified claimed username."""
   username: String!
 
-  collections: [Collection!]!
+  practices: [Practice!]!
   user: User!
 }
 
@@ -171,11 +91,4 @@ type Principal {
 
   """The NFTs on the blockchain that this principal owns."""
   nfts: [Nft!]!
-}
-
-"""Representation of an actual NFT that's on the blockchain."""
-type Nft {
-  """These properties subject to change."""
-  mimeType: String!
-  uri: String!
 }

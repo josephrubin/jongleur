@@ -22,18 +22,18 @@ export class InfrastructureStack extends cdk.Stack {
     super(scope, id, props);
 
     // The user pool for our app's auth.
-    const userPool = new cognito.UserPool(this, "AgoraUserPool", {
+    const userPool = new cognito.UserPool(this, "JongleurUserPool", {
       selfSignUpEnabled: true,
       userVerification: {
-        emailSubject: "Verify your account for Agora!",
-        emailBody: "Thanks for signing up for Agora! Your verification code is {####}",
+        emailSubject: "Verify your account for Jongleur!",
+        emailBody: "Thanks for signing up for Jongleur! Your verification code is {####}",
         emailStyle: cognito.VerificationEmailStyle.CODE,
-        smsMessage: "Thanks for signing up for Agora! Your verification code is {####}",
+        smsMessage: "Thanks for signing up for Jongleur! Your verification code is {####}",
       },
       userInvitation: {
-        emailSubject: "Invite to join Agora!",
-        emailBody: "Hello {username}, you have been invited to join Agora! Your temporary password is {####}",
-        smsMessage: "Hello {username}, your temporary password for Agora is {####}",
+        emailSubject: "Invite to join Jongleur!",
+        emailBody: "Hello {username}, you have been invited to join Jongleur! Your temporary password is {####}",
+        smsMessage: "Hello {username}, your temporary password for Jongleur is {####}",
       },
       signInAliases: {
         username: true,
@@ -51,7 +51,7 @@ export class InfrastructureStack extends cdk.Stack {
     // Our GraphQL resolver is a client of the user pool, meaning it can invoke user pool
     // operations. Since we set generateSecret to true, its requests must come with a
     // MAC to ensure it is not impersonated.
-    const userPoolClient = userPool.addClient("AgoraGraphQlClient", {
+    const userPoolClient = userPool.addClient("JongleurGraphQlClient", {
       generateSecret: true,
       refreshTokenValidity: Duration.days(30),
       accessTokenValidity: Duration.minutes(60),
@@ -65,8 +65,8 @@ export class InfrastructureStack extends cdk.Stack {
     });
 
     // The GraphQL API for our data.
-    const api = new appsync.GraphqlApi(this, "AgoraApi", {
-      name: "AgoraApi",
+    const api = new appsync.GraphqlApi(this, "JongleurApi", {
+      name: "JongleurApi",
       // Path to our graphql schema. We don't use the cdk code-first approach because
       // having a schema file allows us to use graphql tooling throughout our project.
       schema: appsync.Schema.fromAsset(props.graphqlSchemaFile),
@@ -78,8 +78,8 @@ export class InfrastructureStack extends cdk.Stack {
       xrayEnabled: true,
     });
 
-    // The table that keeps track of our collections.
-    const collectionTable = new dynamodb.Table(this, "CollectionTable", {
+    // The table that keeps track of our pieces.
+    const pieceTable = new dynamodb.Table(this, "PieceTable", {
       partitionKey: {
         name: "id",
         // GraphQL ID types are represented as STRING in dynamodb.
@@ -94,19 +94,9 @@ export class InfrastructureStack extends cdk.Stack {
 
       contributorInsightsEnabled: true,
     });
-    // We want to be able to query this table by the user
-    // who made the collection.
-    collectionTable.addGlobalSecondaryIndex({
-      indexName: "userId_index",
-      partitionKey: {
-        name: "userId",
-        type: dynamodb.AttributeType.STRING,
-      },
-      projectionType: dynamodb.ProjectionType.ALL,
-    });
 
-    // The table that keeps track of our collection casts.
-    const castTable = new dynamodb.Table(this, "CastTable", {
+    // The table that keeps track of user Practices.
+    const practiceTable = new dynamodb.Table(this, "PracticeTable", {
       partitionKey: {
         name: "id",
         type: dynamodb.AttributeType.STRING,
@@ -115,17 +105,28 @@ export class InfrastructureStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       contributorInsightsEnabled: true,
     });
-    // We want to be able to query this table by the collection
-    // that the casts are in.
-    castTable.addGlobalSecondaryIndex({
-      indexName: "collectionId_index",
+    // We want to be able to query this table by the user
+    // that the practices are associated with.
+    practiceTable.addGlobalSecondaryIndex({
+      indexName: "userId_index",
       partitionKey: {
-        name: "collectionId",
+        name: "userId",
+        type: dynamodb.AttributeType.STRING,
+      },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+    // We want to be able to query this table by the piece
+    // that the practices are associated with.
+    practiceTable.addGlobalSecondaryIndex({
+      indexName: "pieceId_index",
+      partitionKey: {
+        name: "pieceId",
         type: dynamodb.AttributeType.STRING,
       },
       projectionType: dynamodb.ProjectionType.ALL,
     });
 
+    /*
     // The table that keeps track of our user Principals.
     const principalTable = new dynamodb.Table(this, "PrincipalTable", {
       partitionKey: {
@@ -135,7 +136,7 @@ export class InfrastructureStack extends cdk.Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       contributorInsightsEnabled: true,
-    });
+    });*/
 
     // The lambda resolver that we use for all our GraphQL queries and mutations.
     // We don't use dynamodb data sources and resolver templates because they don't work.
@@ -149,23 +150,23 @@ export class InfrastructureStack extends cdk.Stack {
 
       bundling: {
         minify: true,
-        banner: "/* (c) Agora; minified and bundled through @aws-cdk/aws-lambda-nodejs. */",
+        banner: "/* (c) Jongleur; minified and bundled through @aws-cdk/aws-lambda-nodejs. */",
       },
 
       environment: {
-        AGORA_DYNAMODB_REGION: props.env!.region!,
-        AGORA_COGNITO_REGION: props.env!.region!,
-        AGORA_COLLECTION_TABLE: collectionTable.tableName,
-        AGORA_CAST_TABLE: castTable.tableName,
-        AGORA_PRINCIPAL_TABLE: principalTable.tableName,
-        AGORA_USER_POOL_ID: userPool.userPoolId,
-        AGORA_USER_POOL_CLIENT_ID: userPoolClient.userPoolClientId,
+        JONG_DYNAMODB_REGION: props.env!.region!,
+        JONG_COGNITO_REGION: props.env!.region!,
+        JONG_PIECE_TABLE: pieceTable.tableName,
+        JONG_PRACTICE_TABLE: practiceTable.tableName,
+        //JONG_PRINCIPAL_TABLE: principalTable.tableName,
+        JONG_USER_POOL_ID: userPool.userPoolId,
+        JONG_USER_POOL_CLIENT_ID: userPoolClient.userPoolClientId,
       },
     });
     // Add some resource permissions to our resolver.
-    collectionTable.grantReadWriteData(apiResolverLambda);
-    castTable.grantReadWriteData(apiResolverLambda);
-    principalTable.grantReadWriteData(apiResolverLambda);
+    pieceTable.grantReadWriteData(apiResolverLambda);
+    practiceTable.grantReadWriteData(apiResolverLambda);
+    //principalTable.grantReadWriteData(apiResolverLambda);
     // Add some additional cognito permissions to our resolver.
     const resolverCognitoPolicy = new iam.PolicyStatement();
     resolverCognitoPolicy.addResources(userPool.userPoolArn);
@@ -176,7 +177,7 @@ export class InfrastructureStack extends cdk.Stack {
     );
     apiResolverLambda.addToRolePolicy(resolverCognitoPolicy);
 
-    // The data source that our lambda resolves. We currently use it for all queries and mutations.
+    // The data source that our lambda resolves. Used for all queries and mutations.
     const apiLambdaDataSource = api.addLambdaDataSource("ApiLambdaDataSource", apiResolverLambda);
 
     /* GraphQL field resolvers. We don't have to define a resolver for every type, since fields
@@ -186,12 +187,12 @@ export class InfrastructureStack extends cdk.Stack {
     // Query parent.
     apiLambdaDataSource.createResolver({
       typeName: QUERY_TYPE,
-      fieldName: "readCollections",
+      fieldName: "readPieces",
     });
-    apiLambdaDataSource.createResolver({
+    /*apiLambdaDataSource.createResolver({
       typeName: QUERY_TYPE,
       fieldName: "readCollection",
-    });
+    });*/
     apiLambdaDataSource.createResolver({
       typeName: QUERY_TYPE,
       fieldName: "readAuthenticate",
@@ -232,7 +233,7 @@ export class InfrastructureStack extends cdk.Stack {
     const imageAsset = new DockerImageAsset(this, "ImageAssets", {
       directory: ".",
     });
-    new apprunner.Service(this, "AgoraService", {
+    new apprunner.Service(this, "JongleurService", {
       source: apprunner.Source.fromAsset({
         imageConfiguration: { port: 3000 },
         asset: imageAsset,

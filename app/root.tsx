@@ -188,7 +188,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       </div>
       <footer className="remix-app__footer">
         <div className="container remix-app__footer-content">
-          <p>&copy; RoJo 2021</p>
+          <p>&copy; Jongleur</p>
         </div>
       </footer>
     </div>
@@ -197,6 +197,6 @@ function Layout({ children }: { children: React.ReactNode }) {
 
 function RoJoLogo() {
   return (
-    <div><big><b>ROJO_LOGO</b></big></div>
+    <div><big><b>Jongleur</b></big></div>
   );
 }
