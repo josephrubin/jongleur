@@ -1,4 +1,4 @@
-FROM node:15.13.0
+FROM node:17
 
 WORKDIR /usr/src/app
 
@@ -10,7 +10,8 @@ RUN npm install
 COPY . .
 RUN npm run build
 
+# The Remix server runs on port 3000, but we'll redirect HTTPS on
+# the load balancer (443) to container port 3000 to route requests.
 EXPOSE 3000
-EXPOSE 80
 
 CMD npm run start

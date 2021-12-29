@@ -143,6 +143,7 @@ input:where([type="button"]):active, input:where([type="submit"]):active, button
 }
 
 .remix-app__header {
+  position: fixed;
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid var(--color-border);
@@ -174,6 +175,7 @@ input:where([type="button"]):active, input:where([type="submit"]):active, button
 }
 
 .remix-app__main {
+  padding-top: 5.5em;
   flex: 1 1 100%;
 }
 
@@ -280,6 +282,13 @@ input:where([type="button"]):active, input:where([type="submit"]):active, button
   padding: 12px;
 }
 
-.welcome-blurb {
-  margin-bottom: 48px;
+.rest-header {
+  position: sticky;
+  top: 79px;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.hint {
+  color: gray;
+  font-style: italic;
 }

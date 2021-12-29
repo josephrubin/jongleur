@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 import "source-map-support/register";
-import * as cdk from "@aws-cdk/core";
-import { InfrastructureStack } from "../lib/infrastructure-stack";
+import { App } from "aws-cdk-lib";
+import { JongleurInfrastructureStack } from "../lib/jongleur-infrastructure-stack";
 
-const app = new cdk.App();
-new InfrastructureStack(app, "InfrastructureStack", {
+const app = new App();
+new JongleurInfrastructureStack(app, "JongleurInfrastructureStack", {
   graphqlSchemaFile: "graphql/schema.graphql",
 
   /* If you don't specify 'env', this stack will be environment-agnostic.

@@ -136,44 +136,27 @@ function Layout({ children }: { children: React.ReactNode }) {
           </Link>
           <nav aria-label="Main navigation" className="remix-app__header-nav">
             <ul>
+              {!accessKey && (
+                <>
+                  <li>
+                    <Link to="register">Sign Up</Link>
+                  </li>
+                  <li>
+                    <Link to="login">Sign In</Link>
+                  </li>
+                </>
+              )}
               <li>
-                <Link to="/">Home</Link>
+                <Link to="./stats">Your Stats</Link>
               </li>
-              {
-                accessKey
-                  ? (
-                    <li>
-                      <Link to="collections/new">+ New Collection</Link>
-                    </li>
-                  )
-                  : null
-              }
-              {
-                !accessKey
-                  ? (
-                    <>
-                      <li>
-                        <Link to="register">Sign Up</Link>
-                      </li>
-                      <li>
-                        <Link to="login">Sign In</Link>
-                      </li>
-                    </>
-                  )
-                  : null
-              }
-              {
-                accessKey
-                  ? (
-                    <li>
+              {accessKey && (
+                <li>
                     You are signed in.
-                      <form method="post" action="logout">
-                        <input type="submit" value="logout" />
-                      </form>
-                    </li>
-                  )
-                  : null
-              }
+                  <form method="post" action="logout">
+                    <input type="submit" value="logout" />
+                  </form>
+                </li>
+              )}
             </ul>
           </nav>
         </div>

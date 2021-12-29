@@ -118,6 +118,7 @@ function drawWaveform(
   const outsideSegmentColor = "gray";
   const segmentColors = ["blue", "red", "green"];
   const mouseOverSegmentBoxColor = "#d4f3ff";
+  const mouseOverSegmentBoxShadowColor = "gray";
   const textColor = "black";
 
   // Optionally apply a filter to our samples, mostly so outlier
@@ -138,6 +139,8 @@ function drawWaveform(
       const segment = segments[mouseOverSegmentIndex];
       const segmentWidth = (widthPerSample + gapBetweenSamples) * (1 + segment.endIndex - segment.startIndex);
       const segmentX = (widthPerSample + gapBetweenSamples) * (segment.startIndex - 0.5);
+      ctx.fillStyle = mouseOverSegmentBoxShadowColor;
+      fillRoundedRect(ctx, Math.round(segmentX) + 2, 2, Math.round(segmentWidth), waveHeight, 6);
       ctx.fillStyle = mouseOverSegmentBoxColor;
       fillRoundedRect(ctx, Math.round(segmentX), 0, Math.round(segmentWidth), waveHeight, 6);
     }
@@ -158,7 +161,7 @@ function drawWaveform(
       const scaledSample = sample * waveHeight;
       const sampleX = index * (gapBetweenSamples + widthPerSample);
       ctx.fillRect(
-        sampleX + 1,
+        1 + sampleX,
         (waveHeight - scaledSample) / 2,
         widthPerSample,
         scaledSample

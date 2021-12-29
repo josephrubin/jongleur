@@ -13,7 +13,6 @@ import { error } from "aws-cdk/lib/logging";
 import * as crypto from "crypto";
 import { NoUnusedVariablesRule } from "graphql";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
-import * as stx from "./stacks";
 import jwt_decode from "jwt-decode";
 
 // See https://github.com/aws/aws-sdk-js-v3/tree/main/lib/lib-dynamodb.

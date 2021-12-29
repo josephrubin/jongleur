@@ -1,0 +1,7 @@
+.remix-app__main {
+  background-image: url("/books-large.jpg");
+  background-color: #FDFAF5;
+  background-repeat: no-repeat;
+  background-position: right bottom;
+  background-size: 940px;
+}

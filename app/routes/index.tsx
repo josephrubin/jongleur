@@ -129,7 +129,11 @@ export default function Index() {
           </ol>
         </>
       )}
-      <h1>🎵&nbsp; All From Scarlatti</h1>
+      <div className="rest-header">
+        <hr style={{visibility: "hidden"}} />
+        <h1>🎵&nbsp; All From Scarlatti</h1>
+        <hr />
+      </div>
       <ol className="practice-pieces">
         {pieces.map(piece =>
           <li key={piece.id} className="practice-piece">

@@ -84,11 +84,5 @@ type Session {
 
 """The decentralized identifier of a platform user."""
 type Principal {
-  publicAddress: ID!
-  secretKey: ID!
-  password: String!
-  stxPrivateKey: String!
-
-  """The NFTs on the blockchain that this principal owns."""
-  nfts: [Nft!]!
+  nothing: String
 }

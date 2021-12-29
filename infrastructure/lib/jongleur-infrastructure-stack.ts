@@ -1,15 +1,25 @@
-import * as cdk from "@aws-cdk/core";
-import * as appsync from "@aws-cdk/aws-appsync";
-import * as cognito from "@aws-cdk/aws-cognito";
-import * as dynamodb from "@aws-cdk/aws-dynamodb";
-import * as lambda from "@aws-cdk/aws-lambda";
-import * as nodelambda from "@aws-cdk/aws-lambda-nodejs";
-import * as iam from "@aws-cdk/aws-iam";
-import * as apprunner from "@aws-cdk/aws-apprunner";
-import { Duration } from "@aws-cdk/core";
-import { DockerImageAsset } from "@aws-cdk/aws-ecr-assets";
+import { Construct } from "constructs";
+import {
+  CfnOutput,
+  Stack,
+  StackProps,
+  Duration,
+  Expiration,
+  RemovalPolicy,
+  aws_cognito as cognito,
+  aws_dynamodb as dynamodb,
+  aws_lambda as lambda,
+  aws_lambda_nodejs as node_lambda,
+  aws_iam as iam,
+  aws_ec2 as ec2,
+  aws_ecs as ecs,
+  aws_ecs_patterns as ecs_patterns,
+  aws_ecr_assets as ecr_assets,
+  aws_certificatemanager as acm
+} from "aws-cdk-lib";
+import * as appsync from "@aws-cdk/aws-appsync-alpha";
 
-interface InfrastructureStackProps extends cdk.StackProps {
+interface JongleurInfrastructureStackProps extends StackProps {
   // Path to the file that contains the graphql schema for our API.
   readonly graphqlSchemaFile: string;
 }
@@ -17,8 +27,8 @@ interface InfrastructureStackProps extends cdk.StackProps {
 const QUERY_TYPE = "Query";
 const MUTATION_TYPE = "Mutation";
 
-export class InfrastructureStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props: InfrastructureStackProps) {
+export class JongleurInfrastructureStack extends Stack {
+  constructor(scope: Construct, id: string, props: JongleurInfrastructureStackProps) {
     super(scope, id, props);
 
     // The user pool for our app's auth.
@@ -72,8 +82,17 @@ export class InfrastructureStack extends cdk.Stack {
       schema: appsync.Schema.fromAsset(props.graphqlSchemaFile),
       authorizationConfig: {
         defaultAuthorization: {
-          authorizationType: appsync.AuthorizationType.API_KEY,
+          authorizationType: appsync.AuthorizationType.IAM,
         },
+        additionalAuthorizationModes: [{
+          authorizationType: appsync.AuthorizationType.API_KEY,
+          apiKeyConfig: {
+            name: "DevelopmentApiKey",
+            description: "Hardcoded into the development application, this key allows local dev against the API.",
+            expires: Expiration.after(Duration.days(12)),
+          },
+        },
+        ],
       },
       xrayEnabled: true,
     });
@@ -90,7 +109,7 @@ export class InfrastructureStack extends cdk.Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       // So as to not litter our account with tables.
       // TODO: change to RETAIN in production deployments.
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      removalPolicy: RemovalPolicy.DESTROY,
 
       contributorInsightsEnabled: true,
     });
@@ -102,7 +121,7 @@ export class InfrastructureStack extends cdk.Stack {
         type: dynamodb.AttributeType.STRING,
       },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      removalPolicy: RemovalPolicy.DESTROY,
       contributorInsightsEnabled: true,
     });
     // We want to be able to query this table by the user
@@ -140,7 +159,7 @@ export class InfrastructureStack extends cdk.Stack {
 
     // The lambda resolver that we use for all our GraphQL queries and mutations.
     // We don't use dynamodb data sources and resolver templates because they don't work.
-    const apiResolverLambda = new nodelambda.NodejsFunction(this, "ApiResolverLambda", {
+    const apiResolverLambda = new node_lambda.NodejsFunction(this, "ApiResolverLambda", {
       runtime: lambda.Runtime.NODEJS_14_X,
       entry: "graphql/resolvers/resolve.ts",
       handler: "lambdaHandler",
@@ -199,10 +218,10 @@ export class InfrastructureStack extends cdk.Stack {
     });
 
     // Mutation parent.
-    apiLambdaDataSource.createResolver({
+    /*apiLambdaDataSource.createResolver({
       typeName: MUTATION_TYPE,
       fieldName: "createCollection",
-    });
+    });*/
     apiLambdaDataSource.createResolver({
       typeName: MUTATION_TYPE,
       fieldName: "createUser",
@@ -217,27 +236,61 @@ export class InfrastructureStack extends cdk.Stack {
     });
 
     // Collection parent.
-    apiLambdaDataSource.createResolver({
+    /*apiLambdaDataSource.createResolver({
       typeName: "Collection",
       fieldName: "casts",
-    });
+    });*/
 
     // AuthenticatedUser parent.
-    apiLambdaDataSource.createResolver({
+    /*apiLambdaDataSource.createResolver({
       typeName: "AuthenticatedUser",
       fieldName: "collections",
-    });
+    });*/
 
     /** Our Remix container. */
-    /*
-    const imageAsset = new DockerImageAsset(this, "ImageAssets", {
-      directory: ".",
+    const webAppCertificate = new acm.Certificate(this, "JongleurWebAppCertificate", {
+      domainName: "www.jongleur.app",
+      validation: acm.CertificateValidation.fromDns(),
     });
-    new apprunner.Service(this, "JongleurService", {
-      source: apprunner.Source.fromAsset({
-        imageConfiguration: { port: 3000 },
-        asset: imageAsset,
-      }),
-    });*/
+    const webAppRole = new iam.Role(this, "WebAppRole", {
+      assumedBy: new iam.ServicePrincipal("ecs-tasks.amazonaws.com"),
+    });
+    const jongleurCluster = new ecs.Cluster(this, "JongleurCluster", {
+      clusterName: "JongleurCluster",
+    });
+    const webAppFargateService = new ecs_patterns.ApplicationLoadBalancedFargateService(this, "JongleurWebAppFargateService", {
+      cluster: jongleurCluster,
+      cpu: 256,
+      memoryLimitMiB: 512,
+      desiredCount: 1,
+      publicLoadBalancer: true,
+      certificate: webAppCertificate,
+      redirectHTTP: true,
+      recordType: ecs_patterns.ApplicationLoadBalancedServiceRecordType.NONE,
+      taskImageOptions: {
+        image: ecs.ContainerImage.fromDockerImageAsset(
+          new ecr_assets.DockerImageAsset(this, "WebAppDockerImageAsset", {
+            directory: ".",
+          })
+        ),
+        containerPort: 3000,
+        taskRole: webAppRole,
+        environment: {
+          JONG_GRAPHQL_URL: api.graphqlUrl,
+        },
+      },
+    });
+    api.grantQuery(webAppRole);
+    api.grantMutation(webAppRole);
+
+    new CfnOutput(this, "JongGraphQlUrl", {
+      description: "The URL of the Jongleur internal GraphQL service.",
+      value: api.graphqlUrl,
+    });
+
+    new CfnOutput(this, "JongGraphQlDevApiKey", {
+      description: "The development API key of the JongGraphGl API.",
+      value: api.apiKey || "",
+    });
   }
 }
