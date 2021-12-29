@@ -3,6 +3,10 @@
 # Also this might be helpful:
 #   https://benoitboure.com/how-to-use-typescript-with-appsync-lambda-resolvers
 
+# Goal: keep the schema pretty lean in order to make maintenance easier.
+# This means that the front end will have to do more graph traversal and
+# computation (which GraphQL makes easy).
+
 # Omitted as suggested https://spec.graphql.org/June2018/.
 # schema {
 #   query: Query
@@ -12,24 +16,25 @@
 type Query {
   """Read all of the pieces."""
   readPieces: [Piece!]!
+  """Read a single piece by ID."""
+  readPiece(id: ID!): Piece
   """Get an AuthenticatedUser node from which to read a user's data."""
   readAuthenticate(accessToken: String!): AuthenticatedUser!
 }
 
 type Mutation {
-  """Create a new practice recording of a piece."""
-  createPractice(accessToken: String!, pieceId: ID!, input: PracticeInput!): Practice
-
   """
   Create a new user (sign up). As is standard, user/pass are passed over
   HTTPS to the server and passed to Cognito.
-  A wallet is also generated.
   """
   createUser(username: String!, password: String!): User!
   """Create a new user session (sign in)."""
   createSession(username: String!, password: String!): Session!
-  """Refresh a session (get new keys with later expiration)."""
+  """Refresh a session (get new accessToken with later expiration)."""
   refreshSession(username: String!, refreshToken: String!): Session!
+
+  """Create a new practice recording of a piece."""
+  createPractice(accessToken: String!, pieceId: ID!, input: PracticeInput!): Practice
 }
 
 """An individual composition that a user can practice."""
@@ -42,19 +47,21 @@ type Piece {
 
 """A practice session on a particular piece."""
 type Practice {
-  duration: Int
+  id: ID!
+
+  # The number of seconds in this practice session.
+  durationSeconds: Int!
 }
 
+"""TODO: need to take in a recording."""
 input PracticeInput {
-  duration: Int
+  durationSeconds: Int
 }
 
-"""A platform user."""
+"""A platform user. This type only contains public information about a User."""
 type User {
   """This user's sign in username."""
   username: String!
-  """This user's principal."""
-  principal: Principal!
 }
 
 """
@@ -65,24 +72,30 @@ verified.
 }
 """
 type AuthenticatedUser {
+  """See :accessToken:`~Session.accessToken`"""
   accessToken: String!
 
   """The verified claimed userId (Cognito sub)."""
   userId: String!
-  """The verified claimed username."""
+  """
+  The verified claimed username. This will match the username on the
+  User type accessible from here.
+  """
   username: String!
 
-  practices: [Practice!]!
+  """The public user information."""
   user: User!
+  """The user's practices."""
+  practices: [Practice!]!
 }
 
 """A login session (sessions are currently implemented by Cognito)."""
 type Session {
+  """The JWT that allows users to claim who they are and act accordingly."""
   accessToken: String
+  """
+  A JWT that lets a user request a new accessToken. The accessToken has
+  a relatively low TTL while the refreshToken lasts much longer.
+  """
   refreshToken: String
-}
-
-"""The decentralized identifier of a platform user."""
-type Principal {
-  nothing: String
 }

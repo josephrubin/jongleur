@@ -3,15 +3,15 @@
  * all queries and mutations.
  */
 
-import { Mutation, MutationCreateSessionArgs, MutationCreateUserArgs, User, Session, MutationRefreshSessionArgs, QueryReadAuthenticateArgs, AuthenticatedUser, Principal } from "~/generated/graphql-schema";
+import { Mutation, MutationCreateSessionArgs, MutationCreateUserArgs, User, Session, MutationRefreshSessionArgs, QueryReadAuthenticateArgs, AuthenticatedUser, Principal, QueryReadPieceArgs, MutationCreatePracticeArgs, Piece, Practice } from "~/generated/graphql-schema";
 import { AsrLambdaHandler, DecodedAccessToken } from "./appsync-resolver-types";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { CognitoIdentityProvider, AuthFlowType } from "@aws-sdk/client-cognito-identity-provider";
 import { v4 as uuidv4 } from "uuid";
 import { error } from "aws-cdk/lib/logging";
-import { NoUnusedVariablesRule } from "graphql";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
+import * as crypto from "crypto";
 import jwt_decode from "jwt-decode";
 
 // See https://github.com/aws/aws-sdk-js-v3/tree/main/lib/lib-dynamodb.
@@ -33,7 +33,6 @@ const DYNAMODB_REGION = jongEnv.JONG_DYNAMODB_REGION;
 const COGNITO_REGION = jongEnv.JONG_DYNAMODB_REGION;
 const PIECE_TABLE = jongEnv.JONG_PIECE_TABLE;
 const PRACTICE_TABLE = jongEnv.JONG_PRACTICE_TABLE;
-//const PRINCIPAL_TABLE = process.env.JONG_PRINCIPAL_TABLE;
 
 const USER_POOL_ID = jongEnv.JONG_USER_POOL_ID;
 const USER_POOL_CLIENT_ID = jongEnv.JONG_USER_POOL_CLIENT_ID;
@@ -107,18 +106,18 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
       const readAuthenticateArgs = (args as QueryReadAuthenticateArgs);
 
       const accessToken = readAuthenticateArgs.accessToken;
-      console.log("Got access token", accessToken);
       try {
         await accessTokenVerifier.verify(accessToken);
+        console.log("Access token verified.");
       }
       catch {
-        console.log("verification error");
+        console.log("Verification error when trying to authenticate a user.");
         return null;
       }
 
       const decodedAccessToken = jwt_decode(accessToken) as DecodedAccessToken;
 
-      const authenticatedUser: Omit<AuthenticatedUser, "user" | "collections"> = {
+      const authenticatedUser: Omit<AuthenticatedUser, "user" | "practices"> = {
         accessToken: accessToken,
         userId: decodedAccessToken.sub,
         username: decodedAccessToken.username,
@@ -128,7 +127,6 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
     }
     else if (fieldName === "readPieces") {
       // Return all pieces.
-      const errorMessage = "Error fetching pieces";
       try {
         const { Items: pieces } = await dynamoDbDocumentClient.scan({
           TableName: PIECE_TABLE,
@@ -136,12 +134,12 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
         return pieces;
       }
       catch (err) {
-        throw `${errorMessage}: ${String(err)}`;
+        throw `Error reading pieces: ${String(err)}`;
       }
     }
     else if (fieldName === "readPiece") {
       // Return a single piece by id.
-      const { id } = args as QueryReadCollectionArgs;
+      const { id } = args as QueryReadPieceArgs;
 
       try {
         const { Item: piece } = await dynamoDbDocumentClient.get({
@@ -159,8 +157,8 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
     }
   }
   else if (parentTypeName === "Mutation") {
-    if (fieldName === "createCollection") {
-      const createCollectionArgs = (args as MutationCreateCollectionArgs);
+    if (fieldName === "createPractice") {
+      const createCollectionArgs = (args as MutationCreatePracticeArgs);
 
       // Ensure that the caller is verified.
       const accessToken = createCollectionArgs.accessToken;
@@ -168,20 +166,21 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
         await accessTokenVerifier.verify(accessToken);
       }
       catch {
-        returnResult(null);
+        console.log("Verification error.");
+        return null;
       }
 
       const decodedAccessToken = jwt_decode(accessToken) as DecodedAccessToken;
 
       // Create a new collection object without custom nested types that we need to
-      // store elsewhere (such as casts).
-      const collectionBase = objectWithoutKeys({
+      // store elsewhere.
+      // TODO: ingest recording and make the practice
+      const practiceBase: Omit<Practice, never> = objectWithoutKeys({
         id: uuidv4(),
-        userId: decodedAccessToken.sub,
-        ...createCollectionArgs.input,
-      }, ["casts"]);
+      }, []);
 
       // First store the nested casts in DynamoDB...
+      /*
       const savedCasts: Cast[] = [];
       const storeCastPromises = [];
       for (let i = 0; i < createCollectionArgs.input.casts.length; i++) {
@@ -213,59 +212,27 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
       }
       catch (err) {
         error("Error storing at least one cast.");
-      }
+      }*/
 
-      // ...then store the collection.
+      // ...then store the Practice.
       try {
         await dynamoDbDocumentClient.put({
-          TableName: COLLECTION_TABLE,
-          Item: collectionBase,
+          TableName: PRACTICE_TABLE,
+          Item: practiceBase,
         });
       }
       catch (err) {
-        error(`Error storing collection with id ${collectionBase.id}.`);
+        error(`Error storing practice with id ${practiceBase.id}.`);
       }
 
-      // Now we must create the actual collection on the blockchain.
-      const { Item: principal } = await dynamoDbDocumentClient.get({
-        TableName: PRINCIPAL_TABLE,
-        Key: {
-          userId: decodedAccessToken.sub,
-        },
-      });
-      if (!principal) {
-        returnError("Could not retrieve user's principal.");
-      }
-      const classResponse = await stx.createNftClass(principal as Principal, createCollectionArgs.input.title);
-      console.log("Create NFT class response:", classResponse);
-
-      if (!classResponse.error) {
-        // The NFT class created successfully. We now want to create the NFTs themselves.
-        console.log("Looks like the NFT class was created.");
-        console.log("Attempting to create NFTs.");
-
-        const lastClass = await stx.readFromContract(principal as Principal, "read-class-count", []) - 1;
-        console.log("Attempt to read from contract. Got back", lastClass);
-
-        for (const cast in savedCasts) {
-          if (Object.prototype.hasOwnProperty.call(savedCasts, cast)) {
-            const element = savedCasts[cast];
-
-            await stx.createNft(lastClass, element.data.uri, principal as Principal);
-            console.log("Attempt to create NFT in class.");
-          }
-        }
-      }
-
-      // We also have to return the new Collection that we created with the mutation.
+      // We also have to return the new Practice that we created with the mutation.
       // We've been saving this information in RAM so we can do it easily. Note that
       // we may be tempted to just recurse on a Query, but DynamoDB is only eventually
       // consistent so that might not even work anyway.
-      const collection: Collection = {
-        ...collectionBase,
-        casts: savedCasts,
+      const practice: Practice = {
+        ...practiceBase,
       };
-      returnResult(collection);
+      return practice;
     }
     else if (fieldName === "createUser") {
       const { username, password } = (args as MutationCreateUserArgs);
@@ -279,7 +246,8 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
         });
 
         // Now that the user has been signed up, generate and store the user's
-        // new Principal.
+        // any additional information associated with it.
+        /*
         const principal = await stx.createPrincipal(password);
         try {
           await dynamoDbDocumentClient.put({
@@ -295,7 +263,7 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
         }
         catch (err) {
           error(`Error storing Principal for user ${signUpResponse.UserSub}.`);
-        }
+        }*/
 
         // For now, we will confirm every user. In the future we may
         // wish to have users confirm their email address.
@@ -306,10 +274,6 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
 
         const user: User = {
           username: username,
-          principal: {
-            ...principal,
-            nfts: [],
-          },
         };
         return user;
       }
@@ -353,7 +317,7 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
           accessToken: null,
           refreshToken: null,
         };
-        returnResult(session);
+        return session;
       }
     }
     else if (fieldName === "refreshSession") {
@@ -378,12 +342,11 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
             accessToken: accessToken,
             refreshToken: refreshToken,
           };
-          returnResult(session);
+          return session;
         }
         else {
           // Authentication worked but no tokens were created.
-          console.log("refresh psuedofail - ", initiateAuthResult);
-          returnError("Authentication did not fail but tokens were not created.");
+          throw "Authentication did not fail but tokens were not created.";
         }
       }
       catch {
@@ -392,28 +355,29 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
           accessToken: null,
           refreshToken: null,
         };
-        returnResult(session);
+        return session;
       }
     }
   }
   else if (parentTypeName === "AuthenticatedUser") {
-    if (fieldName === "collections") {
+    if (fieldName === "practices") {
       try {
-        const { Items: collections } = await dynamoDbDocumentClient.query({
-          TableName: COLLECTION_TABLE,
+        const { Items: practices } = await dynamoDbDocumentClient.query({
+          TableName: PRACTICE_TABLE,
           IndexName: "userId_index",
           KeyConditionExpression: "userId = :uid",
           ExpressionAttributeValues: {
             ":uid": (source as AuthenticatedUser).userId,
           },
         });
-        returnResult(collections);
+        return practices;
       }
       catch {
-        returnError("Error fetching collections.");
+        throw "Error fetching practices.";
       }
     }
   }
+  /*
   else if (parentTypeName === "Collection") {
     if (fieldName === "casts") {
       // Return all casts in the parent collection. There's no need to define
@@ -431,13 +395,14 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
       returnResultIfExists(casts, "Error fetching casts.");
     }
   }
+  */
   else {
-    returnError(`Invalid parentTypeName ${parentTypeName}.`);
+    throw `Invalid parentTypeName ${parentTypeName}.`;
   }
 
   // If we reach here, we have not yet called result or error
   // (synchronously) so we must report an error.
-  returnError(`No resolver found for field ${fieldName} from parent type ${parentTypeName}.`);
+  throw `No resolver found for field ${fieldName} from parent type ${parentTypeName}.`;
 
   // TODO: keep scanning until we get all the elements for reads.
   // TODO: use requested vars to limit scan for more efficiency
