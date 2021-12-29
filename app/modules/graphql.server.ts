@@ -8,12 +8,16 @@ import { GraphQLClient } from "graphql-request";
 
 /* The location of our GraphQL server. */
 const GRAPHQL_ENDPOINT = process.env.JONG_GRAPHQL_URL || "";
+/* The API key allows us to access the API. In production, we
+can authenticate by IAM instead, but in development, this key
+is crucial. */
+const GRAPHQL_API_KEY = "da2-biyunghbvzac7fvtxfyzpptp5u";
 
 const graphQlClient = new GraphQLClient(GRAPHQL_ENDPOINT, {
   headers: {
     // Right now we use API key auth with a single known key but
     // TODO this will probably end up changing.
-    "x-api-key": "da2-x5cvjq6jpzglzljdqdbcjynhi4",
+    "x-api-key": GRAPHQL_API_KEY,
   },
 });
 

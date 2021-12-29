@@ -3,14 +3,13 @@
  * all queries and mutations.
  */
 
-import { Cast, Collection, Mutation, MutationCreateCollectionArgs, MutationCreateSessionArgs, MutationCreateUserArgs, QueryReadCollectionArgs, User, Session, MutationRefreshSessionArgs, QueryReadAuthenticateArgs, AuthenticatedUser, Principal } from "~/generated/graphql-schema";
+import { Mutation, MutationCreateSessionArgs, MutationCreateUserArgs, User, Session, MutationRefreshSessionArgs, QueryReadAuthenticateArgs, AuthenticatedUser, Principal } from "~/generated/graphql-schema";
 import { AsrLambdaHandler, DecodedAccessToken } from "./appsync-resolver-types";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 import { CognitoIdentityProvider, AuthFlowType } from "@aws-sdk/client-cognito-identity-provider";
 import { v4 as uuidv4 } from "uuid";
 import { error } from "aws-cdk/lib/logging";
-import * as crypto from "crypto";
 import { NoUnusedVariablesRule } from "graphql";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 import jwt_decode from "jwt-decode";

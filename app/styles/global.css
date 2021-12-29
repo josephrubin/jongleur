@@ -292,3 +292,7 @@ input:where([type="button"]):active, input:where([type="submit"]):active, button
   color: gray;
   font-style: italic;
 }
+
+a.active {
+  text-decoration: underline;
+}

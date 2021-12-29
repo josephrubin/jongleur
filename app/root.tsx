@@ -8,7 +8,8 @@ import {
   ScrollRestoration,
   useCatch,
   useLoaderData,
-  Form
+  Form,
+  NavLink
 } from "remix";
 import type { LinksFunction } from "remix";
 
@@ -139,15 +140,15 @@ function Layout({ children }: { children: React.ReactNode }) {
               {!accessKey && (
                 <>
                   <li>
-                    <Link to="register">Sign Up</Link>
+                    <NavLink to="register">Sign Up</NavLink>
                   </li>
                   <li>
-                    <Link to="login">Sign In</Link>
+                    <NavLink to="login">Sign In</NavLink>
                   </li>
                 </>
               )}
               <li>
-                <Link to="./stats">Your Stats</Link>
+                <NavLink to="./stats">Your Stats</NavLink>
               </li>
               {accessKey && (
                 <li>
