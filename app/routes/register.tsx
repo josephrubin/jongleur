@@ -1,4 +1,4 @@
-import { ActionFunction, Form, redirect, useActionData } from "remix";
+import { LinksFunction, ActionFunction, Form, redirect, useActionData } from "remix";
 import { createUser } from "~/modules/users.server";
 import registerStyles from "../styles/routes/register.css";
 

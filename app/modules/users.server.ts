@@ -8,10 +8,6 @@ export async function createUser(args: MutationCreateUserArgs) {
     mutation CreateUser($username: String!, $password: String!) {
       user: createUser(username: $username, password: $password) {
         username
-        principal {
-          publicAddress
-          secretKey
-        }
       }
     }
   `;
