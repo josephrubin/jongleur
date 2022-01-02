@@ -16,8 +16,10 @@
   },
   "dependencies": {
     "@aws-cdk/aws-appsync-alpha": "^2.3.0-alpha.0",
+    "@aws-cdk/aws-lambda-python-alpha": "^2.3.0-alpha.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.43.0",
     "@aws-sdk/client-dynamodb": "^3.44.0",
+    "@aws-sdk/client-sfn": "^3.45.0",
     "@aws-sdk/lib-dynamodb": "^3.44.0",
     "@graphql-codegen/add": "^3.1.0",
     "@graphql-codegen/typescript": "^2.4.1",
