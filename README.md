@@ -19,26 +19,21 @@ Most of the code is written in Typescript, so the setup is simply
 npm i
 ```
 
-If working on any Python files locally (a few files), you shouldn't
-need to create a venv because one is provided in the source files.
-Just run
-```sh
-. .jong/bin/activate
-```
-If the venv isn't working, you can try
-```sh
-rm -rf .jong
-python3 -m venv .jong
-pip install -r requirements.txt
-. .jong/bin/activate
-```
-But if this is a common problem, we'll place the venv setup into
-a shell script that will do this all for you (future).
-
-A good deal of the workflow is supported by vscode, so **install the recommended vscode extensions.**
-
-The settings should already configure eslint to run on save without
+A good deal of the workflow is supported by vscode, so **install the recommended vscode extensions.** The settings should already configure eslint to run on save without
 any further modification.
+
+
+If working on any Python files locally (a few files), you'll need
+ffmpeg. On Mac, for example:
+```sh
+$ brew update
+$ brew install ffmpeg
+```
+You'll also want pipenv (`pip3 install pipenv`) so you can use the virtual
+environment:
+```sh
+pipenv shell
+```
 
 ### Running the development server
 
@@ -61,7 +56,7 @@ This hardcoded API key expires every once in a while and has to be replaced, but
 The command
 
 ```sh
-npx cdk deploy
+npm run deploy
 ```
 
 deploys the entire application to AWS (the front end, the backend, the GraphQl API, all together). This command handles
@@ -75,7 +70,8 @@ and populating them with initial data
 6. Etc.
 
 But it deploys it by default to my AWS account and to my domain (jongleur.app). If you want to deploy
-the app yourself, you should be able to do it just by changing these values in the infrastructure files.
+the app yourself, you should be able to do it just by changing these values in `infrastructure/bin/jongleur-infrastructure.ts`.
 
-Then you simply add the validation records to your DNS during deployment for the HTTPS certificate and the app should
-be good to go.
+Then you simply add the validation records to your DNS during deployment for the HTTPS certificate (see the ACM panel in your AWS console) and the 
+app should be good to go. If you're asked to bootstrap your CDK environment
+when attempting to deploy, do it.

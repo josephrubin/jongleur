@@ -6,6 +6,7 @@
   "scripts": {
     "build": "remix build",
     "dev": "./jongleur.sh && concurrently -n \"remix,gqgen\" -c \"green,magenta\" --kill-others \"remix dev\" \"npm:wcodegen\"",
+    "deploy": "cdk deploy",
     "postinstall": "remix setup node",
     "start": "remix-serve build",
     "test": "jest",

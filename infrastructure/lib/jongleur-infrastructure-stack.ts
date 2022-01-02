@@ -16,6 +16,8 @@ import { JongleurWebappConstruct } from "./jongleur-webapp-construct";
 import { JongleurAudioConstruct } from "./jongleur-audio-construct";
 
 interface JongleurInfrastructureStackProps extends Omit<StackProps, "env"> {
+  // The DNS name that the Jongleur web app should be hosted at.
+  readonly webappDomainName: string;
   // Path to the file that contains the graphql schema for our API.
   readonly graphqlSchemaFile: string;
   // Override the parent type to make env deeply required.
@@ -72,7 +74,7 @@ export class JongleurInfrastructureStack extends Stack {
     // ------------------------------------------------------------------------
 
     const webappConstruct = new JongleurWebappConstruct(this, "JongleurWebappConstruct", {
-      domainName: "www.jongleur.app",
+      domainName: props.webappDomainName,
       dockerAppDirectory: ".",
       dockerAppPort: 3000,
       graphqlApi: graphqlConstruct.api,
