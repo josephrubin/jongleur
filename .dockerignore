@@ -1,12 +1,18 @@
 # Exclude all by default.
+#node_modules
+#cdk.out
+#.cache
+#asset
 *
 # Now add back the files we need to build the Remix app.
-!package.json
-!package-lock.json
-!tsconfig.json
-!remix*
-!codegen.yaml
-!.eslintrc.js
-!.dockerignore
-!public
 !app
+!graphql
+!public
+!.dockerignore
+!.eslintrc.js
+!codegen.yaml
+!graphql.config.ts
+!package-lock.json
+!package.json
+!remix*
+!tsconfig.json

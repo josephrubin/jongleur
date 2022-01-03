@@ -93,7 +93,7 @@ export class JongleurAudioConstruct extends Construct {
     // Python instead of NodeJS because of its audio processing libraries.
     // But since librosa is too large to load into a normal Python lambda, we
     // make our own Docker lambda from a Python-based image.
-    const processAudioLambda = new lambda.DockerImageFunction(this, "ProcessAudioLambda", {
+    const processAudioLambda = new lambda.DockerImageFunction(this, "ProcessAudioDockerLambda", {
       description: "Jongleur - process an audio file.",
       code: lambda.DockerImageCode.fromImageAsset("audio/process/"),
       timeout: Duration.minutes(8),
