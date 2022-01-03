@@ -98,8 +98,10 @@ export class JongleurAudioConstruct extends Construct {
       handler: "lambda_handler",
       description: "Jongleur - process an audio file.",
       runtime: lambda.Runtime.PYTHON_3_9,
+
       timeout: Duration.minutes(8),
       tracing: lambda.Tracing.ACTIVE,
+
       environment: {
 
       },
@@ -119,9 +121,9 @@ export class JongleurAudioConstruct extends Construct {
       item: {
         id: stepfunctions_tasks.DynamoAttributeValue.fromString(stepfunctions.JsonPath.stringAt("$.uuid")),
         // There's an open bug (https://github.com/aws/aws-cdk/issues/12456) hence the string -> number workaround.
-        request_epoch: stepfunctions_tasks.DynamoAttributeValue.numberFromString(stepfunctions.JsonPath.stringAt("$.request_epoch")),
-        execution_arn: stepfunctions_tasks.DynamoAttributeValue.fromString(stepfunctions.JsonPath.stringAt("$$.Execution.Id")),
-        current_status: stepfunctions_tasks.DynamoAttributeValue.fromString("processing"),
+        requestEpoch: stepfunctions_tasks.DynamoAttributeValue.numberFromString(stepfunctions.JsonPath.stringAt("$.requestEpoch")),
+        executionArn: stepfunctions_tasks.DynamoAttributeValue.fromString(stepfunctions.JsonPath.stringAt("$$.Execution.Id")),
+        currentStatus: stepfunctions_tasks.DynamoAttributeValue.fromString("processing"),
       },
       // Make just this state's input pass into the output.
       resultPath: stepfunctions.JsonPath.DISCARD,
@@ -133,11 +135,10 @@ export class JongleurAudioConstruct extends Construct {
       comment: "Record the successful audio upload.",
       key: {
         id: stepfunctions_tasks.DynamoAttributeValue.fromString(stepfunctions.JsonPath.stringAt("$.uuid")),
-        request_epoch: stepfunctions_tasks.DynamoAttributeValue.numberFromString(stepfunctions.JsonPath.stringAt("$.request_epoch")),
       },
-      updateExpression: "SET current_status = :new_status",
+      updateExpression: "SET currentStatus = :newStatus",
       expressionAttributeValues: {
-        ":new_status": stepfunctions_tasks.DynamoAttributeValue.fromString("succeeded"),
+        ":newStatus": stepfunctions_tasks.DynamoAttributeValue.fromString("succeeded"),
       },
       // Make just this state's input pass into the output.
       resultPath: stepfunctions.JsonPath.DISCARD,
@@ -149,11 +150,10 @@ export class JongleurAudioConstruct extends Construct {
       comment: "Record the failed audio upload.",
       key: {
         id: stepfunctions_tasks.DynamoAttributeValue.fromString(stepfunctions.JsonPath.stringAt("$.uuid")),
-        request_epoch: stepfunctions_tasks.DynamoAttributeValue.numberFromString(stepfunctions.JsonPath.stringAt("$.request_epoch")),
       },
-      updateExpression: "SET current_status = :new_status",
+      updateExpression: "SET currentStatus = :newStatus",
       expressionAttributeValues: {
-        ":new_status": stepfunctions_tasks.DynamoAttributeValue.fromString("failed"),
+        ":newStatus": stepfunctions_tasks.DynamoAttributeValue.fromString("failed"),
       },
       // Make just this state's input pass into the output.
       resultPath: stepfunctions.JsonPath.DISCARD,

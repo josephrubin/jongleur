@@ -19,7 +19,7 @@ type Query {
   """Read a single piece by ID."""
   readPiece(id: ID!): Piece
   """Get an AuthenticatedUser node from which to read a user's data."""
-  readAuthenticate(accessToken: String!): AuthenticatedUser!
+  readAuthenticate(accessToken: String!): AuthenticatedUser
 }
 
 type Mutation {
