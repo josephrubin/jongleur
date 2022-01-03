@@ -1,8 +1,15 @@
 # We're using a custom Docker image instead of the normal Python Lambda construct
 # because librosa is too big for a normal Python lambda.
-FROM public.ecr.aws/lambda/python:3.9
+# Rather than use a lambda base image we're going to use a Python base image because
+# librosa is very tricky to set up.
+FROM python:3.9.9
 
-WORKDIR ${LAMBDA_TASK_ROOT}
+RUN mkdir "/home/app"
+WORKDIR "/home/app"
+
+# Install some packages that we'll need for librosa.
+RUN apt-get update -y
+RUN apt-get install -y libsndfile-dev
 
 # Librosa depends on numba, and since we are installing our deps as root later
 # (because pipenv works best this way in lambda images) we get this bug:
@@ -10,16 +17,20 @@ WORKDIR ${LAMBDA_TASK_ROOT}
 # Changing the numba cache directory fixes the issue.
 ENV NUMBA_CACHE_DIR=/tmp/numba_cache/
 
-# Install pipenv so we can install dependancies.
-RUN pip install --upgrade pip
-RUN pip install pipenv
+# The lambda runtime interface is needed to make this Docker image work as a lambda.
+RUN python3 -m pip install awslambdaric
 
-# Install the dependancies.
+# Install the dependancies globally.
+RUN python3 -m pip install pipenv
 COPY Pipfile* ./
-RUN pipenv install --system --deploy --ignore-pipfile
+RUN python3 -m pipenv install --system --deploy --ignore-pipfile
 
-# Move over our python files.
 COPY *.py ./
 
+# librosa can be slow when it is first used on a system, so run a demo script
+# that exercises librosa in order to fill out the relevant OS caches.
+RUN python3 prerun.py
+
 # Tell AWS where our lambda handler is.
+ENTRYPOINT [ "python3", "-m", "awslambdaric" ]
 CMD [ "main.lambda_handler" ]

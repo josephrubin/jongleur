@@ -16,12 +16,33 @@ def lambda_handler(event, _):
   object_key = event["key"]
   practice_id = event["uuid"]
 
-  bucket = s3.Bucket(bucket_name)
-  download_filename = f"/tmp/{practice_id}.ogg"
-  bucket.download_file(object_key, download_filename)
+  try:
+    bucket = s3.Bucket(bucket_name)
+    download_filename = f"/tmp/{practice_id}.ogg"
+    bucket.download_file(object_key, download_filename)
+  except:
+    error_message = f"Couldn't download file {object_key} from bucket {bucket_name}"
+    print(error_message)
+    raise RuntimeError(error_message)
+
+  result = process_file(download_filename)
+
+  # Upload the file partitions.
+  storage_bucket = s3.Bucket("fakenews")
+  for key, filename in result.partitions:
+    try:
+      pass
+    except:
+      pass
+
+  return result
 
 
 def process_file(filename):
+  """
+  Process an audio file, returning data as well as a list of filenames that should
+  be uploaded to S3 for permanent practice recording storage.
+  """
   if not filename.endswith('ogg'):
     print(
       "Please convert your audio file to .ogg (ogg vorbis) first "
