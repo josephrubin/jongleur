@@ -59,7 +59,7 @@ export class JongleurInfrastructureStack extends Stack {
     });
 
     // ------------------------------------------------------------------------
-    // Audio (uploading, storage, and processing audio files).
+    // Audio (uploading, storage, serving, and processing audio files).
     // ------------------------------------------------------------------------
 
     const audioConstruct = new JongleurAudioConstruct(this, "JongleurAudioConstruct", {
@@ -80,21 +80,23 @@ export class JongleurInfrastructureStack extends Stack {
       graphqlApi: graphqlConstruct.api,
     });
 
-    graphqlConstruct.api.grantQuery(webappConstruct.role);
-    graphqlConstruct.api.grantMutation(webappConstruct.role);
-
     // ------------------------------------------------------------------------
     // Output (results from this stack's synthesis).
     // ------------------------------------------------------------------------
 
-    new CfnOutput(this, "JongGraphqlUrl", {
+    new CfnOutput(this, "JongleurGraphqlUrl", {
       description: "The URL of the Jongleur internal GraphQL service.",
       value: graphqlConstruct.api.graphqlUrl,
     });
 
-    new CfnOutput(this, "JongGraphqlDevApiKey", {
+    new CfnOutput(this, "JongleurGraphqlDevApiKey", {
       description: "The development API key of the JongGraphGl API.",
       value: graphqlConstruct.api.apiKey || "",
+    });
+
+    new CfnOutput(this, "JongleurAudioServeDistributionDomainName", {
+      description: "The DNS name of the Jongleur audio serving cloudfront distribution.",
+      value: audioConstruct.audioServeDistribution.distributionDomainName,
     });
   }
 }

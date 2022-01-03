@@ -75,3 +75,9 @@ the app yourself, you should be able to do it just by changing these values in `
 Then you simply add the validation records to your DNS during deployment for the HTTPS certificate (see the ACM panel in your AWS console) and the 
 app should be good to go. If you're asked to bootstrap your CDK environment
 when attempting to deploy, do it.
+
+## Staging
+
+Following what I curently consider to be best practice, if you want to have {`prod`, `stage`, `qa`, etc.} environments, you should deploy the
+identical stack to separate accounts.
+It should be simple enough to set up a couple different deployment commands to choose the appropriate account, but that hasn't been done since this app has no active user-base yet! But soon...

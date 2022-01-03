@@ -12,7 +12,7 @@ module.exports = {
   ignorePatterns: [
     "**/generated/*.ts",
     "**/generated/*.tsx",
-    "**/cdk.out/",
+    "**/cdk.out/*.ts",
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {
@@ -25,6 +25,7 @@ module.exports = {
   plugins: [
     "react",
     "@typescript-eslint",
+    "react-hooks",
   ],
   rules: {
     "indent": [
@@ -70,6 +71,8 @@ module.exports = {
     "prefer-const": [
       "error",
     ],
+    "react-hooks/rules-of-hooks": "error", // Checks rules of Hooks
+    "react-hooks/exhaustive-deps": "error", // Checks effect dependencies
     // No errors for missing 'import React' when using JSX because Remix has it.
     "react/react-in-jsx-scope": "off",
     "react/jsx-closing-bracket-location": 1,

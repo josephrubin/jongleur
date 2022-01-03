@@ -51,7 +51,7 @@ export default function Register() {
           Password
           <input name="password" type="password" />
         </label>
-        <input type="submit" value="Carry On!" />
+        <button type="submit">Carry On!</button>
       </Form>
     </div>
   );

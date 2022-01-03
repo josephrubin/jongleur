@@ -43,18 +43,18 @@ export class JongleurGraphqlConstruct extends Construct {
       // having a schema file allows us to use graphql tooling throughout our project.
       schema: appsync.Schema.fromAsset(props.graphqlSchemaFile),
       authorizationConfig: {
+        // Use lambda authorization. See the lambda code for more details on this choice.
         defaultAuthorization: {
-          authorizationType: appsync.AuthorizationType.IAM,
-        },
-        additionalAuthorizationModes: [{
-          authorizationType: appsync.AuthorizationType.API_KEY,
-          apiKeyConfig: {
-            name: "DevelopmentApiKey",
-            description: "Hardcoded into the development application, this key allows local dev against the API.",
-            expires: Expiration.after(Duration.days(12)),
+          authorizationType: appsync.AuthorizationType.LAMBDA,
+          lambdaAuthorizerConfig: {
+            handler: makeNodejsLambda(this, "JongleurGraphqlApiAuthorizer", {
+              entry: "graphql/authorizer.ts",
+              description: "Jongleur - authorization for our GraphQL API.",
+              timeout: Duration.seconds(1),
+            }),
+            resultsCacheTtl: Duration.minutes(10),
           },
         },
-        ],
       },
       xrayEnabled: true,
     });
@@ -84,6 +84,7 @@ export class JongleurGraphqlConstruct extends Construct {
     // don't work and I don't like them.
     const apiResolverLambda = makeNodejsLambda(this, "ApiResolverLambda", {
       entry: "graphql/resolvers/resolve.ts",
+      description: "Jongleur - resolve GraphQL requests.",
 
       timeout: Duration.seconds(30),
 
@@ -121,20 +122,12 @@ export class JongleurGraphqlConstruct extends Construct {
       typeName: QUERY_TYPE,
       fieldName: "readPieces",
     });
-    /*apiLambdaDataSource.createResolver({
-      typeName: QUERY_TYPE,
-      fieldName: "readCollection",
-    });*/
     apiLambdaDataSource.createResolver({
       typeName: QUERY_TYPE,
       fieldName: "readAuthenticate",
     });
 
     // Mutation parent.
-    /*apiLambdaDataSource.createResolver({
-      typeName: MUTATION_TYPE,
-      fieldName: "createCollection",
-    });*/
     apiLambdaDataSource.createResolver({
       typeName: MUTATION_TYPE,
       fieldName: "createUser",
@@ -148,16 +141,11 @@ export class JongleurGraphqlConstruct extends Construct {
       fieldName: "refreshSession",
     });
 
-    // Collection parent.
-    /*apiLambdaDataSource.createResolver({
-      typeName: "Collection",
-      fieldName: "casts",
-    });*/
-
     // AuthenticatedUser parent.
-    /*apiLambdaDataSource.createResolver({
+    /* Don't need this right now since readAuthenticate will return the whole object.
+    apiLambdaDataSource.createResolver({
       typeName: "AuthenticatedUser",
-      fieldName: "collections",
+      fieldName: "user",
     });*/
   }
 

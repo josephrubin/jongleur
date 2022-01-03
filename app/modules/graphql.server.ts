@@ -6,18 +6,22 @@
 
 import { GraphQLClient } from "graphql-request";
 
-/* The location of our GraphQL server. */
-const GRAPHQL_ENDPOINT = process.env.JONG_GRAPHQL_URL || "";
-/* The API key allows us to access the API. In production, we
-can authenticate by IAM instead, but in development, this key
-is crucial. */
-const GRAPHQL_API_KEY = "da2-biyunghbvzac7fvtxfyzpptp5u";
+/* The location of our GraphQL server. We'll hit the real server for
+now when developing locally too, but we may wish to mock it later.
+In production, the real endpoint is available through the env var.
+In development, we'll have to hardcode the URL if it ever changes. */
+const GRAPHQL_ENDPOINT =
+  process.env.JONG_GRAPHQL_URL
+  || "https://xvjyccqrpbdcjj3wsop4mg7ode.appsync-api.us-east-1.amazonaws.com/graphql";
+console.log(`Creating GraphQL module and attaching to endpoint: ${GRAPHQL_ENDPOINT}`);
 
 const graphQlClient = new GraphQLClient(GRAPHQL_ENDPOINT, {
   headers: {
-    // Right now we use API key auth with a single known key but
-    // TODO this will probably end up changing.
-    "x-api-key": GRAPHQL_API_KEY,
+    // For now we don't need a real auth token to call our API
+    // since auth is done in the resolver itself.
+    Authorization: process.env.NODE_ENV === "production"
+      ? "prod-auth-token"
+      : "dev-auth-token",
   },
 });
 

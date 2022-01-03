@@ -1,9 +1,11 @@
 import * as graphql from "./graphql.server";
 import { gql } from "graphql-request";
-import { MutationCreateSessionArgs, MutationCreateUserArgs, Session } from "~/generated/graphql-schema";
-import { redirect, createCookieSessionStorage } from "remix";
+import { MutationCreateSessionArgs, MutationCreateUserArgs, MutationRefreshSessionArgs, QueryReadAuthenticateArgs, Session } from "~/generated/graphql-schema";
+import { redirect, createCookieSessionStorage, useMatches } from "remix";
 
 export async function createUser(args: MutationCreateUserArgs) {
+  console.log("Enter createUser.");
+
   const request = gql`
     mutation CreateUser($username: String!, $password: String!) {
       user: createUser(username: $username, password: $password) {
@@ -36,6 +38,42 @@ export async function createSession(args: MutationCreateSessionArgs) {
   });
 
   return response.session;
+}
+
+export async function refreshSession(args: MutationRefreshSessionArgs) {
+  const request = gql`
+    mutation RefreshSession($username: String!, $refreshToken: String!) {
+      session: refreshSession(username: $username, refreshToken: $refreshToken) {
+        accessToken
+        refreshToken
+      }
+    }
+  `;
+
+  const response = await graphql.request(request, {
+    username: args.username,
+    refreshToken: args.refreshToken,
+  });
+
+  return response.session;
+}
+
+export async function readMe(args: QueryReadAuthenticateArgs) {
+  const request = gql`
+    query ReadMe($accessToken: String!) {
+      readAuthenticate(accessToken: $accessToken) {
+        user {
+          username
+        }
+      }
+    }
+  `;
+
+  const response = await graphql.request(request, {
+    accessToken: args.accessToken,
+  });
+
+  return response.readAuthenticate.user;
 }
 
 const storage = createCookieSessionStorage({
@@ -82,10 +120,32 @@ export function getUserSession(request: Request) {
   return storage.getSession(request.headers.get("Cookie"));
 }
 
+/**
+ * From a user request, get the access token that they've sent
+ * in their cookie on the server side.
+ */
 export async function getAccessToken(request: Request) {
   const session = await getUserSession(request);
-  console.log("session?", session);
   const accessKey = session.get("accessToken");
-  if (!accessKey || typeof accessKey !== "string") return null;
+  if (!accessKey || typeof accessKey !== "string") {
+    return null;
+  }
   return accessKey;
+}
+
+/**
+ * Assuming you have called `getAccessToken` in the root route,
+ * this custom hook will retrieve the token on the client side!
+ */
+export function useAccessToken(): string | null {
+  // Get all loader data from parent routes.
+  const matches = useMatches();
+  for (let i = 0; i < matches.length; i++) {
+    const match = matches[i];
+    // Look for the access token at the root route.
+    if (match.pathname === "/" && Object.keys(match.data).includes("accessToken")) {
+      return match.data.accessToken;
+    }
+  }
+  return null;
 }

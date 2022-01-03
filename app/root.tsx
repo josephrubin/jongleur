@@ -9,13 +9,14 @@ import {
   useCatch,
   useLoaderData,
   Form,
-  NavLink
+  NavLink,
+  LoaderFunction
 } from "remix";
 import type { LinksFunction } from "remix";
 
 import globalStylesUrl from "~/styles/global.css";
 import darkStylesUrl from "~/styles/dark.css";
-import { getAccessToken, getUserSession } from "./modules/users.server";
+import { getAccessToken, getUserSession, useAccessToken } from "./modules/users.server";
 
 // https://remix.run/api/app#links
 export const links: LinksFunction = () => {
@@ -36,6 +37,13 @@ export default function App() {
   );
 }
 
+export const loader: LoaderFunction = async ({request}) => {
+  // The root loader gets the user's accessToken so all child
+  // routes can access it through useAccessToken!
+  const accessToken = await getAccessToken(request);
+  return { accessToken };
+};
+
 // https://remix.run/docs/en/v1/api/conventions#errorboundary
 export function ErrorBoundary({ error }: { error: Error }) {
   console.error(error);
@@ -47,8 +55,7 @@ export function ErrorBoundary({ error }: { error: Error }) {
           <p>{error.message}</p>
           <hr />
           <p>
-            Hey, developer, you should replace this with what you want your
-            users to see.
+            Sorry about that.
           </p>
         </div>
       </Layout>
@@ -92,12 +99,6 @@ export function CatchBoundary() {
   );
 }
 
-export const loader = async ({request}) => {
-  const accessKey = await getAccessToken(request);
-
-  return accessKey;
-};
-
 function Document({
   children,
   title,
@@ -125,8 +126,7 @@ function Document({
 }
 
 function Layout({ children }: { children: React.ReactNode }) {
-  const accessKey = useLoaderData();
-  console.log("accessKey", accessKey);
+  const accessToken = useAccessToken();
 
   return (
     <div className="remix-app">
@@ -137,7 +137,7 @@ function Layout({ children }: { children: React.ReactNode }) {
           </Link>
           <nav aria-label="Main navigation" className="remix-app__header-nav">
             <ul>
-              {!accessKey && (
+              {!accessToken && (
                 <>
                   <li>
                     <NavLink to="register">Sign Up</NavLink>
@@ -147,17 +147,21 @@ function Layout({ children }: { children: React.ReactNode }) {
                   </li>
                 </>
               )}
-              <li>
-                <NavLink to="./stats">Your Stats</NavLink>
-              </li>
-              {accessKey && (
+              {accessToken && (
                 <li>
-                    You are signed in.
+                  <NavLink to="./stats">Your Stats</NavLink>
+                </li>
+              )}
+              {/*
+              {accessToken && (
+                <li>
+                  You're signed in!
                   <form method="post" action="logout">
                     <input type="submit" value="logout" />
                   </form>
                 </li>
               )}
+              */}
             </ul>
           </nav>
         </div>

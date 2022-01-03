@@ -3,6 +3,8 @@ import {
   Duration,
   RemovalPolicy,
   aws_cognito as cognito,
+  aws_cloudfront as cloudfront,
+  aws_cloudfront_origins as cloudfront_origins,
   aws_dynamodb as dynamodb,
   aws_lambda as lambda,
   aws_stepfunctions as stepfunctions,
@@ -25,11 +27,13 @@ interface JongleurAudioConstructProps {
  * upload, storage, logic, processing, and data synthesis relating to audio.
  */
 export class JongleurAudioConstruct extends Construct {
+  private _audioServeDistribution: cloudfront.Distribution;
+
   constructor(scope: Construct, id: string, props: JongleurAudioConstructProps) {
     super(scope, id);
 
     // ------------------------------------------------------------------------
-    // Upload and storage.
+    // Upload.
     // ------------------------------------------------------------------------
 
     // The main approach to audio upload -
@@ -54,7 +58,6 @@ export class JongleurAudioConstruct extends Construct {
 
     // The bucket in which to ingest client audio uploads.
     const clientAudioUploadBucket = new s3.Bucket(this, "ClientAudioUploadBucket", {
-      bucketName: "JongleurClientAudioUploadBucket",
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       encryption: s3.BucketEncryption.S3_MANAGED,
       lifecycleRules: [{
@@ -70,6 +73,7 @@ export class JongleurAudioConstruct extends Construct {
     // The lambda to generate presigned S3 URLs for the client.
     const createUploadSignedUrlLambda = makeNodejsLambda(this, "CreateUploadSignedUrlLambda", {
       entry: "audio/upload/create-upload-signed-url.ts",
+      description: "Jongleur - generate presigned S3 URLs for client audio upload.",
 
       timeout: Duration.seconds(3),
 
@@ -83,16 +87,16 @@ export class JongleurAudioConstruct extends Construct {
     clientAudioUploadBucket.grantWrite(createUploadSignedUrlLambda);
 
     // ------------------------------------------------------------------------
-    // Processing.
+    // Process.
     // ------------------------------------------------------------------------
 
     // The lambda which processes client audio uploads. This one is actually
     // Python instead of NodeJS because of its audio processing libraries.
-    // TODO.
     const processAudioLambda = new python_lambda.PythonFunction(this, "ProcessAudioLambda", {
-      entry: "TODO",
-      index: "TODO.py",
-      handler: "lambdaHandler",
+      entry: "audio/process",
+      index: "main.py",
+      handler: "lambda_handler",
+      description: "Jongleur - process an audio file.",
       runtime: lambda.Runtime.PYTHON_3_9,
       timeout: Duration.minutes(8),
       tracing: lambda.Tracing.ACTIVE,
@@ -189,6 +193,7 @@ export class JongleurAudioConstruct extends Construct {
     // than using EventBridge to make the connection.
     const callStepFunctionLambda = makeNodejsLambda(this, "CallStepFunctionLambda", {
       entry: "audio/lambda-to-stepfunction.ts",
+      description: "Jongleur - call step function from S3 notification.",
       timeout: Duration.seconds(3),
       environment: {
         JONG_STATEMACHINE_ARN: processAudioUploadStateMachine.stateMachineArn,
@@ -201,5 +206,38 @@ export class JongleurAudioConstruct extends Construct {
     clientAudioUploadBucket.addObjectCreatedNotification(
       new s3_notifications.LambdaDestination(callStepFunctionLambda)
     );
+
+    // ------------------------------------------------------------------------
+    // Serve.
+    // ------------------------------------------------------------------------
+
+    // The bucket in which to store audio slices long-term. We won't allow users
+    // to pull from this bucket directly. Rather, a cloudfront distribution
+    // will serve its contents.
+    const audioStorageBucket = new s3.Bucket(this, "AudioStorageBucket", {
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+    });
+
+    this._audioServeDistribution = new cloudfront.Distribution(this, "AudioServeDistribution", {
+      defaultBehavior: {
+        // Cloudfront will automatically grant itself access to the bucket.
+        origin: new cloudfront_origins.S3Origin(audioStorageBucket),
+        // We don't allow any HTTP requests to this distribution. Our front-end
+        // will always use HTTPS.
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+      },
+      comment: "Serves and caches Jongleur user audio files.",
+      httpVersion: cloudfront.HttpVersion.HTTP2,
+      enabled: true,
+      // Using the cheapest price class for now while developing, but can switch
+      // to PRICE_CLASS_ALL later.
+      priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
+    });
+  }
+
+  get audioServeDistribution() {
+    return this._audioServeDistribution;
   }
 }

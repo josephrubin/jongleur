@@ -3,7 +3,7 @@
  * all queries and mutations.
  */
 
-import { Mutation, MutationCreateSessionArgs, MutationCreateUserArgs, User, Session, MutationRefreshSessionArgs, QueryReadAuthenticateArgs, AuthenticatedUser, Principal, QueryReadPieceArgs, MutationCreatePracticeArgs, Piece, Practice } from "~/generated/graphql-schema";
+import { MutationCreateSessionArgs, MutationCreateUserArgs, User, Session, MutationRefreshSessionArgs, QueryReadAuthenticateArgs, AuthenticatedUser, Principal, QueryReadPieceArgs, MutationCreatePracticeArgs, Piece, Practice } from "~/generated/graphql-schema";
 import { AsrLambdaHandler, DecodedAccessToken } from "./appsync-resolver-types";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
@@ -53,11 +53,6 @@ const accessTokenVerifier = CognitoJwtVerifier.create({
   clientId: USER_POOL_CLIENT_ID,
   tokenUse: "access",
 });
-
-// A GraphQL schema type that has at least an id.
-interface TypeWithId {
-  readonly id: string
-}
 
 /**
  * Resolve the AppSync data request.
@@ -117,10 +112,13 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
 
       const decodedAccessToken = jwt_decode(accessToken) as DecodedAccessToken;
 
-      const authenticatedUser: Omit<AuthenticatedUser, "user" | "practices"> = {
+      const authenticatedUser: Omit<AuthenticatedUser, "practices"> = {
         accessToken: accessToken,
         userId: decodedAccessToken.sub,
         username: decodedAccessToken.username,
+        user: {
+          username: decodedAccessToken.username,
+        },
       };
 
       return authenticatedUser;

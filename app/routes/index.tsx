@@ -1,6 +1,8 @@
 import type { MetaFunction, LoaderFunction, LinksFunction } from "remix";
 import { useLoaderData, json, Link } from "remix";
 import { Waveform } from "~/components/waveform";
+import { User, Piece } from "~/generated/graphql-schema";
+import { getAccessToken, readMe, useAccessToken } from "~/modules/users.server";
 import practiceStyles from "../styles/routes/practice.css";
 
 // https://remix.run/api/conventions#meta
@@ -12,6 +14,7 @@ export const meta: MetaFunction = () => {
 };
 
 interface LoaderData {
+  readonly user: User | null;
   readonly pieces: Piece[];
   readonly recentPieces: Piece[];
 }
@@ -22,7 +25,7 @@ export const links: LinksFunction = () => {
   ];
 };
 
-export const loader: LoaderFunction = async () => {
+export const loader: LoaderFunction = async ({request}) => {
   let pieces: Piece[] = [
     {title: "blag"},
     {title: "blooh"},
@@ -89,23 +92,25 @@ export const loader: LoaderFunction = async () => {
 
   const recentPieces = pieces.splice(0, 5);
 
+  const accessToken = await getAccessToken(request);
+  const user = accessToken ? readMe({accessToken}) : null;
+
   return {
+    user,
     pieces,
     recentPieces,
   };
 };
 
 export default function Index() {
-  const { pieces, recentPieces } = useLoaderData<LoaderData>();
-  const signedIn = false;
-  const userName = "Joseph";
+  const { user, pieces, recentPieces } = useLoaderData<LoaderData>();
 
   return (
     <>
       <div className="welcome-blurb">
-        {signedIn ? (
+        {user ? (
           <>
-            <h1>👋 Hey, {userName}!</h1>
+            <h1>👋 Hey, {user.username}!</h1>
             Thanks for signing in. There's no time to waste, play on!
           </>
         ) : (
@@ -115,7 +120,7 @@ export default function Index() {
           </>
         )}
       </div>
-      {signedIn && (
+      {user && (
         <>
           <h1>🕑&nbsp; Recently Played</h1>
           <ol className="practice-pieces">
