@@ -12,7 +12,6 @@ import {
   aws_s3 as s3,
   aws_s3_notifications as s3_notifications
 } from "aws-cdk-lib";
-import * as python_lambda from "@aws-cdk/aws-lambda-python-alpha";
 import { makeNodejsLambda } from "./make-defaults";
 
 interface JongleurAudioConstructProps {
@@ -92,19 +91,13 @@ export class JongleurAudioConstruct extends Construct {
 
     // The lambda which processes client audio uploads. This one is actually
     // Python instead of NodeJS because of its audio processing libraries.
-    const processAudioLambda = new python_lambda.PythonFunction(this, "ProcessAudioLambda", {
-      entry: "audio/process",
-      index: "main.py",
-      handler: "lambda_handler",
+    // But since librosa is too large to load into a normal Python lambda, we
+    // make our own Docker lambda from a Python-based image.
+    const processAudioLambda = new lambda.DockerImageFunction(this, "ProcessAudioLambda", {
       description: "Jongleur - process an audio file.",
-      runtime: lambda.Runtime.PYTHON_3_9,
-
+      code: lambda.DockerImageCode.fromImageAsset("audio/process/"),
       timeout: Duration.minutes(8),
       tracing: lambda.Tracing.ACTIVE,
-
-      environment: {
-
-      },
     });
 
     // We use a StepFunction to do the processing since there are a few steps
