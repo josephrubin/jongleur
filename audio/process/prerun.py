@@ -1,6 +1,5 @@
 import librosa
 
-
 """Exercise librosa so that our Docker image has the cached libraries."""
 def _main():
   filename = librosa.example('nutcracker')

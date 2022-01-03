@@ -126,6 +126,7 @@ export class JongleurAudioConstruct extends Construct {
       description: "Jongleur - process an audio file.",
       code: lambda.DockerImageCode.fromImageAsset("audio/process/"),
       timeout: Duration.minutes(8),
+      memorySize: 1024,
       tracing: lambda.Tracing.ACTIVE,
       environment: {
         JONG_CLIENT_AUDIO_UPLOAD_BUCKET_NAME: clientAudioUploadBucket.bucketName,

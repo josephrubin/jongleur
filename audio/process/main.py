@@ -14,32 +14,41 @@ s3 = boto3.resource("s3")
 
 
 def lambda_handler(event, _):
-  print("got event", event)
-
+  print("Enter process audio lambda.")
   bucket_name = event["bucket"]
   object_key = event["key"]
   practice_id = event["uuid"]
+  print(f"Got event with key {object_key} from bucket {bucket_name} for practice {practice_id}.")
 
-  assert bucket_name == FROM_AUDIO_BUCKET_NAME
+  if bucket_name != FROM_AUDIO_BUCKET_NAME:
+    error_message = f"Object from {bucket_name} does not match expected {FROM_AUDIO_BUCKET_NAME}."
+    print(error_message)
+    raise RuntimeError(error_message)
 
   try:
     bucket = s3.Bucket(FROM_AUDIO_BUCKET_NAME)
     download_filename = f"/tmp/{practice_id}.ogg"
+    print("Begin downloading file...")
     bucket.download_file(object_key, download_filename)
+    print("Downloaded file.")
   except:
     error_message = f"Couldn't download file {object_key} from bucket {bucket_name}"
     print(error_message)
     raise RuntimeError(error_message)
 
+  print("Begin processing file...")
   result = process_file(download_filename)
+  print("Processed file.")
 
   # Upload the file partitions.
+  """
   storage_bucket = s3.Bucket(TO_AUDIO_BUCKET_NAME)
   for key, filename in result.partitions:
     try:
       pass
     except:
       pass
+  """
 
   return result
 
@@ -73,7 +82,7 @@ def process_file(filename):
 
   # Combine segments that are too close together.
   curated_segments = []
-  if segments:
+  if len(segments) > 0:
     curated_segment_start = segments[0][0]
 
     for segment_start, segment_end in segments:
