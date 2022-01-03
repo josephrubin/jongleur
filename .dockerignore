@@ -1,0 +1,12 @@
+# Exclude all by default.
+*
+# Now add back the files we need to build the Remix app.
+!package.json
+!package-lock.json
+!tsconfig.json
+!remix*
+!codegen.yaml
+!.eslintrc.js
+!.dockerignore
+!public
+!app
