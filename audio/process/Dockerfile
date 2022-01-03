@@ -29,6 +29,8 @@ COPY *.py ./
 
 # librosa can be slow when it is first used on a system, so run a demo script
 # that exercises librosa in order to fill out the relevant OS caches.
+# Also this will fail if librosa isn't properly set up, so this is a good check
+# during Docker image build time.
 RUN python3 prerun.py
 
 # Tell AWS where our lambda handler is.

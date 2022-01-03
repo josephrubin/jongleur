@@ -1,8 +1,12 @@
+import os
 import sys
 
 import boto3
 import librosa
 import numpy as np
+
+FROM_AUDIO_BUCKET_NAME = os.getenv("JONG_CLIENT_AUDIO_UPLOAD_BUCKET_NAME")
+TO_AUDIO_BUCKET_NAME = os.getenv("JONG_AUDIO_STORAGE_BUCKET_NAME")
 
 MINIMUM_SILENCE_BETWEEN_SEGMENTS_IN_SECONDS = 1.0
 
@@ -16,8 +20,10 @@ def lambda_handler(event, _):
   object_key = event["key"]
   practice_id = event["uuid"]
 
+  assert bucket_name == FROM_AUDIO_BUCKET_NAME
+
   try:
-    bucket = s3.Bucket(bucket_name)
+    bucket = s3.Bucket(FROM_AUDIO_BUCKET_NAME)
     download_filename = f"/tmp/{practice_id}.ogg"
     bucket.download_file(object_key, download_filename)
   except:
@@ -28,7 +34,7 @@ def lambda_handler(event, _):
   result = process_file(download_filename)
 
   # Upload the file partitions.
-  storage_bucket = s3.Bucket("fakenews")
+  storage_bucket = s3.Bucket(TO_AUDIO_BUCKET_NAME)
   for key, filename in result.partitions:
     try:
       pass

@@ -32,6 +32,35 @@ export class JongleurAudioConstruct extends Construct {
     super(scope, id);
 
     // ------------------------------------------------------------------------
+    // Serve.
+    // ------------------------------------------------------------------------
+
+    // The bucket in which to store audio slices long-term. We won't allow users
+    // to pull from this bucket directly. Rather, a cloudfront distribution
+    // will serve its contents.
+    const audioStorageBucket = new s3.Bucket(this, "AudioStorageBucket", {
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+    });
+
+    this._audioServeDistribution = new cloudfront.Distribution(this, "AudioServeDistribution", {
+      defaultBehavior: {
+        // Cloudfront will automatically grant itself access to the bucket.
+        origin: new cloudfront_origins.S3Origin(audioStorageBucket),
+        // We don't allow any HTTP requests to this distribution. Our front-end
+        // will always use HTTPS.
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+      },
+      comment: "Serves and caches Jongleur user audio files.",
+      httpVersion: cloudfront.HttpVersion.HTTP2,
+      enabled: true,
+      // Using the cheapest price class for now while developing, but can switch
+      // to PRICE_CLASS_ALL later.
+      priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
+    });
+
+    // ------------------------------------------------------------------------
     // Upload.
     // ------------------------------------------------------------------------
 
@@ -98,7 +127,13 @@ export class JongleurAudioConstruct extends Construct {
       code: lambda.DockerImageCode.fromImageAsset("audio/process/"),
       timeout: Duration.minutes(8),
       tracing: lambda.Tracing.ACTIVE,
+      environment: {
+        JONG_CLIENT_AUDIO_UPLOAD_BUCKET_NAME: clientAudioUploadBucket.bucketName,
+        JONG_AUDIO_STORAGE_BUCKET_NAME: audioStorageBucket.bucketName,
+      },
     });
+    clientAudioUploadBucket.grantRead(processAudioLambda);
+    audioStorageBucket.grantWrite(processAudioLambda);
 
     // We use a StepFunction to do the processing since there are a few steps
     // involved and I am willing to bet that the core processing will fail
@@ -199,35 +234,6 @@ export class JongleurAudioConstruct extends Construct {
     clientAudioUploadBucket.addObjectCreatedNotification(
       new s3_notifications.LambdaDestination(callStepFunctionLambda)
     );
-
-    // ------------------------------------------------------------------------
-    // Serve.
-    // ------------------------------------------------------------------------
-
-    // The bucket in which to store audio slices long-term. We won't allow users
-    // to pull from this bucket directly. Rather, a cloudfront distribution
-    // will serve its contents.
-    const audioStorageBucket = new s3.Bucket(this, "AudioStorageBucket", {
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      encryption: s3.BucketEncryption.S3_MANAGED,
-    });
-
-    this._audioServeDistribution = new cloudfront.Distribution(this, "AudioServeDistribution", {
-      defaultBehavior: {
-        // Cloudfront will automatically grant itself access to the bucket.
-        origin: new cloudfront_origins.S3Origin(audioStorageBucket),
-        // We don't allow any HTTP requests to this distribution. Our front-end
-        // will always use HTTPS.
-        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
-        allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
-      },
-      comment: "Serves and caches Jongleur user audio files.",
-      httpVersion: cloudfront.HttpVersion.HTTP2,
-      enabled: true,
-      // Using the cheapest price class for now while developing, but can switch
-      // to PRICE_CLASS_ALL later.
-      priceClass: cloudfront.PriceClass.PRICE_CLASS_100,
-    });
   }
 
   get audioServeDistribution() {
