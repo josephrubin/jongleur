@@ -48,7 +48,7 @@ def process_file(filename):
   curated_segments = []
   if segments:
     curated_segment_start = segments[0][0]
-    
+
     for segment_start, segment_end in segments:
       time_between_segments = librosa.samples_to_time(
         possible_segment_end - segment_start,
@@ -63,6 +63,10 @@ def process_file(filename):
         curated_segment_start = segment_start
 
       possible_segment_end = segment_end
+
+  # todo - fix last segment.
+
+  print("curated segments", curated_segments)
 
   sss = []
   for s in segments:
