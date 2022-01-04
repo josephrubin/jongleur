@@ -3,12 +3,14 @@ import sys
 
 import boto3
 import librosa
+from librosa.core.audio import resample
 import numpy as np
 
 FROM_AUDIO_BUCKET_NAME = os.getenv("JONG_CLIENT_AUDIO_UPLOAD_BUCKET_NAME")
 TO_AUDIO_BUCKET_NAME = os.getenv("JONG_AUDIO_STORAGE_BUCKET_NAME")
 
 MINIMUM_SILENCE_BETWEEN_SEGMENTS_IN_SECONDS = 1.0
+RENDERABLE_WAVEFORM_SAMPLES_PER_SECOND = 5
 
 s3 = boto3.resource("s3")
 
@@ -61,46 +63,58 @@ def process_file(filename):
   if not filename.endswith('ogg'):
     print(
       "Please convert your audio file to .ogg (ogg vorbis) first "
-      "(possibly by using ffmpeg)."
+      "(possibly by using ffmpeg).",
+      file=sys.stderr
     )
+    sys.exit(1)
 
+  # Load the audio file using the standard sampling rate.
   waveform, samplingrate = librosa.load(filename)
+  # Get a low-fidelity, resampled version of the waveform for the front end.
+  renderable_waveform = librosa.resample(
+    waveform,
+    orig_sr=samplingrate,
+    target_sr=RENDERABLE_WAVEFORM_SAMPLES_PER_SECOND,
+    res_type="polyphase"
+  )
 
+  # Calculate the approximate tempo of the audio.
   tempo, beat_frames = librosa.beat.beat_track(y=waveform, sr=samplingrate)
-
-  print(f"Tempo is about {tempo} beats per minute.")
-
-  beat_times = librosa.frames_to_time(beat_frames, sr=samplingrate)
-  #print(beat_times)
-
-  print(len(waveform))
 
   # Split the audio waveform into segments of non-silence.
   segments = librosa.effects.split(waveform, top_db=40)
 
-  print("segs", segments)
-
-  # Combine segments that are too close together.
+  # Combine segments that are too close together. Each segment is an interval (a, b).
+  # We'll created a curated list of segments such that no (_, b) (a', _) segment pair
+  # has b and a' being too close together.
   curated_segments = []
   if len(segments) > 0:
-    curated_segment_start = segments[0][0]
+    prev_segment_start = prev_segment_end = None
 
     for segment_start, segment_end in segments:
+      # We don't process a segment until we get to the next one, so
+      # skip the first segment and call it the previous segment.
+      if prev_segment_start is None or prev_segment_end is None:
+        prev_segment_start = segment_start
+        prev_segment_end = segment_end
+        continue
+
+      # Compute the time between this segment and the last.
       time_between_segments = librosa.samples_to_time(
-        possible_segment_end - segment_start,
+        segment_start - prev_segment_end,
         sr=samplingrate
       )
-
       if time_between_segments >= MINIMUM_SILENCE_BETWEEN_SEGMENTS_IN_SECONDS:
-        curated_segments.append([
-          curated_segment_start,
-          possible_segment_end
-        ])
-        curated_segment_start = segment_start
+        # If the time is large, the last segment is a curated segment...
+        curated_segments.append([prev_segment_start, prev_segment_end])
+        # ...and this segment is the first of a new curated segment.
+        prev_segment_start = segment_start
 
-      possible_segment_end = segment_end
-
-  # todo - fix last segment.
+      # Either way, update the end of the curated segment so far.
+      prev_segment_end = segment_end
+    
+    # The segment we just saw is the final segment, so this must be included.
+    curated_segments.append([prev_segment_start, prev_segment_end])
 
   print("curated segments", curated_segments)
 
@@ -115,6 +129,23 @@ def process_file(filename):
 
   # todo - Only take intervals that are long enough.
 
+  # Return a list of volume samples along with a list of segment intervals
+  # along the amplitude list of nonsilence.
+
   return {
     "message": "okay done"
   }
+
+
+if __name__ == "__main__":
+  usage_string = f"usage: {sys.argv[0]} <filename>"
+
+  if len(sys.argv) < 2:
+    print(usage_string, file=sys.stderr)
+    sys.exit(1)
+
+  if "--help" in sys.argv:
+    print(usage_string)
+    sys.exit(0)
+
+  process_file(sys.argv[1])

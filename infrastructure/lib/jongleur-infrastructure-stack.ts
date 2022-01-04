@@ -65,6 +65,7 @@ export class JongleurInfrastructureStack extends Stack {
     const audioConstruct = new JongleurAudioConstruct(this, "JongleurAudioConstruct", {
       userPool: authConstruct.userPool,
       userPoolClient: graphqlConstruct.userPoolClient,
+      graphqlApi: graphqlConstruct.api,
       practiceTable: dataConstruct.practiceTable,
       region: props.env.region,
     });
@@ -78,6 +79,7 @@ export class JongleurInfrastructureStack extends Stack {
       dockerAppDirectory: ".",
       dockerAppPort: 3000,
       graphqlApi: graphqlConstruct.api,
+      presignedUrlApi: audioConstruct.audioUploadPresignedUrlApi,
     });
 
     // ------------------------------------------------------------------------

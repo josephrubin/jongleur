@@ -2,6 +2,7 @@ import { Construct } from "constructs";
 import {
   Duration,
   RemovalPolicy,
+  aws_apigateway as apigateway,
   aws_cognito as cognito,
   aws_cloudfront as cloudfront,
   aws_cloudfront_origins as cloudfront_origins,
@@ -12,11 +13,13 @@ import {
   aws_s3 as s3,
   aws_s3_notifications as s3_notifications
 } from "aws-cdk-lib";
+import * as appsync from "@aws-cdk/aws-appsync-alpha";
 import { makeNodejsLambda } from "./make-defaults";
 
 interface JongleurAudioConstructProps {
   userPool: cognito.UserPool;
   userPoolClient: cognito.UserPoolClient;
+  graphqlApi: appsync.GraphqlApi;
   practiceTable: dynamodb.Table;
   region: string;
 }
@@ -26,6 +29,7 @@ interface JongleurAudioConstructProps {
  * upload, storage, logic, processing, and data synthesis relating to audio.
  */
 export class JongleurAudioConstruct extends Construct {
+  private _audioUploadPresignedUrlApi: apigateway.RestApi;
   private _audioServeDistribution: cloudfront.Distribution;
 
   constructor(scope: Construct, id: string, props: JongleurAudioConstructProps) {
@@ -108,11 +112,15 @@ export class JongleurAudioConstruct extends Construct {
       environment: {
         JONG_S3_REGION: props.region,
         JONG_CLIENT_AUDIO_UPLOAD_BUCKET: clientAudioUploadBucket.bucketName,
-        JONG_USER_POOL_ID: props.userPool.userPoolId,
-        JONG_USER_POOL_CLIENT_ID: props.userPoolClient.userPoolClientId,
+        JONG_GRAPHQL_URL: props.graphqlApi.graphqlUrl,
       },
     });
     clientAudioUploadBucket.grantWrite(createUploadSignedUrlLambda);
+
+    // An API Gateway to expose the presigned URL generator lambda.
+    this._audioUploadPresignedUrlApi = new apigateway.RestApi(this, "JongleurAudioUploadPresignedUrlApi");
+    const presigned = this._audioUploadPresignedUrlApi.root.addResource("presigned");
+    presigned.addMethod("POST", new apigateway.LambdaIntegration(createUploadSignedUrlLambda));
 
     // ------------------------------------------------------------------------
     // Process.
@@ -235,6 +243,10 @@ export class JongleurAudioConstruct extends Construct {
     clientAudioUploadBucket.addObjectCreatedNotification(
       new s3_notifications.LambdaDestination(callStepFunctionLambda)
     );
+  }
+
+  get audioUploadPresignedUrlApi() {
+    return this._audioUploadPresignedUrlApi;
   }
 
   get audioServeDistribution() {

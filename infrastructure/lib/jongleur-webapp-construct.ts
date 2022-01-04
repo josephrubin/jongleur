@@ -1,5 +1,6 @@
 import { Construct } from "constructs";
 import {
+  aws_apigateway as apigateway,
   aws_certificatemanager as acm,
   aws_iam as iam,
   aws_ecs as ecs,
@@ -13,6 +14,7 @@ interface JongleurWebappConstructProps {
   readonly dockerAppDirectory: string;
   readonly dockerAppPort: number;
   readonly graphqlApi: appsync.GraphqlApi;
+  readonly presignedUrlApi: apigateway.RestApi;
 }
 
 /**
@@ -56,6 +58,7 @@ export class JongleurWebappConstruct extends Construct {
         taskRole: this._role,
         environment: {
           JONG_GRAPHQL_URL: props.graphqlApi.graphqlUrl,
+          JONG_PRESIGNED_URL_API_URL: props.presignedUrlApi.url,
         },
       },
     });

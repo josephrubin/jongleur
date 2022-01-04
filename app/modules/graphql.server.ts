@@ -1,4 +1,5 @@
-/** Client module for interacting with our graphql backend.
+/**
+ * Client module for interacting with our graphql backend.
  * We use graphql-request https://github.com/prisma-labs/graphql-request
  * at the moment. It is a fairly light library that is React-unaware
  * and our module provides a wrapper aroung it.

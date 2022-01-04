@@ -29,9 +29,11 @@ ffmpeg. On Mac, for example:
 $ brew update
 $ brew install ffmpeg
 ```
+(You may need some other libraries depending on your exact setup; if so, install them and feel free to add them to this README!).
 You'll also want pipenv (`pip3 install pipenv`) so you can use the virtual
 environment:
 ```sh
+pipenv install
 pipenv shell
 ```
 
@@ -47,9 +49,7 @@ out the Jongleur "wordmark," just for fun. Try it!
 
 Right now, we don't have emulation for the backend when developing locally.
 You just run the web app locally but connect to the remote server.
-This is generally fine (and it works because the web app has a hardcoded API key), but it requires having a working server running (see deployment below). Right now you can connect to the version running at jongleur.app but once the app is out of initial development this will have to change for security reasons.
-
-This hardcoded API key expires every once in a while and has to be replaced, but the production server uses IAM authentication for our API which should never expire.
+This is generally fine, but it requires having a working server running (see deployment below). Right now you can connect to the version running at jongleur.app but once the app is out of initial development this will change.
 
 ## Deployment
 
