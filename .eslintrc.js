@@ -10,9 +10,10 @@ module.exports = {
     "plugin:@typescript-eslint/recommended",
   ],
   ignorePatterns: [
-    "**/generated/*.ts",
-    "**/generated/*.tsx",
-    "**/cdk.out/*.ts",
+    "**/generated/",
+    "**/cdk.out/",
+    "**/node_modules/",
+    "**/build/",
   ],
   parser: "@typescript-eslint/parser",
   parserOptions: {

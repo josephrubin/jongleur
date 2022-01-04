@@ -10,6 +10,7 @@
     "deploy": "cdk deploy",
     "synth": "cdk synth",
     "postinstall": "remix setup node",
+    "lint": "eslint .",
     "test": "jest",
     "test-u": "jest -u",
     "codegen": "graphql-codegen --config codegen.yaml",
