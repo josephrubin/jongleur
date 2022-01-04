@@ -27,7 +27,7 @@ export default function Register() {
     return (
       <>
         <p>
-          You've signed up! Here are the details:
+          {"You've signed up! Here are the details:"}
         </p>
         <p>
           {JSON.stringify(user)}
@@ -48,7 +48,7 @@ export default function Register() {
           Password
             <input name="password" type="password" />
           </label>
-          <button type="submit">Let's Go!</button>
+          <button type="submit">{"Let's Go!"}</button>
         </Form>
       </div>
     );

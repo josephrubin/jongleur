@@ -41,7 +41,7 @@ export default function Register() {
 
   return (
     <div>
-      <h1>🎻&nbsp; Let's Get Practicing!</h1>
+      <h1>🎻&nbsp; {"Let's Get Practicing!"}</h1>
       <Form method="post">
         <label>
           Username

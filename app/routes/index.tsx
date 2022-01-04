@@ -111,12 +111,12 @@ export default function Index() {
         {user ? (
           <>
             <h1>👋 Hey, {user.username}!</h1>
-            Thanks for signing in. There's no time to waste, play on!
+            {"Thanks for signing in. There's no time to waste, play on!"}
           </>
         ) : (
           <>
             <h1>🎹&nbsp; Come Join the Party!</h1>
-            There's so much music to learn! <Link to="./register">Make an account</Link> so you can practice like a pro.
+            {"There's so much music to learn!"} <Link to="./register">Make an account</Link> so you can practice like a pro.
           </>
         )}
       </div>
