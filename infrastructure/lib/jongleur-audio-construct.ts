@@ -134,7 +134,7 @@ export class JongleurAudioConstruct extends Construct {
       description: "Jongleur - process an audio file.",
       code: lambda.DockerImageCode.fromImageAsset("audio/process/"),
       timeout: Duration.minutes(8),
-      memorySize: 1024,
+      memorySize: 2048,
       tracing: lambda.Tracing.ACTIVE,
       environment: {
         JONG_CLIENT_AUDIO_UPLOAD_BUCKET_NAME: clientAudioUploadBucket.bucketName,
@@ -201,7 +201,7 @@ export class JongleurAudioConstruct extends Construct {
     const processStep = new stepfunctions_tasks.LambdaInvoke(this, "ProcessStep", {
       lambdaFunction: processAudioLambda,
       // Actually use the output of this step.
-      resultPath: stepfunctions.JsonPath.entirePayload,
+      outputPath: "$.Payload",
     });
 
     // Process an audio upload as a multi-step machine.

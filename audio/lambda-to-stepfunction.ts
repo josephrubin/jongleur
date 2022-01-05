@@ -25,6 +25,10 @@ interface s3NotificationEventRecord {
   };
 }
 
+/**
+ * The S3 object creation notification can't trigger a StepFunction automatically.
+ * Instead, we trigger this lambda which calls the StepFunction.
+ */
 const lambdaHandler = async (event: {Records: s3NotificationEventRecord[]}) => {
   const handlerExecutionId = uuidv4();
 
@@ -32,8 +36,8 @@ const lambdaHandler = async (event: {Records: s3NotificationEventRecord[]}) => {
   // we should have no problem handling batches.
   for (let i = 0; i < event.Records.length; i++) {
     const record = event.Records[i];
-    if (record.eventName !== "ObjectCreated:Put") {
-      throw `Invalid eventName: ${record.eventName}. We only handle Put events here.`;
+    if (!record.eventName.startsWith("ObjectCreated:")) {
+      throw `Invalid eventName: ${record.eventName}. We only handle ObjectCreated events here.`;
     }
 
     try {
@@ -48,7 +52,7 @@ const lambdaHandler = async (event: {Records: s3NotificationEventRecord[]}) => {
           key: record.s3.object.key,
           size: record.s3.object.size,
           requestEpoch: String(Date.now()),
-          // Give a uuid as input in case the step function wants one.
+          // Give a uuid as input in case the StepFunction wants one.
           uuid: uuidv4(),
         }),
       });

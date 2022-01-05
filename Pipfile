@@ -9,6 +9,7 @@ name = "pypi"
 librosa = "*"
 numpy = "*"
 boto3 = "*"
+matplotlib = "*"
 
 [requires]
 python_version = "3.9"
