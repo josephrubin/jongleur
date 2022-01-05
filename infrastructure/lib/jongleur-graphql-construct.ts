@@ -130,6 +130,10 @@ export class JongleurGraphqlConstruct extends Construct {
     });
     apiLambdaDataSource.createResolver({
       typeName: QUERY_TYPE,
+      fieldName: "readPiece",
+    });
+    apiLambdaDataSource.createResolver({
+      typeName: QUERY_TYPE,
       fieldName: "readAuthenticate",
     });
 
@@ -146,9 +150,11 @@ export class JongleurGraphqlConstruct extends Construct {
       typeName: MUTATION_TYPE,
       fieldName: "refreshSession",
     });
+
+    // AuthenticatedUser parent.
     apiLambdaDataSource.createResolver({
-      typeName: MUTATION_TYPE,
-      fieldName: "createPractice",
+      typeName: "AuthenticatedUser",
+      fieldName: "practices",
     });
   }
 

@@ -16,6 +16,8 @@
 type Query {
   """Read all of the pieces."""
   readPieces: [Piece!]!
+  """Read a single piece by ID."""
+  readPiece(id: ID!): Piece
   """Get an AuthenticatedUser node from which to read a user's data."""
   readAuthenticate(accessToken: String!): AuthenticatedUser
 }
@@ -40,7 +42,10 @@ type Piece {
   title: String!
 }
 
-"""A practice session on a particular piece."""
+"""
+A practice session on a particular piece. There is no createPractice mutation
+because Practices are created on audio upload through a different pipeline.
+"""
 type Practice {
   id: ID!
 

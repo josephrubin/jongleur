@@ -3,7 +3,7 @@
  * all queries and mutations.
  */
 
-import { MutationCreateSessionArgs, MutationCreateUserArgs, User, Session, MutationRefreshSessionArgs, QueryReadAuthenticateArgs, AuthenticatedUser, Principal, QueryReadPieceArgs, MutationCreatePracticeArgs, Piece, Practice } from "~/generated/graphql-schema";
+import { MutationCreateSessionArgs, MutationCreateUserArgs, User, Session, MutationRefreshSessionArgs, QueryReadAuthenticateArgs, AuthenticatedUser, Piece, Practice, QueryReadPieceArgs } from "~/generated/graphql-schema";
 import { AsrLambdaHandler, DecodedAccessToken } from "./appsync-resolver-types";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
@@ -155,54 +155,7 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
     }
   }
   else if (parentTypeName === "Mutation") {
-    if (fieldName === "createPractice") {
-      const createCollectionArgs = (args as MutationCreatePracticeArgs);
-
-      // Ensure that the caller is verified.
-      const accessToken = createCollectionArgs.accessToken;
-      try {
-        await accessTokenVerifier.verify(accessToken);
-      }
-      catch {
-        console.log("Verification error.");
-        return null;
-      }
-
-      const decodedAccessToken = jwt_decode(accessToken) as DecodedAccessToken;
-
-      // Create a new collection object without custom nested types that we need to
-      // store elsewhere.
-      // We don't actually do any audio processing here, we just store URLs that
-      // have already been created for us.
-      const practice: Practice = {
-        id: uuidv4(),
-        durationSeconds: createCollectionArgs.input.durationSeconds,
-        tempoBpm: createCollectionArgs.input.tempoBpm,
-        audioUrl: createCollectionArgs.input.audioUrl,
-        // Store segments as nested JSON inside DynamoDB.
-        segments: createCollectionArgs.input.segments
-          .map(segmentInput => objectWithoutKeys(segmentInput, ["__typename"])),
-      };
-
-      // Store the Practice.
-      try {
-        await dynamoDbDocumentClient.put({
-          TableName: PRACTICE_TABLE,
-          Item: {
-            // Add the Practice along with required global indices.
-            userId: decodedAccessToken.sub,
-            pieceId: createCollectionArgs.pieceId,
-            ...practice,
-          },
-        });
-      }
-      catch (err) {
-        error(`Error storing practice with id ${practice.id}.`);
-      }
-
-      return practice;
-    }
-    else if (fieldName === "createUser") {
+    if (fieldName === "createUser") {
       const { username, password } = (args as MutationCreateUserArgs);
       try {
         // Try to sign up the user in cognito.
