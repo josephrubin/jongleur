@@ -90,7 +90,7 @@ type Segment {
   audioUrl: String!
 }
 
-type SegmentInput {
+input SegmentInput {
   renderableSampleFirst: Int!
   renderableSampleLast: Int!
   durationSeconds: Int!
