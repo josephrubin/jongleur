@@ -30,9 +30,6 @@ type Mutation {
   createSession(username: String!, password: String!): Session!
   """Refresh a session (get new accessToken with later expiration)."""
   refreshSession(username: String!, refreshToken: String!): Session!
-
-  """Create a new practice recording of a piece."""
-  createPractice(accessToken: String!, pieceId: ID!, input: PracticeInput!): Practice
 }
 
 """An individual composition that a user can practice."""

@@ -37,9 +37,12 @@ TO_AUDIO_BUCKET_NAME = os.getenv("JONG_AUDIO_STORAGE_BUCKET_NAME")
 # be serving our audio files from the TO bucket.
 AUDIO_SERVE_DISTRIBUTION_URL = os.getenv("JONG_AUDIO_SERVE_DISTRIBUTION_URL")
 
-# The minimum amount of silence in seconds between two distince segments.
+# The minimum amount of silence in seconds between two distinct segments.
 # Thus no two segments should be temporally closer than this.
 MINIMUM_SILENCE_BETWEEN_SEGMENTS_IN_SECONDS = 2.4
+# The smallest duration in seconds that a segment can be.
+MINIMUM_SEGMENT_DURATION_IN_SECONDS = 1.5
+
 # The client will be shown a low-fidelity representation of the waveform
 # which will have this many amplitude samples per second.
 RENDERABLE_WAVEFORM_SAMPLES_PER_SECOND = 5
@@ -189,6 +192,7 @@ def process_file(filename, temp_dir):
       waveform.extend(block)
 
   curated_segments = merge_nearby_segments(segments, samplingrate, MINIMUM_SILENCE_BETWEEN_SEGMENTS_IN_SECONDS)
+  curated_segments = remove_short_segments(curated_segments, samplingrate, MINIMUM_SEGMENT_DURATION_IN_SECONDS)
 
   if DISPLAY_WAVEFORM:
     segment_times = librosa.samples_to_time(curated_segments, sr=samplingrate)
@@ -247,10 +251,25 @@ def process_file(filename, temp_dir):
   }
 
 
+def remove_short_segments(segments, samplingrate, minimum_segment_duration_in_seconds):
+  """Remove segments shorter than the given minimum number of seconds."""
+  result_segments = []
+  for segment in segments:
+    segment_seconds = librosa.samples_to_time(
+      segment,
+      sr=samplingrate
+    )
+    if (segment_seconds[1] - segment_seconds[0]) >= minimum_segment_duration_in_seconds:
+      result_segments.append(segment)
+  return result_segments
+
+
 def merge_nearby_segments(segments, samplingrate, minimum_silence_between_segments_in_seconds):
-  # Combine segments that are too close together. Each segment is an interval (a, b).
-  # We'll created a curated list of segments such that no (_, b) (a', _) segment pair
-  # has b and a' being too close together.
+  """
+  Combine segments that are too close together. Each segment is an interval (a, b).
+  We'll created a curated list of segments such that no (_, b) (a', _) segment pair
+  has b and a' being too close together.
+  """
   curated_segments = []
   if len(segments) > 0:
     prev_segment_start = prev_segment_end = None
