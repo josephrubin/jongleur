@@ -10,6 +10,7 @@ librosa = "*"
 numpy = "*"
 boto3 = "*"
 matplotlib = "*"
+samplerate = "*"
 
 [requires]
 python_version = "3.9"

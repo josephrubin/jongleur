@@ -8,6 +8,7 @@ librosa = "*"
 numpy = "*"
 boto3 = "*"
 matplotlib = "*"
+samplerate = "*"
 
 [dev-packages]
 

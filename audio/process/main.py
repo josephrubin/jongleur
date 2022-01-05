@@ -11,9 +11,8 @@ The output is audio files uploaded to S3 (which will be served from Cloudfront)
 as well as a PracticeInput type (see graphql/schema.graphql).
 
 We don't have type generation for Python (we do for Typescript) so we'll have to
-be a little careful here to get the right type, but we'll defer actually calling
-the  GraphQL mutation to create the Practice to a Typescript lambda later in the
-StepFunction chain.
+be a little careful here to get the right type, but we'll defer actually saving
+the Practice type in DynamoDB to the next state in the StepFunction.
 """
 import os
 import sys
@@ -174,12 +173,15 @@ def process_file(filename, temp_dir):
     plt.show()
 
   # Get a low-fidelity, resampled version of the waveform for the front end.
-  renderable_waveform, renderable_waveform_sr = librosa.load(
+  renderable_waveform_raw, renderable_waveform_sr = librosa.load(
     filename,
     sr=RENDERABLE_WAVEFORM_SAMPLES_PER_SECOND,
     mono=True,
     res_type="polyphase"
   )
+  renderable_waveform = np.abs(
+    librosa.amplitude_to_db(renderable_waveform_raw)
+  ).astype(int)
 
   # Save the audio files that we're going to upload to S3. Just save the segments
   # because the whole waveform was already downloaded earlier.
