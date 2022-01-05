@@ -53,6 +53,8 @@ This is generally fine, but it requires having a working server running (see dep
 
 ## Deployment
 
+While it's not necessary for front-end development, you might want to deploy a stack of your very own.
+
 The command
 
 ```sh
@@ -65,7 +67,6 @@ it to ECR
 2. Starting the ECR image through ECS (Fargate)
 3. Deploying the GraphQL API and its data resolvers
 4. Creating the data stores themselves (databases, buckets, etc.)
-and populating them with initial data
 5. Creating the Cognito user pool
 6. Launching all the misc lambdas and rest APIs
 7. Etc
@@ -76,6 +77,20 @@ the app yourself, you should be able to do it just by changing these values in `
 Then you simply add the validation records to your DNS during deployment for the HTTPS certificate (see the ACM panel in your AWS console) and the 
 app should be good to go. If you're asked to bootstrap your CDK environment
 when attempting to deploy, do it.
+
+### Initial data
+One thing you'll notice after deployment is that there is no initial data in the application's data stores.
+While you probably want the app to be deployed without any user accounts or user data, you might want to tell the app to support some pieces so you can play.
+
+No problem :)
+We've got a script and data file that will upload about 500 Scarlatti sonatas. You just point the script at the data file and give it the name of the Piece table that was deployed. (We use [comma](https://github.com/jlumbroso/comma) of course!)
+
+For example, I can run the command like this:
+```sh
+$ python infrastructure/populate_piece_table.py asset/scarlatti_piano_solo_sonatas.csv "JongleurInfrastructureStack-JongleurDataConstructPieceTableECC218AA-KYBQW0X5HSTU"
+```
+
+Because this command is being run locally, just make sure that your aws config is pointed at an IAM user with permissions on your account. Of course, it isn't pretty that you have to find the name of the Piece table yourself, but then again, the point of this script is just to bootstrap your app deployment, it's definitely not meant to be used regularly. A remote function that adds pieces will be added to our GraphQL resolver
 
 ## Staging
 

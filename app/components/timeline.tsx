@@ -1,6 +1,3 @@
-import { NoneDataSource } from "@aws-cdk/aws-appsync";
-import { readPieces } from "~/modules/pieces.server";
-
 interface TimelineProps {
   readonly selectedNodeIndex: number;
 }

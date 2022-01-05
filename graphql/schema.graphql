@@ -40,6 +40,22 @@ type Piece {
 
   # The name of this piece.
   title: String!
+
+  # The key that this piece is in, represented as a string like
+  # F sharp minor.
+  key: String!
+
+  # This piece's Ralph Kirkpatrick index.
+  kIndex: String!
+
+  # This piece's Alessandro Longo index, if available
+  lIndex: String
+
+  # This piece's Giorgio Pestelli index, if available
+  pIndex: String
+
+  # This piece's Carl Czerny index, if available
+  czIndex: String
 }
 
 """

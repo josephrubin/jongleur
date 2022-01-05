@@ -16,7 +16,7 @@ const GRAPHQL_ENDPOINT =
   || "https://xvjyccqrpbdcjj3wsop4mg7ode.appsync-api.us-east-1.amazonaws.com/graphql";
 console.log(`Creating GraphQL module and attaching to endpoint: ${GRAPHQL_ENDPOINT}`);
 
-const graphQlClient = new GraphQLClient(GRAPHQL_ENDPOINT, {
+const graphqlClient = new GraphQLClient(GRAPHQL_ENDPOINT, {
   headers: {
     // For now we don't need a real auth token to call our API
     // since auth is done in the resolver itself.
@@ -33,8 +33,8 @@ const graphQlClient = new GraphQLClient(GRAPHQL_ENDPOINT, {
  * Direct assignment saves us from having to type the exported functions,
  * but this means we gotta do a context binding hack so the functions
  * aren't executed with this module's `this` context. */
-const request = graphQlClient.request.bind(graphQlClient);
-const rawRequest = graphQlClient.rawRequest.bind(graphQlClient);
-const batchRequests = graphQlClient.batchRequests.bind(graphQlClient);
+const request = graphqlClient.request.bind(graphqlClient);
+const rawRequest = graphqlClient.rawRequest.bind(graphqlClient);
+const batchRequests = graphqlClient.batchRequests.bind(graphqlClient);
 
 export { request, rawRequest, batchRequests };

@@ -11,6 +11,7 @@ numpy = "*"
 boto3 = "*"
 matplotlib = "*"
 samplerate = "*"
+comma = {extras = ["autodetect", "net"], version = "*"}
 
 [requires]
 python_version = "3.9"

@@ -41,6 +41,7 @@ export const loader: LoaderFunction = async ({request}) => {
   // The root loader gets the user's accessToken so all child
   // routes can access it through useAccessToken!
   const accessToken = await getAccessToken(request);
+
   return { accessToken };
 };
 

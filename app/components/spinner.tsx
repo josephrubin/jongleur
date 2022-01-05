@@ -1,5 +1,3 @@
-import { RestoreTableToPointInTimeCommand } from "@aws-sdk/client-dynamodb";
-
 export function Spinner() {
   const inlineStyle = `
     @keyframes spin {

@@ -1,5 +1,5 @@
 import React, { createRef, useEffect, useState } from "react";
-import { fillRoundedRect } from "../modules/drawing.client";
+import { fillRoundedRect } from "../modules/drawing";
 
 interface SegmentIndices {
   readonly startIndex: number;
