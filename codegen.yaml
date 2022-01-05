@@ -3,13 +3,12 @@
 
 overwrite: true
 schema: "graphql/schema.graphql"
-#documents: "app/**/*.graphql"
 generates:
   app/generated/graphql-schema.tsx:
     plugins:
       - "typescript"
       - "typescript-operations"
-      - "typescript-react-apollo"
+      #- "typescript-react-apollo"
       #- "typescript-graphql-files-modules"
       #- "typescript-document-nodes"
   #./graphql.schema.json:

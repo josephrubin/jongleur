@@ -172,96 +172,46 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
 
       // Create a new collection object without custom nested types that we need to
       // store elsewhere.
-      // TODO: ingest recording and make the practice
-      const practiceBase: Omit<Practice, never> = objectWithoutKeys({
+      // We don't actually do any audio processing here, we just store URLs that
+      // have already been created for us.
+      const practice: Practice = {
         id: uuidv4(),
-      }, []);
+        durationSeconds: createCollectionArgs.input.durationSeconds,
+        tempoBpm: createCollectionArgs.input.tempoBpm,
+        audioUrl: createCollectionArgs.input.audioUrl,
+        // Store segments as nested JSON inside DynamoDB.
+        segments: createCollectionArgs.input.segments
+          .map(segmentInput => objectWithoutKeys(segmentInput, ["__typename"])),
+      };
 
-      // First store the nested casts in DynamoDB...
-      /*
-      const savedCasts: Cast[] = [];
-      const storeCastPromises = [];
-      for (let i = 0; i < createCollectionArgs.input.casts.length; i++) {
-        const castInput = createCollectionArgs.input.casts[i];
-
-        // Create a new cast object for each cast in the input, assign it the input
-        // data, and give it some default values.
-        const cast: Cast = {
-          id: uuidv4(),
-          isClaimed: false,
-          assignedPrincipal: null,
-          ...castInput,
-        };
-        savedCasts.push(cast);
-
-        // Save the cast, making sure to add values for our global secondary indices.
-        const putPromise = dynamoDbDocumentClient.put({
-          TableName: CAST_TABLE,
-          Item: {
-            collectionId: collectionBase.id,
-            userId: decodedAccessToken.sub,
-            ...cast,
-          },
-        });
-        storeCastPromises.push(putPromise);
-      }
-      try {
-        await Promise.all(storeCastPromises);
-      }
-      catch (err) {
-        error("Error storing at least one cast.");
-      }*/
-
-      // ...then store the Practice.
+      // Store the Practice.
       try {
         await dynamoDbDocumentClient.put({
           TableName: PRACTICE_TABLE,
-          Item: practiceBase,
+          Item: {
+            // Add the Practice along with required global indices.
+            userId: decodedAccessToken.sub,
+            pieceId: createCollectionArgs.pieceId,
+            ...practice,
+          },
         });
       }
       catch (err) {
-        error(`Error storing practice with id ${practiceBase.id}.`);
+        error(`Error storing practice with id ${practice.id}.`);
       }
 
-      // We also have to return the new Practice that we created with the mutation.
-      // We've been saving this information in RAM so we can do it easily. Note that
-      // we may be tempted to just recurse on a Query, but DynamoDB is only eventually
-      // consistent so that might not even work anyway.
-      const practice: Practice = {
-        ...practiceBase,
-      };
       return practice;
     }
     else if (fieldName === "createUser") {
       const { username, password } = (args as MutationCreateUserArgs);
       try {
         // Try to sign up the user in cognito.
-        const signUpResponse = await cognitoClient.signUp({
+        await cognitoClient.signUp({
           ClientId: USER_POOL_CLIENT_ID,
           SecretHash: calculateSecretHash(username),
           Username: username,
           Password: password,
         });
-
-        // Now that the user has been signed up, generate and store the user's
-        // any additional information associated with it.
-        /*
-        const principal = await stx.createPrincipal(password);
-        try {
-          await dynamoDbDocumentClient.put({
-            TableName: PRINCIPAL_TABLE,
-            Item: {
-              publicAddress: principal.publicAddress,
-              password: principal.password,
-              secretKey: principal.secretKey,
-              stxPrivateKey: principal.stxPrivateKey,
-              userId: signUpResponse.UserSub,
-            },
-          });
-        }
-        catch (err) {
-          error(`Error storing Principal for user ${signUpResponse.UserSub}.`);
-        }*/
 
         // For now, we will confirm every user. In the future we may
         // wish to have users confirm their email address.
@@ -375,25 +325,6 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
       }
     }
   }
-  /*
-  else if (parentTypeName === "Collection") {
-    if (fieldName === "casts") {
-      // Return all casts in the parent collection. There's no need to define
-      // a resolver for the cast data field because it will be stored in the cast table
-      // and subject to the default resolver.
-      const { Items: casts } = await dynamoDbDocumentClient.query({
-        TableName: CAST_TABLE,
-        IndexName: "collectionId_index",
-        KeyConditionExpression: "collectionId = :cid",
-        ExpressionAttributeValues: {
-          ":cid": (source as TypeWithId).id,
-        },
-      });
-
-      returnResultIfExists(casts, "Error fetching casts.");
-    }
-  }
-  */
   else {
     throw `Invalid parentTypeName ${parentTypeName}.`;
   }

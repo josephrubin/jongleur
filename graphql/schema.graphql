@@ -16,8 +16,6 @@
 type Query {
   """Read all of the pieces."""
   readPieces: [Piece!]!
-  """Read a single piece by ID."""
-  readPiece(id: ID!): Piece
   """Get an AuthenticatedUser node from which to read a user's data."""
   readAuthenticate(accessToken: String!): AuthenticatedUser
 }
@@ -51,11 +49,52 @@ type Practice {
 
   # The number of seconds in this practice session.
   durationSeconds: Int!
+
+  # The approximate tempo in beats per minute of this session's recording.
+  tempoBpm: Int!
+
+  # A low-resolution sequence of samples that can be rendered on the front-end.
+  renderableWaveform: [Int!]!
+
+  # The number of samples per second in renderableWaveform. This is likely to be low.
+  renderableWaveformSamplesPerSecond: Int!
+
+  # The full practice recording location.
+  audioUrl: String!
+
+  # The segments that make up this practice recording.
+  segments: [Segment!]!
 }
 
-"""TODO: need to take in a recording."""
 input PracticeInput {
-  durationSeconds: Int
+  durationSeconds: Int!
+  tempoBpm: Int!
+  renderableWaveform: [Int!]!
+  renderableWaveformSamplesPerSecond: Int!
+  audioUrl: String!
+  segments: [SegmentInput!]!
+}
+
+"""A section of a practice recording."""
+type Segment {
+  # The index of the first sample of this segment (in the parent Practice's renderableWaveform).
+  renderableSampleFirst: Int!
+
+  # The index of the last sample of this segment (in the parent Practice's renderableWaveform).
+  renderableSampleLast: Int!
+
+  # The number of seconds in this segment.
+  durationSeconds: Int!
+
+  # The segment recording location.
+  audioUrl: String!
+}
+
+type SegmentInput {
+  renderableSampleFirst: Int!
+  renderableSampleLast: Int!
+  durationSeconds: Int!
+  audioUrl: String!
 }
 
 """A platform user. This type only contains public information about a User."""
@@ -83,10 +122,11 @@ type AuthenticatedUser {
   """
   username: String!
 
-  """The public user information."""
-  user: User!
   """The user's practices."""
   practices: [Practice!]!
+
+  """The public user information."""
+  user: User!
 }
 
 """A login session (sessions are currently implemented by Cognito)."""

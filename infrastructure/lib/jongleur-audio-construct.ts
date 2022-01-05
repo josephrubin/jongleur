@@ -139,6 +139,7 @@ export class JongleurAudioConstruct extends Construct {
       environment: {
         JONG_CLIENT_AUDIO_UPLOAD_BUCKET_NAME: clientAudioUploadBucket.bucketName,
         JONG_AUDIO_STORAGE_BUCKET_NAME: audioStorageBucket.bucketName,
+        JONG_AUDIO_SERVE_DISTRIBUTION_URL: `https://${this.audioServeDistribution.distributionDomainName}`,
       },
     });
     clientAudioUploadBucket.grantRead(processAudioLambda);
@@ -171,7 +172,7 @@ export class JongleurAudioConstruct extends Construct {
       table: props.practiceTable,
       comment: "Record the successful audio upload.",
       key: {
-        id: stepfunctions_tasks.DynamoAttributeValue.fromString(stepfunctions.JsonPath.stringAt("$.uuid")),
+        id: stepfunctions_tasks.DynamoAttributeValue.fromString(stepfunctions.JsonPath.stringAt("$.practiceId")),
       },
       updateExpression: "SET currentStatus = :newStatus",
       expressionAttributeValues: {
@@ -199,8 +200,8 @@ export class JongleurAudioConstruct extends Construct {
     // Process the audio itself.
     const processStep = new stepfunctions_tasks.LambdaInvoke(this, "ProcessStep", {
       lambdaFunction: processAudioLambda,
-      // Make just this state's input pass into the output.
-      resultPath: stepfunctions.JsonPath.DISCARD,
+      // Actually use the output of this step.
+      resultPath: stepfunctions.JsonPath.entirePayload,
     });
 
     // Process an audio upload as a multi-step machine.

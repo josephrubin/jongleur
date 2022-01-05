@@ -14,6 +14,7 @@
   --color-brand-trans: #d4f3ffcc;
   --color-brand-light: #ebf9ff;
   --color-brand-dark: #73d7ff;
+  --color-deck: #ececec;
 }
 
 html {
@@ -143,10 +144,8 @@ input:where([type="button"]):active, input:where([type="submit"]):active, button
 }
 
 .remix-app__header {
-  position: fixed;
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--color-border);
   background-color: var(--color-brand-light);
 }
 
@@ -175,14 +174,15 @@ input:where([type="button"]):active, input:where([type="submit"]):active, button
 }
 
 .remix-app__main {
-  padding-top: 5.5em;
+  padding-top: 0.5em;
+  padding-bottom: 36px;
   flex: 1 1 100%;
 }
 
 .remix-app__footer {
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  border-top: 1px solid var(--color-border);
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  background-color: var(--color-brand-light);
 }
 
 .remix-app__footer-content {
@@ -259,7 +259,6 @@ input:where([type="button"]):active, input:where([type="submit"]):active, button
 .practice-pieces {
   padding: 0;
   padding-top: 12px;
-  padding-bottom: 36px;
   list-style: none;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -284,8 +283,8 @@ input:where([type="button"]):active, input:where([type="submit"]):active, button
 
 .rest-header {
   position: sticky;
-  top: 79px;
-  background-color: rgba(255, 255, 255, 0.5);
+  top: 0px;
+  background-color: var(--color-background);
 }
 
 .hint {

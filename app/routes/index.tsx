@@ -93,7 +93,7 @@ export const loader: LoaderFunction = async ({request}) => {
   const recentPieces = pieces.splice(0, 5);
 
   const accessToken = await getAccessToken(request);
-  const user = accessToken ? readMe({accessToken}) : null;
+  const user = accessToken ? await readMe({accessToken}) : null;
 
   return {
     user,
@@ -122,7 +122,7 @@ export default function Index() {
       </div>
       {user && (
         <>
-          <h1>🕑&nbsp; Recently Played</h1>
+          <h2>🕑&nbsp; Recently Played</h2>
           <ol className="practice-pieces">
             {recentPieces.map(piece =>
               <li key={piece.id} className="practice-piece">

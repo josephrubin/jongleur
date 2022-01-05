@@ -117,6 +117,12 @@ export class JongleurGraphqlConstruct extends Construct {
      * can be resolved by default if their parent query contains a field that matches its name.
      * For all other cases, we define resolvers to fetch our custom types. */
 
+    /* See graphql/schema.graphql for comments on these types.
+     * Since we try to fragment our data as little as possible, we defer to the
+     * default resolver for most subtypes. For example, you'll notice that there
+     * is no resolver (or dynamodb table) for Segment. Instead, segments are kept
+     * in the Practice table and always returne with Practices. */
+
     // Query parent.
     apiLambdaDataSource.createResolver({
       typeName: QUERY_TYPE,
@@ -140,13 +146,10 @@ export class JongleurGraphqlConstruct extends Construct {
       typeName: MUTATION_TYPE,
       fieldName: "refreshSession",
     });
-
-    // AuthenticatedUser parent.
-    /* Don't need this right now since readAuthenticate will return the whole object.
     apiLambdaDataSource.createResolver({
-      typeName: "AuthenticatedUser",
-      fieldName: "user",
-    });*/
+      typeName: MUTATION_TYPE,
+      fieldName: "createPractice",
+    });
   }
 
   get api() {

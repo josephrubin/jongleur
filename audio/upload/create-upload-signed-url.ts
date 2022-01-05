@@ -31,8 +31,14 @@ const graphqlClient = new GraphQLClient(GRAPHQL_ENDPOINT_URL, {
 
 type LambdaHandlerType = (event: { body: string }) => Promise<{ statusCode: number, body: string }>;
 
+// The JSON data that we expect a request to have.
+interface RequestBody {
+  readonly accessToken: string,
+  readonly pieceId: string,
+}
+
 const lambdaHandler: LambdaHandlerType = async ({ body }) => {
-  const bodyData = JSON.parse(body);
+  const bodyData = JSON.parse(body) as RequestBody;
   if (!bodyData.accessToken) {
     return {
       statusCode: 400,
@@ -61,7 +67,7 @@ const lambdaHandler: LambdaHandlerType = async ({ body }) => {
   }
 
   const userId = response.readAuthenticate.userId;
-  const signedUrlKey = `audio/${userId}/${uuidv4()}`;
+  const signedUrlKey = `audio/${userId}/${bodyData.pieceId}/${uuidv4()}`;
 
   const putAudioObjectCommand = new PutObjectCommand({
     Bucket: BUCKET_NAME,
