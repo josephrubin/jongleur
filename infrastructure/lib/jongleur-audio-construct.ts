@@ -140,10 +140,12 @@ export class JongleurAudioConstruct extends Construct {
         JONG_CLIENT_AUDIO_UPLOAD_BUCKET_NAME: clientAudioUploadBucket.bucketName,
         JONG_AUDIO_STORAGE_BUCKET_NAME: audioStorageBucket.bucketName,
         JONG_AUDIO_SERVE_DISTRIBUTION_URL: `https://${this.audioServeDistribution.distributionDomainName}`,
+        JONG_PRACTICE_TABLE_NAME: props.practiceTable.tableName,
       },
     });
     clientAudioUploadBucket.grantRead(processAudioLambda);
     audioStorageBucket.grantWrite(processAudioLambda);
+    props.practiceTable.grantWriteData(processAudioLambda);
 
     // We use a StepFunction to do the processing since there are a few steps
     // involved and I am willing to bet that the core processing will fail
@@ -167,21 +169,6 @@ export class JongleurAudioConstruct extends Construct {
       resultPath: stepfunctions.JsonPath.DISCARD,
     });
 
-    // Record that we are done processing with success.
-    const recordAfterSuccessStep = new stepfunctions_tasks.DynamoUpdateItem(this, "RecordAfterSuccessStep", {
-      table: props.practiceTable,
-      comment: "Record the successful audio upload.",
-      key: {
-        id: stepfunctions_tasks.DynamoAttributeValue.fromString(stepfunctions.JsonPath.stringAt("$.practiceId")),
-      },
-      updateExpression: "SET currentStatus = :newStatus",
-      expressionAttributeValues: {
-        ":newStatus": stepfunctions_tasks.DynamoAttributeValue.fromString("succeeded"),
-      },
-      // Make just this state's input pass into the output.
-      resultPath: stepfunctions.JsonPath.DISCARD,
-    });
-
     // Record that we are done processing with an error.
     const recordAfterFailureStep = new stepfunctions_tasks.DynamoUpdateItem(this, "RecordAfterFailureStep", {
       table: props.practiceTable,
@@ -197,7 +184,8 @@ export class JongleurAudioConstruct extends Construct {
       resultPath: stepfunctions.JsonPath.DISCARD,
     });
 
-    // Process the audio itself.
+    // Process the audio itself. If successful, this lambda will handle uploading all the
+    // relevant data to S3 and dynamodb when it is done.
     const processStep = new stepfunctions_tasks.LambdaInvoke(this, "ProcessStep", {
       lambdaFunction: processAudioLambda,
       // Actually use the output of this step.
@@ -212,10 +200,7 @@ export class JongleurAudioConstruct extends Construct {
       // The actual state machine steps. Record, process, record.
       definition: stepfunctions.Chain
         .start(recordBeforeStep)
-        .next(processStep.next(recordAfterSuccessStep)
-          .toSingleState("MainProcessStep", {
-            resultPath: stepfunctions.JsonPath.DISCARD,
-          })
+        .next(processStep
           // Error handling. Catch the error and report a failure.
           .addCatch(recordAfterFailureStep, {
             resultPath: stepfunctions.JsonPath.DISCARD,

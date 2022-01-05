@@ -8,11 +8,10 @@ file is uploaded to the client audio ingest bucket. We receive as input the name
 of the bucket and the audio's object key.
 
 The output is audio files uploaded to S3 (which will be served from Cloudfront)
-as well as a PracticeInput type (see graphql/schema.graphql).
+as well as a Practice type (see graphql/schema.graphql) uploaded to DynamoDB.
 
 We don't have type generation for Python (we do for Typescript) so we'll have to
-be a little careful here to get the right type, but we'll defer actually saving
-the Practice type in DynamoDB to the next state in the StepFunction.
+be a little careful here to get the right type.
 """
 import os
 import sys
@@ -45,8 +44,13 @@ MINIMUM_SILENCE_BETWEEN_SEGMENTS_IN_SECONDS = 2.4
 # which will have this many amplitude samples per second.
 RENDERABLE_WAVEFORM_SAMPLES_PER_SECOND = 5
 
-# Our connection to s3.
+# The DynamoDB table where Practice types are stored.
+PRACTICE_TABLE_NAME = os.getenv("JONG_PRACTICE_TABLE_NAME")
+
+# Our connection to S3.
 s3 = boto3.resource("s3")
+# Our connection to DynamoDB.
+dynamodb = boto3.resource("dynamodb")
 
 
 def lambda_handler(event, _):
@@ -54,6 +58,7 @@ def lambda_handler(event, _):
   bucket_name = event["bucket"]
   object_key = event["key"]
   practice_id = event["uuid"]
+  requestEpoch = event["requestEpoch"]
   print(f"Got event with key {object_key} from bucket {bucket_name} for practice {practice_id}.")
 
   # There's no way to send the metadata along with the S3 notification since
@@ -108,11 +113,31 @@ def lambda_handler(event, _):
         raise e
     print("Uploaded audio files.")
 
-  return {
+  print("Begin uploading to DynamoDB...")
+  practice =  {
+    "id": practice_id,
     "userId": user_id,
     "pieceId": piece_id,
-    "practiceId": practice_id,
+    "currentStatus": "success",
+    "requestEpoch": requestEpoch,
     **result
+  }
+  try:
+    practice_table = dynamodb.Table(PRACTICE_TABLE_NAME)
+    practice_table.put_item(
+      Item=practice
+    )
+  except Exception as e:
+    print(e)
+    raise e
+  print("Uploaded to DynamoDB.")
+
+  # There aren't any more steps in the processing pipeline, so just return some
+  # useful information to the StepFunction for tracking purposes.
+  return {
+    "practiceId": practice_id,
+    "userId": user_id,
+    "pieceId": piece_id,
   }
 
 
@@ -195,11 +220,13 @@ def process_file(filename, temp_dir):
     # will closely track the type of a SegmentInput.
     sampling_ratio = renderable_waveform_sr / samplingrate
     output_segments.append({
-      "renderableSampleFirst": segment[0] * sampling_ratio,
-      "renderableSampleLast": segment[1] * sampling_ratio,
-      "durationSeconds": librosa.samples_to_time(
-        segment[1] - segment[0],
-        sr=samplingrate
+      "renderableSampleFirst": round(segment[0] * sampling_ratio),
+      "renderableSampleLast": round(segment[1] * sampling_ratio),
+      "durationSeconds": round(
+        librosa.samples_to_time(
+          segment[1] - segment[0],
+          sr=samplingrate
+        )
       ),
       "audioFile": segment_filename,
     })
@@ -207,11 +234,13 @@ def process_file(filename, temp_dir):
   # Create the output type in TypeScript naming conventions because this object
   # will closely track the type of a PracticeInput.
   return {
-    "durationSeconds": librosa.samples_to_time(
-      sample_count,
-      sr=samplingrate
+    "durationSeconds": round(
+      librosa.samples_to_time(
+        sample_count,
+        sr=samplingrate
+      )
     ),
-    "tempoBpm": np.mean(tempos),
+    "tempoBpm": round(np.mean(tempos)),
     "renderableWaveform": renderable_waveform.tolist(),
     "renderableWaveformSamplesPerSecond": renderable_waveform_sr,
     "segments": output_segments
@@ -273,6 +302,6 @@ if __name__ == "__main__":
     result = process_file(sys.argv[1], temp_dir)
 
   print(
-    f"Processed waveform of length {result['durationSeconds']} seconds of tempo {result['tempoBpm']} "
+    f"Processed waveform of length {result['durationSeconds']} seconds of tempo {result['tempoBpm']}bpm "
     f"with {len(result['segments'])} segments."
   )
