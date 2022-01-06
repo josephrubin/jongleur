@@ -1,4 +1,5 @@
-import { LinksFunction, ActionFunction, Form, redirect, useActionData } from "remix";
+import { LinksFunction, ActionFunction, Form, Link, useActionData } from "remix";
+import { User } from "~/generated/graphql-schema";
 import { createUser } from "~/modules/users.server";
 import registerStyles from "../styles/routes/register.css";
 
@@ -8,29 +9,45 @@ export const links: LinksFunction = () => {
   ];
 };
 
+interface ActionData {
+  readonly error?: string;
+}
+
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
 
-  const username = String(formData.get("username")!);
-  const password = String(formData.get("password")!);
+  const username = String(formData.get("username"));
+  const password = String(formData.get("password"));
 
-  // For now we assume no errors. TODO - fix this.
+  if (!username || !password) {
+    return {
+      error: "Missing username or password",
+    };
+  }
 
-  const user = await createUser({username: username, password: password});
+  try {
+    await createUser({username: username, password: password});
+  }
+  catch {
+    return {
+      error: "Invalid username or password. Maybe your password was too short?",
+    };
+  }
 
-  return user;
+  return {};
 };
 
 export default function Register() {
-  const user = useActionData();
-  if (user) {
+  const response = useActionData<ActionData | null>();
+
+  if (response && !response.error) {
     return (
       <>
+        <h1>
+          {"You've signed up! Go ahead and log right in!"}
+        </h1>
         <p>
-          {"You've signed up! Here are the details:"}
-        </p>
-        <p>
-          {JSON.stringify(user)}
+          <Link to="/login">Continue to log in</Link>
         </p>
       </>
     );
@@ -48,6 +65,7 @@ export default function Register() {
           Password
             <input name="password" type="password" />
           </label>
+          { response?.error && <p className="error">{response.error}</p> }
           <button type="submit">{"Let's Go!"}</button>
         </Form>
       </div>

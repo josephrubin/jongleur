@@ -3,7 +3,7 @@
  * all queries and mutations.
  */
 
-import { MutationCreateSessionArgs, MutationCreateUserArgs, User, Session, MutationRefreshSessionArgs, QueryReadAuthenticateArgs, AuthenticatedUser, Piece, Practice, QueryReadPieceArgs } from "~/generated/graphql-schema";
+import { MutationCreateSessionArgs, MutationCreateUserArgs, User, Session, MutationRefreshSessionArgs, QueryReadAuthenticateArgs, AuthenticatedUser, Piece, Practice, QueryReadPieceArgs, AuthenticatedUserPracticeArgs } from "~/generated/graphql-schema";
 import { AsrLambdaHandler, DecodedAccessToken } from "./appsync-resolver-types";
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
@@ -54,6 +54,13 @@ const accessTokenVerifier = CognitoJwtVerifier.create({
   tokenUse: "access",
 });
 
+// The type of the Practice that's actually stored in DynamoDB.
+// This contains a few more fields than we actually guarantee in our
+// GraphQL schema in order to aid resolution of related types.
+interface StoredPractice extends Practice {
+  readonly pieceId: string;
+}
+
 /**
  * Resolve the AppSync data request.
  * @param event the AppSync event.
@@ -70,7 +77,7 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
   // attribute that was returned from the resolver. If we optimize in the future, we
   // cannot guarantee what fields will be present. But we will always want to have at
   // least the id here for types with id so we will never optimize that away (so we can
-  // find related sub-objects).
+  // find related objects).
   const source = event.source;
 
   console.log(`Resolve field ${fieldName} on parent ${parentTypeName}.`);
@@ -157,6 +164,7 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
   else if (parentTypeName === "Mutation") {
     if (fieldName === "createUser") {
       const { username, password } = (args as MutationCreateUserArgs);
+
       try {
         // Try to sign up the user in cognito.
         await cognitoClient.signUp({
@@ -202,6 +210,7 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
         if (accessToken && refreshToken) {
           // Authentication success! Return the tokens as the session.
           const session: Session = {
+            username: username,
             accessToken: accessToken,
             refreshToken: refreshToken,
           };
@@ -213,12 +222,7 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
         }
       }
       catch {
-        // Authentication failed.
-        const session: Session = {
-          accessToken: null,
-          refreshToken: null,
-        };
-        return session;
+        return null;
       }
     }
     else if (fieldName === "refreshSession") {
@@ -240,6 +244,7 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
         if (accessToken && refreshToken) {
           // Authentication success! Return the tokens as the session.
           const session: Session = {
+            username: username,
             accessToken: accessToken,
             refreshToken: refreshToken,
           };
@@ -251,12 +256,7 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
         }
       }
       catch {
-        // Authentication failed.
-        const session: Session = {
-          accessToken: null,
-          refreshToken: null,
-        };
-        return session;
+        return null;
       }
     }
   }
@@ -276,6 +276,40 @@ const lambdaHandler: AsrLambdaHandler = async (event) => {
       catch {
         throw "Error fetching practices.";
       }
+    }
+    else if (fieldName === "practice") {
+      const { id } = args as AuthenticatedUserPracticeArgs;
+
+      try {
+        const { Item: practice } = await dynamoDbDocumentClient.get({
+          TableName: PRACTICE_TABLE,
+          Key: {
+            id: id,
+          },
+        });
+        return practice;
+      }
+      catch {
+        throw "Error fetching practice.";
+      }
+    }
+  }
+  else if (parentTypeName === "Practice") {
+    if (fieldName === "piece") {
+      const { pieceId } = source as StoredPractice;
+
+      const { Item: piece } = await dynamoDbDocumentClient.get({
+        TableName: PIECE_TABLE,
+        Key: {
+          id: pieceId,
+        },
+      });
+
+      if (!piece) {
+        throw "Error fetching piece.";
+      }
+
+      return piece;
     }
   }
   else {

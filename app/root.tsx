@@ -7,16 +7,14 @@ import {
   Scripts,
   ScrollRestoration,
   useCatch,
-  useLoaderData,
-  Form,
   NavLink,
   LoaderFunction
 } from "remix";
 import type { LinksFunction } from "remix";
 
 import globalStylesUrl from "~/styles/global.css";
-import darkStylesUrl from "~/styles/dark.css";
-import { getAccessToken, getUserSession, useAccessToken } from "./modules/users.server";
+import { getAccessToken, refreshAccessTokenIfNeeded } from "./modules/session.server";
+import { useAccessToken } from "./modules/session";
 
 // https://remix.run/api/app#links
 export const links: LinksFunction = () => {
@@ -37,10 +35,27 @@ export default function App() {
   );
 }
 
+/**
+ * This loader will run on every GET page request because it is at the root.
+ * The main task is to see if the user is logged in. If they are, make sure
+ * that they don't have an obviously expired accessToken. If they do, refresh
+ * it.
+ *
+ * If they are not logged in, that's okay too. All child routes will be able
+ * to use the useAccessToken hook to get the acceessTokenn (or null if the
+ * user is not logged in).
+ */
 export const loader: LoaderFunction = async ({request}) => {
   // The root loader gets the user's accessToken so all child
   // routes can access it through useAccessToken!
   const accessToken = await getAccessToken(request);
+
+  // If we actually got an access token (the user is logged in),
+  // ensure that it's a valid access token, and refresh it if
+  // needed.
+  if (accessToken !== null) {
+    await refreshAccessTokenIfNeeded(request);
+  }
 
   return { accessToken };
 };
@@ -67,6 +82,8 @@ export function ErrorBoundary({ error }: { error: Error }) {
 // https://remix.run/docs/en/v1/api/conventions#catchboundary
 export function CatchBoundary() {
   const caught = useCatch();
+
+  console.log("IN CATCH BOUNDARY");
 
   let message;
   switch (caught.status) {
@@ -141,28 +158,32 @@ function Layout({ children }: { children: React.ReactNode }) {
               {!accessToken && (
                 <>
                   <li>
-                    <NavLink to="register">Sign Up</NavLink>
+                    <NavLink to="/register">Sign Up</NavLink>
                   </li>
                   <li>
-                    <NavLink to="login">Sign In</NavLink>
+                    <NavLink to="/login">Sign In</NavLink>
                   </li>
                 </>
               )}
               {accessToken && (
                 <li>
-                  <NavLink to="./stats">Your Stats</NavLink>
+                  <NavLink to="/piece">{"Pieces You've Practiced"}</NavLink>
                 </li>
               )}
-              {/*
               {accessToken && (
                 <li>
-                  You're signed in!
-                  <form method="post" action="logout">
-                    <input type="submit" value="logout" />
+                  <NavLink to="/stats">Your Stats</NavLink>
+                </li>
+              )}
+              {accessToken && (
+                <li>
+                  <form method="post" action="/logout">
+                    <button className="logout-button" type="submit">
+                      <a className="logout-button-text">Logout</a>
+                    </button>
                   </form>
                 </li>
               )}
-              */}
             </ul>
           </nav>
         </div>

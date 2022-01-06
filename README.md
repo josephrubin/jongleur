@@ -90,6 +90,8 @@ For example, I can run the command like this:
 $ python infrastructure/populate_piece_table.py asset/scarlatti_piano_solo_sonatas.csv "JongleurInfrastructureStack-JongleurDataConstructPieceTableECC218AA-KYBQW0X5HSTU"
 ```
 
+(If you get a syntax error, did you forget to run `pipenv shell`?).
+
 Because this command is being run locally, just make sure that your aws config is pointed at an IAM user with permissions on your account. Of course, it isn't pretty that you have to find the name of the Piece table yourself, but then again, the point of this script is just to bootstrap your app deployment, it's definitely not meant to be used regularly. A remote function that adds pieces will be added to our GraphQL resolver
 
 ## Staging

@@ -1,4 +1,8 @@
-import { Link, LinksFunction, LoaderFunction, Outlet, useLoaderData } from "remix";
+import { NavLink, LinksFunction, LoaderFunction, Outlet, useLoaderData } from "remix";
+import { getMostPracticedPiecesSorted, makePieceUrl, makeScarlattiPieceLabel } from "~/modules/pieces";
+import { readPiece } from "~/modules/pieces.server";
+import { readMyPractices } from "~/modules/practices.server";
+import { getAccessToken, redirectToLoginIfNull } from "~/modules/session.server";
 import { Piece } from "../generated/graphql-schema";
 import practiceStyles from "../styles/routes/practice.css";
 
@@ -9,42 +13,30 @@ export const links: LinksFunction = () => {
 };
 
 interface LoaderData {
-  readonly pieces: Piece[];
+  // The pieces to show in the nav bar.
+  readonly navBarPieces: Piece[];
 }
 
-export const loader: LoaderFunction = async () => {
-  const pieces: Piece[] = [
-    {title: "blag"},
-    {title: "blooh"},
-    {title: "qwer"},
-    {title: "iowjr"},
-    {title: "blag"},
-    {title: "blooh"},
-    {title: "qwer"},
-    {title: "blag"},
-    {title: "blooh"},
-    {title: "qwer"},
-    {title: "iowjr"},
-    {title: "blag"},
-    {title: "blooh"},
-    {title: "qwer"},
-  ];
+export const loader: LoaderFunction = async ({ request, params }) => {
+  const accessToken = redirectToLoginIfNull(await getAccessToken(request));
+
+  const practices = await readMyPractices({ accessToken });
 
   return {
-    pieces,
+    navBarPieces: getMostPracticedPiecesSorted(practices),
   };
 };
 
-export default function Practice() {
-  const { pieces } = useLoaderData<LoaderData>();
+export default function Piece() {
+  const { navBarPieces } = useLoaderData<LoaderData>();
 
   return (
     <div className="piece-container">
       <nav className="pieces-side-nav">
         <ol>
-          {pieces.map(piece =>
+          {navBarPieces.map(piece =>
             <li key={piece.id}>
-              <Link to="./">Piece name {piece.title}</Link>
+              <NavLink to={makePieceUrl(piece)}>{makeScarlattiPieceLabel(piece)}</NavLink>
             </li>
           )}
         </ol>

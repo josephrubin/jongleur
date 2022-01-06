@@ -27,11 +27,11 @@ type Mutation {
   Create a new user (sign up). As is standard, user/pass are passed over
   HTTPS to the server and passed to Cognito.
   """
-  createUser(username: String!, password: String!): User!
+  createUser(username: String!, password: String!): User
   """Create a new user session (sign in)."""
-  createSession(username: String!, password: String!): Session!
+  createSession(username: String!, password: String!): Session
   """Refresh a session (get new accessToken with later expiration)."""
-  refreshSession(username: String!, refreshToken: String!): Session!
+  refreshSession(username: String!, refreshToken: String!): Session
 }
 
 """An individual composition that a user can practice."""
@@ -80,8 +80,14 @@ type Practice {
   # The full practice recording location.
   audioUrl: String!
 
+  # The unix epoch when this Practice was uploaded/made.
+  uploadEpoch: Int!
+
   # The segments that make up this practice recording.
   segments: [Segment!]!
+
+  # The piece that this Practice is associated with.
+  piece: Piece!
 }
 
 input PracticeInput {
@@ -143,17 +149,22 @@ type AuthenticatedUser {
   """The user's practices."""
   practices: [Practice!]!
 
+  """Read a single Practice by ID."""
+  practice(id: ID!): Practice
+
   """The public user information."""
   user: User!
 }
 
 """A login session (sessions are currently implemented by Cognito)."""
 type Session {
+  """The username of the user who owns this session."""
+  username: String!
   """The JWT that allows users to claim who they are and act accordingly."""
-  accessToken: String
+  accessToken: String!
   """
   A JWT that lets a user request a new accessToken. The accessToken has
   a relatively low TTL while the refreshToken lasts much longer.
   """
-  refreshToken: String
+  refreshToken: String!
 }

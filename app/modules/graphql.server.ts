@@ -5,7 +5,8 @@
  * and our module provides a wrapper aroung it.
 */
 
-import { GraphQLClient } from "graphql-request";
+import { getAccessToken, refreshJongSession } from "./session.server";
+import { GraphQLClient, RequestDocument, Variables } from "graphql-request";
 
 /* The location of our GraphQL server. We'll hit the real server for
 now when developing locally too, but we may wish to mock it later.

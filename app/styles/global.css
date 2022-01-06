@@ -7,6 +7,7 @@
   --color-background: hsl(0, 0%, 100%);
   --color-links: hsl(213, 100%, 52%);
   --color-links-hover: hsl(213, 100%, 43%);
+  --color-error: #ff5757;
   --color-border: hsl(0, 0%, 82%);
   --font-body: -apple-system, "Segoe UI", Helvetica Neue, Helvetica, Roboto,
     Arial, sans-serif, system-ui, "Apple Color Emoji", "Segoe UI Emoji";
@@ -267,10 +268,18 @@ input:where([type="button"]):active, input:where([type="submit"]):active, button
 
 .practice-piece {
   display: inline-block;
-  width: 128px;
+  width: 192px;
   text-align: center;
   border-radius: 6px;
   background-color: var(--color-brand);
+}
+
+.practice-piece-disabled {
+  background-color: lightgray;
+}
+
+.practice-piece-disabled a {
+  color: black;
 }
 
 .practice-piece:hover {
@@ -292,6 +301,29 @@ input:where([type="button"]):active, input:where([type="submit"]):active, button
   font-style: italic;
 }
 
+.error {
+  color: var(--color-error);
+}
+
 a.active {
   text-decoration: underline;
+}
+
+.logout-button {
+  padding: 0;
+  margin: 0;
+  border: none;
+}
+
+.logout-button:hover {
+  box-shadow: none;
+  border: none;
+  background-color: transparent;
+}
+
+.logout-button-text {
+  color: var(--color-links);
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1.2em;
 }

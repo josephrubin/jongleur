@@ -10,6 +10,11 @@ if (!GRAPHQL_ENDPOINT_URL) {
   throw "No GraphQL URL provided.";
 }
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST",
+};
+
 const s3Client = new S3({
   region: process.env.S3_REGION,
 });
@@ -39,12 +44,32 @@ interface RequestBody {
 
 const lambdaHandler: LambdaHandlerType = async ({ body }) => {
   const bodyData = JSON.parse(body) as RequestBody;
-  if (!bodyData.accessToken) {
+  if (!bodyData.accessToken || !bodyData.pieceId) {
     return {
       statusCode: 400,
       body: JSON.stringify({
-        message: "Bad request, you did not provide an accessToken.",
+        message: "Bad request, you did not provide an accessToken/pieceId.",
       }),
+      headers: CORS_HEADERS,
+    };
+  }
+
+  // Check that this piece even exists.
+  const existsReponse = await graphqlClient.request(gql`
+    query ReadPiece($id: ID!) {
+      readPiece(id: $id) {
+        id
+      }
+    }
+  `, { id: bodyData.pieceId }
+  );
+  if (!existsReponse.readPiece) {
+    return {
+      statusCode: 404,
+      body: JSON.stringify({
+        message: "That piece does not exist.",
+      }),
+      headers: CORS_HEADERS,
     };
   }
 
@@ -63,11 +88,12 @@ const lambdaHandler: LambdaHandlerType = async ({ body }) => {
       body: JSON.stringify({
         message: "You are not authorized to get a presigned URL.",
       }),
+      headers: CORS_HEADERS,
     };
   }
 
   const userId = response.readAuthenticate.userId;
-  const signedUrlKey = `audio/${userId}/${bodyData.pieceId}/${uuidv4()}`;
+  const signedUrlKey = `audio/${userId}/${bodyData.pieceId}/${uuidv4()}.ogg`;
 
   const putAudioObjectCommand = new PutObjectCommand({
     Bucket: BUCKET_NAME,
@@ -86,6 +112,7 @@ const lambdaHandler: LambdaHandlerType = async ({ body }) => {
         signedUrl: signedUrl,
         signedUrlKey: signedUrlKey,
       }),
+      headers: CORS_HEADERS,
     };
   }
   catch (err) {
@@ -96,6 +123,7 @@ const lambdaHandler: LambdaHandlerType = async ({ body }) => {
       body: JSON.stringify({
         message: errorMessage,
       }),
+      headers: CORS_HEADERS,
     };
   }
 };

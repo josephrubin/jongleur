@@ -9,7 +9,7 @@ WORKDIR "/home/app"
 
 # Install some packages that we'll need for librosa.
 RUN apt-get update -y
-RUN apt-get install -y libsndfile-dev
+RUN apt-get install -y libsndfile-dev ffmpeg
 
 # Librosa depends on numba, and since we are installing our deps as root later
 # (because pipenv works best this way in lambda images) we get this bug:

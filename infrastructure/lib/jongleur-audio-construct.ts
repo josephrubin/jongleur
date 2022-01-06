@@ -29,7 +29,7 @@ interface JongleurAudioConstructProps {
  * upload, storage, logic, processing, and data synthesis relating to audio.
  */
 export class JongleurAudioConstruct extends Construct {
-  private _audioUploadPresignedUrlApi: apigateway.RestApi;
+  private _audioPresignedUrlApi: apigateway.RestApi;
   private _audioServeDistribution: cloudfront.Distribution;
 
   constructor(scope: Construct, id: string, props: JongleurAudioConstructProps) {
@@ -95,6 +95,11 @@ export class JongleurAudioConstruct extends Construct {
       lifecycleRules: [{
         expiration: Duration.days(6),
       }],
+      cors: [{
+        allowedOrigins: ["*"],
+        allowedMethods: [s3.HttpMethods.PUT],
+        allowedHeaders: ["*"],
+      }],
 
       // Remember that this bucket is for ephemeral storage so we shouldn't feel
       // the need to hold on to its contents.
@@ -118,9 +123,14 @@ export class JongleurAudioConstruct extends Construct {
     clientAudioUploadBucket.grantWrite(createUploadSignedUrlLambda);
 
     // An API Gateway to expose the presigned URL generator lambda.
-    this._audioUploadPresignedUrlApi = new apigateway.RestApi(this, "JongleurAudioUploadPresignedUrlApi");
-    const presigned = this._audioUploadPresignedUrlApi.root.addResource("presigned");
-    presigned.addMethod("POST", new apigateway.LambdaIntegration(createUploadSignedUrlLambda));
+    this._audioPresignedUrlApi = new apigateway.RestApi(this, "JongleurAudioPresignedUrlApi", {
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: ["POST"],
+      },
+    });
+    const upload = this._audioPresignedUrlApi.root.addResource("upload");
+    upload.addMethod("POST", new apigateway.LambdaIntegration(createUploadSignedUrlLambda));
 
     // ------------------------------------------------------------------------
     // Process.
@@ -161,7 +171,7 @@ export class JongleurAudioConstruct extends Construct {
       item: {
         id: stepfunctions_tasks.DynamoAttributeValue.fromString(stepfunctions.JsonPath.stringAt("$.uuid")),
         // There's an open bug (https://github.com/aws/aws-cdk/issues/12456) hence the string -> number workaround.
-        requestEpoch: stepfunctions_tasks.DynamoAttributeValue.numberFromString(stepfunctions.JsonPath.stringAt("$.requestEpoch")),
+        uploadEpoch: stepfunctions_tasks.DynamoAttributeValue.numberFromString(stepfunctions.JsonPath.stringAt("$.uploadEpoch")),
         executionArn: stepfunctions_tasks.DynamoAttributeValue.fromString(stepfunctions.JsonPath.stringAt("$$.Execution.Id")),
         currentStatus: stepfunctions_tasks.DynamoAttributeValue.fromString("processing"),
       },
@@ -231,8 +241,8 @@ export class JongleurAudioConstruct extends Construct {
     );
   }
 
-  get audioUploadPresignedUrlApi() {
-    return this._audioUploadPresignedUrlApi;
+  get audioPresignedUrlApi() {
+    return this._audioPresignedUrlApi;
   }
 
   get audioServeDistribution() {

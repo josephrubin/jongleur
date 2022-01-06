@@ -1,14 +1,37 @@
 import { createRef, useRef, useState } from "react";
-import { Link, LinksFunction } from "remix";
-import { Timeline } from "~/components/timeline";
+import { Link, LinksFunction, LoaderFunction, useLoaderData } from "remix";
+import { PracticeSubset, Timeline } from "~/components/timeline";
 import { Waveform } from "~/components/waveform";
 import { Spinner } from "~/components/spinner";
+import { MAKE_PRESIGNED_UPLOAD_URL_ENDPOINT } from "~/modules/audio.server";
+import { useAccessToken } from "~/modules/session";
+import { Practice } from "~/generated/graphql-schema";
+import { readMyPractice, readMyPractices } from "~/modules/practices.server";
+import { getAccessToken, redirectToLoginIfNull } from "~/modules/session.server";
+
+interface LoaderData {
+  // The Practice we are viewing.
+  readonly practice: Practice;
+}
+
+export const loader: LoaderFunction = async ({ request, params }) => {
+  const accessToken = redirectToLoginIfNull(await getAccessToken(request));
+
+  const pieceId = params.pieceId;
+  const practiceId = params.practiceId;
+  if (!pieceId || !practiceId) {
+    throw "Impossible - pieceId and practiceId are guaranteed by route params but not found.";
+  }
+
+  // Get the practice we are displaying on this page with all of its information.
+  const practice = await readMyPractice({ accessToken }, { id: pieceId });
+
+  return {
+    practice: practice,
+  };
+};
 
 export default function PracticeId() {
-  const uploadFormRef = createRef<HTMLFormElement>();
-  const fileInputRef = createRef<HTMLInputElement>();
-
-  const [currentlyUploading, setCurrentlyUploading] = useState<boolean>(false);
 
   let samples = [3, 5, 3, 7, 8, 5, 3, 2, 3, 4, 1, 2, 1, 2, 7, 8, 7, 5, 7, 4, 4, 6, 7, 6, 1, 4, 3, 4, 4, 5];
   samples = samples.concat(samples, samples, samples, samples, samples, samples);
@@ -23,7 +46,7 @@ export default function PracticeId() {
 
   return (
     <div className="practice-session-container">
-      <h1>Your Practice Session</h1>
+      <h2>Your Practice Session</h2>
       { /* A horizontally scrolling box to contain the practice waveform. */ }
       <div className="waveform-container">
         <Waveform
@@ -36,44 +59,10 @@ export default function PracticeId() {
       <p className="practice-summary">
         # hours of practice · # average segment length · #bpm approximate tempo · # hours on this piece in total
       </p>
-      <h3>Found {segments.length} segments in this practice recording</h3>
+      <b>Found {segments.length} segments in this practice recording</b>
       <p>
         Mouse over part of the waveform to see your practice segments. Click on a segment to hear it.
       </p>
-      <h3>All of your practice sessions</h3>
-      { /* A horizontally scrolling box to contain the session timeline. */ }
-      <div className="timeline-container">
-        <Timeline selectedNodeIndex={1} />
-      </div>
-      <form method="POST" encType="multipart/form-data" ref={uploadFormRef}>
-        <label>
-          <button type="button" disabled={currentlyUploading} onClick={() => fileInputRef.current?.click()}>+ Upload Recording</button>
-          <span className="upload-status-hint">{currentlyUploading && <Spinner />}</span>
-          <input
-            type="file"
-            name="recordingFile"
-            accept=".ogg"
-            ref={fileInputRef}
-            style={{display: "none"}}
-            onChange={(e) => inputFileOnChange(e, setCurrentlyUploading, uploadFormRef.current)}
-          />
-        </label>
-      </form>
-      <p className="hint">
-        <br />
-        <i>Note you can only upload .ogg files. Use ffmpeg to convert.</i>
-        <br />
-        <i>Note the waveform and the timeline are scrollable.</i>
-      </p>
     </div>
   );
-}
-
-function inputFileOnChange(event, setCurrentlyUploading: (v: boolean) => void, form: HTMLFormElement) {
-  const files = event.target.files;
-  if (files && files.length >= 1 && files[0]) {
-    console.log("got file", files[0]);
-    setCurrentlyUploading(true);
-    form.submit();
-  }
 }

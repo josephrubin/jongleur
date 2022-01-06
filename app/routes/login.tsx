@@ -1,5 +1,5 @@
-import { ActionFunction, Form, redirect, useActionData } from "remix";
-import { createSession, createSessionRedirect } from "~/modules/users.server";
+import { LinksFunction, ActionFunction, Form, redirect, useActionData } from "remix";
+import { createJongSession, createSessionRedirectResponse } from "~/modules/session.server";
 import loginStyles from "../styles/routes/login.css";
 
 export const links: LinksFunction = () => {
@@ -16,10 +16,10 @@ export const action: ActionFunction = async ({ request }) => {
 
   // For now we assume no errors. TODO - fix this.
 
-  const session = await createSession({username: username, password: password});
+  const session = await createJongSession({username: username, password: password});
 
   if (session && session.accessToken) {
-    return createSessionRedirect(session, "/");
+    return await createSessionRedirectResponse(session, "/");
   }
   else {
     return {

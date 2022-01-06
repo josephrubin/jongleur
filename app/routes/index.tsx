@@ -1,9 +1,11 @@
 import type { MetaFunction, LoaderFunction, LinksFunction } from "remix";
 import { useLoaderData, json, Link } from "remix";
-import { Waveform } from "~/components/waveform";
 import { User, Piece } from "~/generated/graphql-schema";
-import { getAccessToken, readMe, useAccessToken } from "~/modules/users.server";
+import { readMe } from "~/modules/users.server";
+import { getAccessToken } from "~/modules/session.server";
 import practiceStyles from "../styles/routes/practice.css";
+import { readPieces } from "~/modules/pieces.server";
+import { makePieceUrl, makeScarlattiPieceLabel } from "~/modules/pieces";
 
 // https://remix.run/api/conventions#meta
 export const meta: MetaFunction = () => {
@@ -26,71 +28,8 @@ export const links: LinksFunction = () => {
 };
 
 export const loader: LoaderFunction = async ({request}) => {
-  let pieces: Piece[] = [
-    {title: "blag"},
-    {title: "blooh"},
-    {title: "blargh"},
-    {title: "quuuz"},
-    {title: "blag"},
-    {title: "blooh"},
-    {title: "blargh"},
-    {title: "quuuz"},
-    {title: "blag"},
-    {title: "blag"},
-    {title: "blag"},
-    {title: "blooh"},
-    {title: "blargh"},
-    {title: "quuuz"},
-    {title: "blooh"},
-    {title: "blargh"},
-    {title: "quuuz"},
-    {title: "blooh"},
-    {title: "blargh"},
-    {title: "quuuz"},
-    {title: "blag"},
-    {title: "blag"},
-    {title: "blooh"},
-    {title: "blargh"},
-    {title: "quuuz"},
-    {title: "blag"},
-    {title: "blooh"},
-    {title: "blargh"},
-    {title: "quuuz"},
-    {title: "blag"},
-    {title: "blag"},
-    {title: "blag"},
-    {title: "blooh"},
-    {title: "blargh"},
-    {title: "quuuz"},
-    {title: "blooh"},
-    {title: "blargh"},
-    {title: "quuuz"},
-    {title: "blooh"},
-    {title: "blargh"},
-    {title: "quuuz"},
-    {title: "blooh"},
-    {title: "blargh"},
-    {title: "quuuz"},
-    {title: "blag"},
-    {title: "blooh"},
-    {title: "blargh"},
-    {title: "quuuz"},
-    {title: "blag"},
-    {title: "blag"},
-    {title: "blag"},
-    {title: "blooh"},
-    {title: "blargh"},
-    {title: "quuuz"},
-    {title: "blooh"},
-    {title: "blargh"},
-    {title: "quuuz"},
-    {title: "blooh"},
-    {title: "blargh"},
-    {title: "quuuz"},
-  ];
-  pieces = pieces.concat(...pieces, ...pieces);
-
-  const recentPieces = pieces.splice(0, 5);
+  const pieces = (await readPieces()).sort((a, b) => Number(a.kIndex) - Number(b.kIndex));
+  const recentPieces = pieces.slice(0, 5);
 
   const accessToken = await getAccessToken(request);
   const user = accessToken ? await readMe({accessToken}) : null;
@@ -126,8 +65,8 @@ export default function Index() {
           <ol className="practice-pieces">
             {recentPieces.map(piece =>
               <li key={piece.id} className="practice-piece">
-                <Link to={`./piece/${piece.id}/1`}>
-                  <div>Piece: {piece.title}</div>
+                <Link to={makePieceUrl(piece)}>
+                  <div>{makeScarlattiPieceLabel(piece)}</div>
                 </Link>
               </li>
             )}
@@ -140,10 +79,11 @@ export default function Index() {
         <hr />
       </div>
       <ol className="practice-pieces">
+        { /* Each item is a link to a piece if logged in, otherwise a disabled link. */ }
         {pieces.map(piece =>
-          <li key={piece.id} className="practice-piece">
-            <Link to={`./piece/${piece.id}/1`}>
-              <div>Piece: {piece.title}</div>
+          <li key={piece.id} className={"practice-piece" + (user === null ? " practice-piece-disabled" : "")}>
+            <Link to={user ? makePieceUrl(piece) : "#"}>
+              <div>{makeScarlattiPieceLabel(piece)}</div>
             </Link>
           </li>
         )}

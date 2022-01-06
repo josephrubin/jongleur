@@ -1,33 +1,23 @@
+import { NavLink } from "remix";
+import { makePracticeUrl } from "~/modules/practices";
+
+/** The subset of Practice fields we need to make the timeline. */
+export interface PracticeSubset {
+  readonly id: string;
+  readonly piece: { readonly id: string };
+}
+
 interface TimelineProps {
-  readonly selectedNodeIndex: number;
+  readonly practices: PracticeSubset[];
 }
 
 export function Timeline(props: TimelineProps) {
-  const practices = [
-    {date: "Jun 1, 2021"},
-    {date: "Jun 1, 2021"},
-    {date: "Jun 1, 2021"},
-    {date: "Jun 1, 2021"},
-    {date: "Jun 1, 2021"},
-    {date: "Jun 1, 2021"},
-    {date: "Jun 1, 2021"},
-    {date: "Jun 1, 2021"},
-    {date: "Jun 1, 2021"},
-    {date: "Jun 1, 2021"},
-    {date: "Jun 1, 2021"},
-    {date: "Jun 1, 2021"},
-    {date: "Jun 1, 2021"},
-    {date: "Jun 1, 2021"},
-    {date: "Jun 1, 2021"},
-    {date: "Jun 1, 2021"},
-    {date: "Jun 1, 2021"},
-    {date: "Jun 1, 2021"},
-    {date: "Jun 1, 2021"},
-  ];
+  const practices = props.practices;
 
   const {
     containerStyle,
     listStyle,
+    linkStyle,
     itemStyle,
     selectedItemStyle,
     dotStyle,
@@ -36,35 +26,33 @@ export function Timeline(props: TimelineProps) {
     rightArrowStyle,
   } = getStyles(practices);
 
-  console.log("Sel", props.selectedNodeIndex);
-
   return (
     <div style={containerStyle}>
       <ol style={listStyle}>
-        <li style={leftArrowStyle}></li>
-        {practices.map((practice, index) =>
+        <li key="left-arrow" style={leftArrowStyle}></li>
+        {practices.map((practice) =>
           <>
             <li
               key={practice.id}
-              style={{
-                ...itemStyle, ...(index === props.selectedNodeIndex ? selectedItemStyle : {}),
-              }}
               className="brand-hover"
+              style={itemStyle}
             >
-              <div style={dotStyle}></div>
-              <div style={tooltipStyle}>
-                {practice.date}
-              </div>
+              <NavLink to={makePracticeUrl(practice)} style={linkStyle}>
+                <div style={dotStyle}></div>
+                <div style={tooltipStyle}>
+                  {practice.id}
+                </div>
+              </NavLink>
             </li>
           </>
         )}
-        <li style={rightArrowStyle}></li>
+        <li key="right-arrow" style={rightArrowStyle}></li>
       </ol>
     </div>
   );
 }
 
-function getStyles(practices: Practice[]) {
+function getStyles(practices: PracticeSubset[]) {
   return {
     containerStyle: {
       position: "relative",
@@ -80,6 +68,11 @@ function getStyles(practices: Practice[]) {
       borderTop: "2px solid black",
       width: `max(99%, ${String(146 * practices.length)}px)`,
       gridTemplateColumns: `1fr ${"2fr ".repeat(practices.length)} 1fr`,
+    },
+    linkStyle: {
+      display: "block",
+      width: "100%",
+      height: "100%",
     },
     itemStyle: {
       display: "block",

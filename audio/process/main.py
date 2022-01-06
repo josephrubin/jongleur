@@ -61,7 +61,7 @@ def lambda_handler(event, _):
   bucket_name = event["bucket"]
   object_key = event["key"]
   practice_id = event["uuid"]
-  requestEpoch = event["requestEpoch"]
+  uploadEpoch = event["uploadEpoch"]
   print(f"Got event with key {object_key} from bucket {bucket_name} for practice {practice_id}.")
 
   # There's no way to send the metadata along with the S3 notification since
@@ -122,7 +122,7 @@ def lambda_handler(event, _):
     "userId": user_id,
     "pieceId": piece_id,
     "currentStatus": "success",
-    "requestEpoch": requestEpoch,
+    "uploadEpoch": uploadEpoch,
     **result
   }
   try:

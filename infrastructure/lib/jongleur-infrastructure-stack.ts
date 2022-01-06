@@ -79,7 +79,7 @@ export class JongleurInfrastructureStack extends Stack {
       dockerAppDirectory: ".",
       dockerAppPort: 3000,
       graphqlApi: graphqlConstruct.api,
-      presignedUrlApi: audioConstruct.audioUploadPresignedUrlApi,
+      presignedUrlApi: audioConstruct.audioPresignedUrlApi,
     });
 
     // ------------------------------------------------------------------------

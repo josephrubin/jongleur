@@ -1,10 +1,14 @@
 import { gql } from "graphql-request";
-import { Piece } from "~/generated/graphql-schema";
+import { Piece, QueryReadPieceArgs } from "~/generated/graphql-schema";
 import * as graphql from "./graphql.server";
 
-export async function readPieces() {
+export async function readPieces(): Promise<Piece[]> {
   const request = gql`{
-    pieces: readPieces
+    pieces: readPieces {
+      id
+      kIndex
+      key
+    }
   }`;
 
   const response = await graphql.request(request);
@@ -12,62 +16,20 @@ export async function readPieces() {
   return response.pieces;
 }
 
-export async function readCollections(accessToken: string) {
-  const query = gql`
-      query ReadCollections($accessToken: String!) {
-        readAuthenticate(accessToken: $accessToken) {
-          collections {
-            id
-            title
-          }
-        }
-      }
-  `;
-
-  const data = await graphql.request(query, {
-    accessToken: accessToken,
-  });
-  return data.readAuthenticate.collections;
-}
-
-export async function readCollection(id: string) : Promise<Collection> {
-  const query = gql`
-    query ReadCollection($id: ID!) {
-      collection: readCollection(id: $id) {
+export async function readPiece(args: QueryReadPieceArgs): Promise<Piece> {
+  const request = gql`
+    query ReadPieces($id: ID!) {
+      piece: readPiece(id: $id) {
         id
-        title
-        casts {
-          id
-          data {
-            uri
-            mimeType
-          }
-        }
+        kIndex
+        key
       }
     }
   `;
 
-  const response = await graphql.request(query, {
-    id: id,
+  const response = await graphql.request(request, {
+    id: args.id,
   });
 
-  return response.collection;
-}
-
-export async function createCollection(args: MutationCreateCollectionArgs) : Promise<Collection> {
-  const mutation = gql`
-    mutation CreateCollection($accessToken: String!, $input: CollectionInput!) {
-      createCollection(accessToken: $accessToken, input: $input) {
-        id
-        title
-      }
-    }
-  `;
-
-  const response = await graphql.request(mutation, {
-    accessToken: args.accessToken,
-    input: args.input,
-  });
-
-  return response.createCollection;
+  return response.piece;
 }

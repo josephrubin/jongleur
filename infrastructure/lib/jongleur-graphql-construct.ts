@@ -156,6 +156,16 @@ export class JongleurGraphqlConstruct extends Construct {
       typeName: "AuthenticatedUser",
       fieldName: "practices",
     });
+    apiLambdaDataSource.createResolver({
+      typeName: "AuthenticatedUser",
+      fieldName: "practice",
+    });
+
+    // Practice parent.
+    apiLambdaDataSource.createResolver({
+      typeName: "Practice",
+      fieldName: "piece",
+    });
   }
 
   get api() {

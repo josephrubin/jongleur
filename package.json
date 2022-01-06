@@ -38,6 +38,7 @@
     "graphql-config": "^4.1.0",
     "graphql-request": "^3.6.1",
     "jwt-decode": "^3.1.2",
+    "number-to-text": "^0.3.9",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "remix": "^1.0.6",
