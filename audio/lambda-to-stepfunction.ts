@@ -51,7 +51,7 @@ const lambdaHandler = async (event: {Records: s3NotificationEventRecord[]}) => {
           bucket: record.s3.bucket.name,
           key: record.s3.object.key,
           size: record.s3.object.size,
-          requestEpoch: String(Date.now()),
+          uploadEpoch: String(Date.now()),
           // Give a uuid as input in case the StepFunction wants one.
           uuid: uuidv4(),
         }),
