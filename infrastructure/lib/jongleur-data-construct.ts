@@ -63,18 +63,6 @@ export class JongleurDataConstruct extends Construct {
       },
       projectionType: dynamodb.ProjectionType.ALL,
     });
-
-    /*
-    // The table that keeps track of our user Principals.
-    const principalTable = new dynamodb.Table(this, "PrincipalTable", {
-      partitionKey: {
-        name: "userId",
-        type: dynamodb.AttributeType.STRING,
-      },
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-      contributorInsightsEnabled: true,
-    });*/
   }
 
   get pieceTable() {
