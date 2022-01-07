@@ -1,3 +1,4 @@
+import { BUNDLING_STACKS } from "aws-cdk-lib/cx-api";
 import { NavLink } from "remix";
 import { makePracticeUrl } from "~/modules/practices";
 
@@ -10,10 +11,14 @@ export interface PracticeSubset {
 
 interface TimelineProps {
   readonly practices: PracticeSubset[];
+  readonly selectedPracticeId: string | null;
 }
 
 export function Timeline(props: TimelineProps) {
   const practices = props.practices;
+  const selectedPracticeId = props.selectedPracticeId;
+
+  console.log(selectedPracticeId);
 
   const {
     containerStyle,
@@ -22,6 +27,7 @@ export function Timeline(props: TimelineProps) {
     itemStyle,
     selectedItemStyle,
     dotStyle,
+    selectedDotStyle,
     tooltipStyle,
     leftArrowStyle,
     rightArrowStyle,
@@ -38,7 +44,7 @@ export function Timeline(props: TimelineProps) {
             style={itemStyle}
           >
             <NavLink to={makePracticeUrl(practice)} style={linkStyle}>
-              <div style={dotStyle}></div>
+              <div style={{...dotStyle, ...(selectedPracticeId === practice.id ? selectedDotStyle : {})}}></div>
               <div style={tooltipStyle}>
                 {new Date(Number(practice.uploadEpoch)).toDateString()}
               </div>
@@ -96,11 +102,15 @@ function getStyles(practices: PracticeSubset[]) {
       borderRadius: "50%",
       textAlign: "center",
     },
+    selectedDotStyle: {
+      backgroundColor: "black",
+    },
     tooltipStyle: {
       position: "absolute",
       top: "24px",
       width: "128px",
       textAlign: "center",
+      color: "black",
     },
     leftArrowStyle: {
       display: "inline-block",

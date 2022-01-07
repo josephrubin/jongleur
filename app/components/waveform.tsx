@@ -121,6 +121,11 @@ function drawWaveform(
   // points don't shrink the waveform.
   //amplitudeSamples = amplitudeSamples.map(Math.sqrt);
 
+  // Clip the samples so they aren't too far from the mean. We do this so that
+  // outliers do not shrink the entire waveform.
+  const mean = amplitudeSamples.reduce((acc, sample) => acc + sample) / amplitudeSamples.length;
+  amplitudeSamples = amplitudeSamples.map(sample => Math.min(sample, mean * 5));
+
   // Normalize the samples so we can draw within our bounds.
   const maxSample = Math.max(...amplitudeSamples);
   const normalizedSamples = amplitudeSamples.map(sample => sample / maxSample);

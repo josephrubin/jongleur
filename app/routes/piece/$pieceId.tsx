@@ -1,5 +1,5 @@
 import { createRef, useRef, useState } from "react";
-import { Link, LinksFunction, LoaderFunction, Outlet, redirect, useCatch, useLoaderData } from "remix";
+import { Link, LinksFunction, LoaderFunction, Outlet, redirect, useCatch, useLoaderData, useParams } from "remix";
 import { PracticeSubset, Timeline } from "~/components/timeline";
 import { Waveform } from "~/components/waveform";
 import { Spinner } from "~/components/spinner";
@@ -26,6 +26,7 @@ interface LoaderData {
 export const loader: LoaderFunction = async ({ request, params }) => {
   const accessToken = redirectToLoginIfNull(await getAccessToken(request));
 
+  const practiceId = params.practiceId;
   const pieceId = params.pieceId;
   if (!pieceId) {
     throw "Impossible - pieceId is guaranteed by route params but not found.";
@@ -50,8 +51,8 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
   // If there is a (most recent) practice, but we are not yet viewing a practice,
   // just go directly to it!
-  if (practices.length > 0 && !params.practiceId) {
-    throw redirect(makePracticeUrl(practices[0]));
+  if (practices.length > 0 && !practiceId) {
+    throw redirect(makePracticeUrl(practices[practices.length - 1]));
   }
 
   return {
@@ -65,6 +66,7 @@ type UploadState = "Ready" | "Uploading" | "Done" | "Error";
 
 export default function PieceId() {
   const { piece, practices, makePresignedUploadUrlEndpoint } = useLoaderData<LoaderData>();
+  const practiceId = useParams().practiceId || null;
   const accessToken = useAccessToken();
 
   const uploadFormRef = createRef<HTMLFormElement>();
@@ -84,7 +86,7 @@ export default function PieceId() {
             <h3>All of your practice sessions</h3>
             { /* A horizontally scrolling box to contain the session timeline. */ }
             <div className="timeline-container">
-              <Timeline practices={practices} />
+              <Timeline selectedPracticeId={practiceId} practices={practices} />
             </div>
           </>
         )
