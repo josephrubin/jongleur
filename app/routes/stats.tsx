@@ -2,18 +2,9 @@ import { Link, LinksFunction, LoaderFunction, redirect, useLoaderData } from "re
 import { Practice, Piece } from "~/generated/graphql-schema";
 import { readMyPractices } from "~/modules/practices.server";
 import { getAccessToken, redirectToLoginIfNull } from "~/modules/session.server";
-import statsStyles from "../styles/routes/stats.css";
-// Library (MIT license) to make a text string from a number.
-// https://www.npmjs.com/package/number-to-text
-import * as numberToText from "number-to-text";
+import { roundToTextSentenceCase, secondsToMinutesOrHoursString } from "~/modules/stats";
 import { getMostPracticedPiecesSorted, makePieceUrl, makeScarlattiPieceLabel } from "~/modules/pieces";
-import { makePieceToPracticesMap } from "~/modules/pieces";
-require("number-to-text/converters/en-us");
-
-function roundToTextSentenceCase(value: number) {
-  const text = numberToText.convertToText(Math.round(value));
-  return text.charAt(0).toUpperCase() + text.substring(1).toLowerCase();
-}
+import statsStyles from "../styles/routes/stats.css";
 
 export const links: LinksFunction = () => {
   return [
@@ -38,12 +29,7 @@ export default function Stats() {
 
   // Calculate practice time in mintues or hours, whichever makes more sense.
   const totalPracticeTimeSeconds = practices.reduce((acc, practice) => acc + practice.durationSeconds, 0);
-  const totalPracticeTimeMinutes = totalPracticeTimeSeconds / 60;
-  const totalPracticeTimeHours = totalPracticeTimeMinutes / 60;
-  const totalPracticeTimeString =
-    totalPracticeTimeHours < 3
-      ? `${roundToTextSentenceCase(totalPracticeTimeMinutes)} minutes`
-      : `${roundToTextSentenceCase(totalPracticeTimeHours)} hours`;
+  const totalPracticeTimeString = secondsToMinutesOrHoursString(totalPracticeTimeSeconds);
 
   // Calculate number of practice recordings.
   const practiceRecordingsCountString = roundToTextSentenceCase(practices.length);

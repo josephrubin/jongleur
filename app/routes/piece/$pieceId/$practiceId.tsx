@@ -8,6 +8,7 @@ import { useAccessToken } from "~/modules/session";
 import { Practice } from "~/generated/graphql-schema";
 import { readMyPractice, readMyPractices } from "~/modules/practices.server";
 import { getAccessToken, redirectToLoginIfNull } from "~/modules/session.server";
+import { secondsToMinutesOrHoursString } from "~/modules/stats";
 
 interface LoaderData {
   // The Practice we are viewing.
@@ -35,6 +36,11 @@ export default function PracticeId() {
   const { practice } = useLoaderData<LoaderData>();
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const segments = practice.segments;
+
+  const averageSegmentDurationSeconds = segments.reduce(
+    (acc, segment) => acc + segment.durationSeconds,
+    0
+  ) / segments.length;
 
   function stopPlayingAudio() {
     if (currentAudio) {
@@ -70,9 +76,11 @@ export default function PracticeId() {
         />
       </div>
       <p className="practice-summary">
-        # hours of practice · # average segment length · #bpm approximate tempo · # hours on this piece in total
+        {secondsToMinutesOrHoursString(practice.durationSeconds)} of practice{" · "}
+        {secondsToMinutesOrHoursString(averageSegmentDurationSeconds)} average segment length{" · "}
+        {practice.tempoBpm}bpm approximate tempo
       </p>
-      <b>Found {segments.length} segments in this practice recording</b>
+      <b>Found {segments.length} {segments.length === 1 ? "segment" : "segments"} in this practice recording</b>
       <p>
         Mouse over the waveform to see your practice segments (it scrolls horizontally). Click on a segment to hear it.
       </p>
