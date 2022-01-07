@@ -64,13 +64,15 @@ export default function Index() {
         <>
           <h2>🕑&nbsp; Recently Played</h2>
           <ol className="practice-pieces">
-            {recentPieces.map(piece =>
-              <li key={piece.id} className="practice-piece">
-                <Link to={makePieceUrl(piece)}>
-                  <div>{makeScarlattiPieceLabel(piece)}</div>
-                </Link>
-              </li>
-            )}
+            {recentPieces.length <= 0
+              ? <span>None yet!</span>
+              : recentPieces.map(piece =>
+                <li key={piece.id} className="practice-piece">
+                  <Link to={makePieceUrl(piece)}>
+                    <div>{makeScarlattiPieceLabel(piece)}</div>
+                  </Link>
+                </li>
+              )}
           </ol>
         </>
       )}
