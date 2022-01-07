@@ -91,7 +91,7 @@ function getStyles(practices: PracticeSubset[]) {
       height: "18px",
       width: "18px",
       marginLeft: "55px",
-      backgroundColor: "var(--color-brand-light)",
+      backgroundColor: "white",
       border: "2px solid black",
       borderRadius: "50%",
       textAlign: "center",

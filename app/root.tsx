@@ -167,11 +167,6 @@ function Layout({ children }: { children: React.ReactNode }) {
               )}
               {accessToken && (
                 <li>
-                  <NavLink to="/piece">{"Pieces You've Practiced"}</NavLink>
-                </li>
-              )}
-              {accessToken && (
-                <li>
                   <NavLink to="/stats">Your Stats</NavLink>
                 </li>
               )}

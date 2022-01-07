@@ -1,4 +1,4 @@
-import { createRef, useRef, useState } from "react";
+import { createRef, useEffect, useRef, useState } from "react";
 import { Link, LinksFunction, LoaderFunction, useLoaderData } from "remix";
 import { PracticeSubset, Timeline } from "~/components/timeline";
 import { Waveform } from "~/components/waveform";
@@ -36,6 +36,18 @@ export default function PracticeId() {
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const segments = practice.segments;
 
+  function stopPlayingAudio() {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.remove();
+    }
+  }
+
+  useEffect(
+    // Cleanup callback. Stop playing when this component is destroyed.
+    () => stopPlayingAudio
+  );
+
   return (
     <div className="practice-session-container">
       <h2>Your Practice Session</h2>
@@ -47,12 +59,7 @@ export default function PracticeId() {
           segments={segments}
           onClickSegment={
             (i) => {
-              console.log("clicked", i, "audio should be", segments[i].audioUrl);
-              // If audio is already playing, stop it.
-              if (currentAudio) {
-                currentAudio.pause();
-                currentAudio.remove();
-              }
+              stopPlayingAudio();
 
               // Play the audio associated with this segment.
               const audio = new Audio(segments[i].audioUrl);

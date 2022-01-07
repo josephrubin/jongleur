@@ -10,6 +10,7 @@ import { readMyPractices } from "~/modules/practices.server";
 import { getAccessToken, redirectToLoginIfNull } from "~/modules/session.server";
 import { readPiece } from "~/modules/pieces.server";
 import { makeScarlattiPieceLabel } from "~/modules/pieces";
+import { makePracticeUrl } from "~/modules/practices";
 
 interface LoaderData {
   // The Piece we are viewing.
@@ -38,10 +39,20 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   }
 
   // Get a list of all the practices of this piece with very barebones information,
-  // just so we can make the timeline.
+  // just so we can make the timeline (sorted by when they were uploaded, first to last).
   const practices = (await readMyPractices({
     accessToken: accessToken,
-  })).filter(practice => practice.piece.id === pieceId);
+  })).filter(
+    practice => practice.piece.id === pieceId
+  ).sort(
+    (practiceOne, practiceTwo) => Number(practiceOne.uploadEpoch) - Number(practiceTwo.uploadEpoch)
+  );
+
+  // If there is a (most recent) practice, but we are not yet viewing a practice,
+  // just go directly to it!
+  if (practices.length > 0 && !params.practiceId) {
+    throw redirect(makePracticeUrl(practices[0]));
+  }
 
   return {
     piece: piece,
