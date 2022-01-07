@@ -11,14 +11,14 @@ import {
   LoaderFunction
 } from "remix";
 import type { LinksFunction } from "remix";
-
-import globalStylesUrl from "~/styles/global.css";
 import { getAccessToken, refreshAccessTokenIfNeeded } from "./modules/session.server";
 import { useAccessToken } from "./modules/session";
+import globalStylesUrl from "~/styles/global.css";
 
 // https://remix.run/api/app#links
 export const links: LinksFunction = () => {
   return [
+    { rel: "icon", type: "image/png", href: "/favicon.png" },
     { rel: "stylesheet", href: globalStylesUrl },
   ];
 };
