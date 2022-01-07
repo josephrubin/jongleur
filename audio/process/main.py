@@ -14,6 +14,7 @@ We don't have type generation for Python (we do for Typescript) so we'll have to
 be a little careful here to get the right type.
 """
 import os
+import subprocess
 import sys
 import tempfile
 
@@ -25,9 +26,6 @@ import soundfile as sf
 
 from matplotlib import pyplot as plt
 import librosa.display
-
-# Enables drawing of the waveform along with its segments with matplotlib.
-DISPLAY_WAVEFORM = False
 
 # The bucket that we expect the audio files to come from.
 FROM_AUDIO_BUCKET_NAME = os.getenv("JONG_CLIENT_AUDIO_UPLOAD_BUCKET_NAME")
@@ -61,7 +59,7 @@ def lambda_handler(event, _):
   bucket_name = event["bucket"]
   object_key = event["key"]
   practice_id = event["uuid"]
-  uploadEpoch = event["uploadEpoch"]
+  uploadEpoch = str(event["uploadEpoch"])
   print(f"Got event with key {object_key} from bucket {bucket_name} for practice {practice_id}.")
 
   # There's no way to send the metadata along with the S3 notification since
@@ -91,7 +89,7 @@ def lambda_handler(event, _):
 
   print("Begin processing file...")
   with tempfile.TemporaryDirectory() as temp_dir:
-    result = process_file(download_filename, temp_dir)
+    result = process_file(download_filename, temp_dir, display_waveform="off")
     print("Processed file.")
 
     # Upload the waveform and its segments to S3, and store their Cloudfront URLs.
@@ -144,7 +142,7 @@ def lambda_handler(event, _):
   }
 
 
-def process_file(filename, temp_dir):
+def process_file(filename, temp_dir, display_waveform):
   """
   Process an audio file, returning data as well as a list of filenames that should
   be uploaded to S3 for permanent practice recording storage.
@@ -188,18 +186,11 @@ def process_file(filename, temp_dir):
     tempos.append(tempo)
 
     # If displaying, save the whole waveform, block by block.
-    if DISPLAY_WAVEFORM:
+    if display_waveform == "on":
       waveform.extend(block)
 
   curated_segments = merge_nearby_segments(segments, samplingrate, MINIMUM_SILENCE_BETWEEN_SEGMENTS_IN_SECONDS)
   curated_segments = remove_short_segments(curated_segments, samplingrate, MINIMUM_SEGMENT_DURATION_IN_SECONDS)
-
-  if DISPLAY_WAVEFORM:
-    segment_times = librosa.samples_to_time(curated_segments, sr=samplingrate)
-    plt.figure()
-    librosa.display.waveshow(y=np.array(waveform), sr=samplingrate)
-    plt.vlines(segment_times, ymin=-1, ymax=1)
-    plt.show()
 
   # Get a low-fidelity, resampled version of the waveform for the front end.
   renderable_waveform_raw, renderable_waveform_sr = librosa.load(
@@ -208,17 +199,43 @@ def process_file(filename, temp_dir):
     mono=True,
     res_type="polyphase"
   )
-  renderable_waveform = np.abs(
-    librosa.amplitude_to_db(renderable_waveform_raw)
+  renderable_waveform = (
+    np.abs(
+      renderable_waveform_raw * (10 ** 6)
+    )
   ).astype(int)
+
+  if display_waveform == "on":
+    segment_times = librosa.samples_to_time(curated_segments, sr=samplingrate)
+    plt.figure()
+    librosa.display.waveshow(y=np.array(waveform), sr=samplingrate)
+    plt.vlines(segment_times, ymin=-1, ymax=1)
+    plt.show()
+  elif display_waveform == "resample":
+    plt.figure()
+    librosa.display.waveshow(y=np.array(renderable_waveform.astype(float)), sr=samplingrate)
+    plt.show()
 
   # Save the audio files that we're going to upload to S3. Just save the segments
   # because the whole waveform was already downloaded earlier.
   output_segments = []
   for i, segment in enumerate(curated_segments):
+    # So here we have a big problem. We've gone the whole time assuming we can't fit an audio
+    # file into memory all at once -
+    # So how are we supposed to write a section of the audio file to disk if any segment could
+    # be as long as the entire file? Librosa and soundfile have no capacity to write audio in
+    # chunks. Let's just go lower level and use ffmpeg directly!
     segment_filename = f"{temp_dir}/segment-{str(i)}.ogg"
-    segment_waveform = waveform[segment[0]:segment[1]]
-    sf.write(segment_filename, segment_waveform, samplingrate, format='ogg', subtype='vorbis')
+    segment_seconds_start, segment_seconds_end = librosa.samples_to_time(
+      segment,
+      sr=samplingrate
+    )
+    extract_and_write_audio(
+      fromfile=filename,
+      tofile=segment_filename,
+      startseconds=segment_seconds_start,
+      endseconds=segment_seconds_end
+    )
 
     # Create the output type in TypeScript naming conventions because this object
     # will closely track the type of a SegmentInput.
@@ -302,14 +319,33 @@ def merge_nearby_segments(segments, samplingrate, minimum_silence_between_segmen
   return curated_segments
 
 
+def extract_and_write_audio(fromfile, tofile, startseconds, endseconds):
+  """
+  The almighty ffmpeg invocation. Extract a section of audio from
+  `fromfile` into `tofile` from `startseconds` to `endseconds`.
+  """
+  subprocess.run([
+    "ffmpeg",
+    "-hide_banner", "-loglevel", "error",
+    "-ss", str(startseconds),
+    "-to", str(endseconds),
+    "-i", fromfile,
+    tofile
+  ])
+
+
 if __name__ == "__main__":
   """
   Run the program from the command line.
   The first argument is the path to an audio file.
+  The second is the display mode:
+  if "on" - display the whole waveform.
+  if "resample" - display a smaller, resampled waveform.
+  if "off" - don't display.
   """
-  usage_string = f"usage: {sys.argv[0]} <filename>"
+  usage_string = f"usage: {sys.argv[0]} <filename> <display-mode: on | off | resample>"
 
-  if len(sys.argv) < 2:
+  if len(sys.argv) < 3 or sys.argv[2] not in ["on", "off", "resample"]:
     print(usage_string, file=sys.stderr)
     sys.exit(1)
 
@@ -317,8 +353,12 @@ if __name__ == "__main__":
     print(usage_string)
     sys.exit(0)
 
+  # Since we're using a tempdir, the interactive user won't be able to get the segments,
+  # because the directory will be released once this program ends. That's okay, because
+  # you probably just want to see the waveform anyway. Of course, our AWS pipeline will
+  # pull the segments before the program ends.
   with tempfile.TemporaryDirectory() as temp_dir:
-    result = process_file(sys.argv[1], temp_dir)
+    result = process_file(sys.argv[1], temp_dir, display_waveform=sys.argv[2])
 
   print(
     f"Processed waveform of length {result['durationSeconds']} seconds of tempo {result['tempoBpm']}bpm "

@@ -30,7 +30,7 @@ export async function readMyPractice(authArgs: QueryReadAuthenticateArgs, practi
     id: practiceArgs.id,
   });
 
-  return response.readAuthenticate.practices;
+  return response.readAuthenticate.practice;
 }
 
 export async function readMyPractices(args: QueryReadAuthenticateArgs): Promise<Practice[]> {
@@ -40,6 +40,7 @@ export async function readMyPractices(args: QueryReadAuthenticateArgs): Promise<
         practices {
           id
           durationSeconds
+          uploadEpoch
           segments {
             durationSeconds
           }

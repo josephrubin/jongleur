@@ -1,10 +1,6 @@
 import React, { createRef, useEffect, useState } from "react";
+import { Segment } from "~/generated/graphql-schema";
 import { fillRoundedRect } from "../modules/drawing";
-
-interface SegmentIndices {
-  readonly startIndex: number;
-  readonly endIndex: number;
-}
 
 interface WaveformProps {
   // The total height of the rendered waveform in px.
@@ -12,7 +8,7 @@ interface WaveformProps {
   // The waveform samples (usually amplitudes).
   readonly samples: number[]
   // Segment the waveform using each (startIndex, endIndex) pair.
-  readonly segments: SegmentIndices[]
+  readonly segments: Segment[]
   // The callback to invoke when a segment is clicked.
   readonly onClickSegment?: (segmentIndex: number) => void
 }
@@ -22,8 +18,8 @@ export function Waveform(props: WaveformProps) {
   const canvasRef = createRef<HTMLCanvasElement>();
   const [mouseOverSegmentIndex, setMouseOverSegmentIndex] = useState<number | null>(null);
 
-  const widthPerSample = 2;
-  const gapBetweenSamples = 5;
+  const widthPerSample = props.samples.length > 5000 ? 1 : 2;
+  const gapBetweenSamples = props.samples.length > 5000 ? 1 : 5;
 
   useEffect(() => {
     if (canvasRef.current) {
@@ -78,7 +74,7 @@ const mouseOverWaveform = (
   event: React.MouseEvent<Element, MouseEvent>,
   widthPerSample: number,
   gapBetweenSamples: number,
-  segments: SegmentIndices[]
+  segments: Segment[]
 ) => {
   const canvasBounds = (event.target as HTMLCanvasElement).getBoundingClientRect();
   const [offsetX, offsetY] = [event.clientX - canvasBounds.left, event.clientY - canvasBounds.top];
@@ -90,7 +86,7 @@ const mouseOverWaveform = (
   let mouseOverSegmentIndex = null;
   for (let i = 0; i < segments.length; i++) {
     const segment = segments[i];
-    if (mouseOverSampleIndex >= segment.startIndex && mouseOverSampleIndex <= segment.endIndex) {
+    if (mouseOverSampleIndex >= segment.renderableSampleFirst && mouseOverSampleIndex <= segment.renderableSampleLast) {
       mouseOverSegmentIndex = i;
       break;
     }
@@ -106,7 +102,7 @@ function drawWaveform(
   widthPerSample: number,
   gapBetweenSamples: number,
   amplitudeSamples: number[],
-  segments: SegmentIndices[],
+  segments: Segment[],
   mouseOverSegmentIndex: number | null
 ) {
   // Height reserved for markings along the bottom.
@@ -137,8 +133,8 @@ function drawWaveform(
     // Draw a box around the currently hovered segment.
     if (mouseOverSegmentIndex !== null) {
       const segment = segments[mouseOverSegmentIndex];
-      const segmentWidth = (widthPerSample + gapBetweenSamples) * (1 + segment.endIndex - segment.startIndex);
-      const segmentX = (widthPerSample + gapBetweenSamples) * (segment.startIndex - 0.5);
+      const segmentWidth = (widthPerSample + gapBetweenSamples) * (1 + segment.renderableSampleLast - segment.renderableSampleFirst);
+      const segmentX = (widthPerSample + gapBetweenSamples) * (segment.renderableSampleFirst - 0.5);
       ctx.fillStyle = mouseOverSegmentBoxShadowColor;
       fillRoundedRect(ctx, Math.round(segmentX) + 2, 2, Math.round(segmentWidth), waveHeight, 6);
       ctx.fillStyle = mouseOverSegmentBoxColor;
@@ -147,10 +143,12 @@ function drawWaveform(
 
     // Draw the wave by rendering each sample.
     let currentSegmentIndex = 0;
-    normalizedSamples.forEach((sample, index) => {
+    for (let i = 0; i < normalizedSamples.length; i++) {
+      const sample = normalizedSamples[i];
+
       // Decide how to color this sample.
       const currentSegment = segments[currentSegmentIndex];
-      if (!currentSegment || index < currentSegment.startIndex || index > currentSegment.endIndex) {
+      if (!currentSegment || i < currentSegment.renderableSampleFirst || i > currentSegment.renderableSampleLast) {
         ctx.fillStyle = outsideSegmentColor;
       }
       else {
@@ -159,7 +157,7 @@ function drawWaveform(
 
       // Draw a rectangle to represent this sample.
       const scaledSample = sample * waveHeight;
-      const sampleX = index * (gapBetweenSamples + widthPerSample);
+      const sampleX = i * (gapBetweenSamples + widthPerSample);
       ctx.fillRect(
         1 + sampleX,
         (waveHeight - scaledSample) / 2,
@@ -168,16 +166,17 @@ function drawWaveform(
       );
 
       // Write the current sample number every few samples.
-      if (index % notchIncrement === 0) {
+      if (i % notchIncrement === 0) {
         ctx.fillStyle = textColor;
         ctx.textBaseline = "top";
         ctx.font = "10px Arial";
-        ctx.fillText(String(index), sampleX, waveHeight + 1);
+        // Drawing the text causes an error I've never seen before.
+        //ctx.fillText(String(i), sampleX, waveHeight + 1);
       }
 
-      if (currentSegment && index >= currentSegment.endIndex) {
+      if (currentSegment && i >= currentSegment.renderableSampleLast) {
         currentSegmentIndex++;
       }
-    });
+    }
   }
 }

@@ -24,7 +24,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
   }
 
   // Get the practice we are displaying on this page with all of its information.
-  const practice = await readMyPractice({ accessToken }, { id: pieceId });
+  const practice = await readMyPractice({ accessToken }, { id: practiceId });
 
   return {
     practice: practice,
@@ -32,17 +32,9 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 };
 
 export default function PracticeId() {
-
-  let samples = [3, 5, 3, 7, 8, 5, 3, 2, 3, 4, 1, 2, 1, 2, 7, 8, 7, 5, 7, 4, 4, 6, 7, 6, 1, 4, 3, 4, 4, 5];
-  samples = samples.concat(samples, samples, samples, samples, samples, samples);
-
-  const segments = [
-    {startIndex: 0, endIndex: 9},
-    {startIndex: 14, endIndex: 23},
-    {startIndex: 25, endIndex: 29},
-    {startIndex: 30, endIndex: 35},
-    {startIndex: 56, endIndex: 60},
-  ];
+  const { practice } = useLoaderData<LoaderData>();
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
+  const segments = practice.segments;
 
   return (
     <div className="practice-session-container">
@@ -51,9 +43,23 @@ export default function PracticeId() {
       <div className="waveform-container">
         <Waveform
           height={148}
-          samples={samples}
+          samples={practice.renderableWaveform}
           segments={segments}
-          onClickSegment={(i) => {console.log(i);}}
+          onClickSegment={
+            (i) => {
+              console.log("clicked", i, "audio should be", segments[i].audioUrl);
+              // If audio is already playing, stop it.
+              if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.remove();
+              }
+
+              // Play the audio associated with this segment.
+              const audio = new Audio(segments[i].audioUrl);
+              audio.play();
+              setCurrentAudio(audio);
+            }
+          }
         />
       </div>
       <p className="practice-summary">
@@ -61,7 +67,7 @@ export default function PracticeId() {
       </p>
       <b>Found {segments.length} segments in this practice recording</b>
       <p>
-        Mouse over part of the waveform to see your practice segments. Click on a segment to hear it.
+        Mouse over the waveform to see your practice segments (it scrolls horizontally). Click on a segment to hear it.
       </p>
     </div>
   );

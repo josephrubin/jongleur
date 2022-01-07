@@ -170,8 +170,7 @@ export class JongleurAudioConstruct extends Construct {
       comment: "Record that we are processing this audio upload.",
       item: {
         id: stepfunctions_tasks.DynamoAttributeValue.fromString(stepfunctions.JsonPath.stringAt("$.uuid")),
-        // There's an open bug (https://github.com/aws/aws-cdk/issues/12456) hence the string -> number workaround.
-        uploadEpoch: stepfunctions_tasks.DynamoAttributeValue.numberFromString(stepfunctions.JsonPath.stringAt("$.uploadEpoch")),
+        uploadEpoch: stepfunctions_tasks.DynamoAttributeValue.fromString(stepfunctions.JsonPath.stringAt("$.uploadEpoch")),
         executionArn: stepfunctions_tasks.DynamoAttributeValue.fromString(stepfunctions.JsonPath.stringAt("$$.Execution.Id")),
         currentStatus: stepfunctions_tasks.DynamoAttributeValue.fromString("processing"),
       },

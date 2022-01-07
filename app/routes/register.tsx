@@ -21,7 +21,7 @@ export const action: ActionFunction = async ({ request }) => {
 
   if (!username || !password) {
     return {
-      error: "Missing username or password",
+      error: "Missing username or password.",
     };
   }
 

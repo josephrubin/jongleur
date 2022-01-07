@@ -12,12 +12,17 @@ export function makeScarlattiPieceLabel(piece: Piece) {
  * Return a map of Piece -> Practice[] from the given Practice[] list.
  */
 export function makePieceToPracticesMap(practices: Practice[]) {
-  return practices.reduce((map, practice) => {
-    const piecePractices = map.get(practice.piece) || [];
+  const pieceIdToPiece = new Map<string, Piece>();
+  const pieceIdToPractices = practices.reduce((map, practice) => {
+    const piecePractices = map.get(practice.piece.id) || [];
     piecePractices.push(practice);
-    map.set(practice.piece, piecePractices);
+    pieceIdToPiece.set(practice.piece.id, practice.piece);
+    map.set(practice.piece.id, piecePractices);
     return map;
-  }, new Map<Piece, Practice[]>());
+  }, new Map<string, Practice[]>());
+  return new Map<Piece, Practice[]>(
+    [...pieceIdToPractices].map(item => [pieceIdToPiece.get(item[0])!, item[1]])
+  );
 }
 
 /**

@@ -4,6 +4,7 @@ import { makePracticeUrl } from "~/modules/practices";
 /** The subset of Practice fields we need to make the timeline. */
 export interface PracticeSubset {
   readonly id: string;
+  readonly uploadEpoch: number;
   readonly piece: { readonly id: string };
 }
 
@@ -31,20 +32,18 @@ export function Timeline(props: TimelineProps) {
       <ol style={listStyle}>
         <li key="left-arrow" style={leftArrowStyle}></li>
         {practices.map((practice) =>
-          <>
-            <li
-              key={practice.id}
-              className="brand-hover"
-              style={itemStyle}
-            >
-              <NavLink to={makePracticeUrl(practice)} style={linkStyle}>
-                <div style={dotStyle}></div>
-                <div style={tooltipStyle}>
-                  {practice.id}
-                </div>
-              </NavLink>
-            </li>
-          </>
+          <li
+            key={practice.id}
+            className="brand-hover"
+            style={itemStyle}
+          >
+            <NavLink to={makePracticeUrl(practice)} style={linkStyle}>
+              <div style={dotStyle}></div>
+              <div style={tooltipStyle}>
+                {new Date(Number(practice.uploadEpoch)).toDateString()}
+              </div>
+            </NavLink>
+          </li>
         )}
         <li key="right-arrow" style={rightArrowStyle}></li>
       </ol>

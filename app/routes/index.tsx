@@ -5,7 +5,8 @@ import { readMe } from "~/modules/users.server";
 import { getAccessToken } from "~/modules/session.server";
 import practiceStyles from "../styles/routes/practice.css";
 import { readPieces } from "~/modules/pieces.server";
-import { makePieceUrl, makeScarlattiPieceLabel } from "~/modules/pieces";
+import { getMostPracticedPiecesSorted, makePieceUrl, makeScarlattiPieceLabel } from "~/modules/pieces";
+import { readMyPractices } from "~/modules/practices.server";
 
 // https://remix.run/api/conventions#meta
 export const meta: MetaFunction = () => {
@@ -29,10 +30,10 @@ export const links: LinksFunction = () => {
 
 export const loader: LoaderFunction = async ({request}) => {
   const pieces = (await readPieces()).sort((a, b) => Number(a.kIndex) - Number(b.kIndex));
-  const recentPieces = pieces.slice(0, 5);
 
   const accessToken = await getAccessToken(request);
   const user = accessToken ? await readMe({accessToken}) : null;
+  const recentPieces = accessToken ? getMostPracticedPiecesSorted(await readMyPractices({ accessToken }), 5) : null;
 
   return {
     user,

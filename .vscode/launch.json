@@ -3,6 +3,21 @@
     {
       "type": "aws-sam",
       "request": "direct-invoke",
+      "name": "jongleur:app/modules/pieces.server.readPieces (nodejs14.x)",
+      "invokeTarget": {
+        "target": "code",
+        "projectRoot": "${workspaceFolder}/",
+        "lambdaHandler": "app/modules/pieces.server.readPieces"
+      },
+      "lambda": {
+        "runtime": "nodejs14.x",
+        "payload": {},
+        "environmentVariables": {}
+      }
+    },
+    {
+      "type": "aws-sam",
+      "request": "direct-invoke",
       "name": "jongleur:app/modules/pieces.server.readMyPractices (nodejs14.x)",
       "invokeTarget": {
         "target": "code",

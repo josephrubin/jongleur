@@ -81,7 +81,7 @@ type Practice {
   audioUrl: String!
 
   # The unix epoch when this Practice was uploaded/made.
-  uploadEpoch: Int!
+  uploadEpoch: String!
 
   # The segments that make up this practice recording.
   segments: [Segment!]!

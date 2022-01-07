@@ -8,13 +8,21 @@ export const links: LinksFunction = () => {
   ];
 };
 
+interface ActionData {
+  readonly error?: string;
+}
+
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
 
-  const username = String(formData.get("username")!);
-  const password = String(formData.get("password")!);
+  const username = String(formData.get("username"));
+  const password = String(formData.get("password"));
 
-  // For now we assume no errors. TODO - fix this.
+  if (!username || !password) {
+    return {
+      error: "Missing username or password.",
+    };
+  }
 
   const session = await createJongSession({username: username, password: password});
 
@@ -23,21 +31,13 @@ export const action: ActionFunction = async ({ request }) => {
   }
   else {
     return {
-      error: "Could not make session",
+      error: "Incorrect login information. Please try again.",
     };
   }
 };
 
 export default function Register() {
-  const actionData = useActionData();
-
-  if (actionData && actionData.error) {
-    return (
-      <p>
-        {actionData.error}
-      </p>
-    );
-  }
+  const response = useActionData<ActionData | null>();
 
   return (
     <div>
@@ -51,6 +51,7 @@ export default function Register() {
           Password
           <input name="password" type="password" />
         </label>
+        { response?.error && <p className="error">{response.error}</p> }
         <button type="submit">Carry On!</button>
       </Form>
     </div>
