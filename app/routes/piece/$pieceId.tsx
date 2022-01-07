@@ -1,7 +1,6 @@
-import { createRef, useRef, useState } from "react";
-import { Link, LinksFunction, LoaderFunction, Outlet, redirect, useCatch, useLoaderData, useParams } from "remix";
+import { createRef, useState } from "react";
+import { LoaderFunction, Outlet, redirect, useCatch, useLoaderData, useParams } from "remix";
 import { PracticeSubset, Timeline } from "~/components/timeline";
-import { Waveform } from "~/components/waveform";
 import { Spinner } from "~/components/spinner";
 import { MAKE_PRESIGNED_UPLOAD_URL_ENDPOINT } from "~/modules/audio.server";
 import { useAccessToken } from "~/modules/session";
@@ -32,7 +31,11 @@ export const loader: LoaderFunction = async ({ request, params }) => {
     throw "Impossible - pieceId is guaranteed by route params but not found.";
   }
 
-  const piece = await readPiece({ id: pieceId });
+  const [piece, practices] = await Promise.all([
+    readPiece({ id: pieceId }),
+    readMyPractices({ accessToken: accessToken }),
+  ]);
+
   if (piece === null) {
     throw new Response("Piece Not Found", {
       status: 404,
@@ -41,9 +44,7 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
   // Get a list of all the practices of this piece with very barebones information,
   // just so we can make the timeline (sorted by when they were uploaded, first to last).
-  const practices = (await readMyPractices({
-    accessToken: accessToken,
-  })).filter(
+  const filteredPractices = practices.filter(
     practice => practice.piece.id === pieceId
   ).sort(
     (practiceOne, practiceTwo) => Number(practiceOne.uploadEpoch) - Number(practiceTwo.uploadEpoch)
@@ -51,13 +52,13 @@ export const loader: LoaderFunction = async ({ request, params }) => {
 
   // If there is a (most recent) practice, but we are not yet viewing a practice,
   // just go directly to it!
-  if (practices.length > 0 && !practiceId) {
-    throw redirect(makePracticeUrl(practices[practices.length - 1]));
+  if (filteredPractices.length > 0 && !practiceId) {
+    throw redirect(makePracticeUrl(filteredPractices[filteredPractices.length - 1]));
   }
 
   return {
     piece: piece,
-    practices: practices,
+    practices: filteredPractices,
     makePresignedUploadUrlEndpoint: MAKE_PRESIGNED_UPLOAD_URL_ENDPOINT,
   };
 };

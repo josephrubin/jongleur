@@ -4,7 +4,7 @@ import { User, Piece } from "~/generated/graphql-schema";
 import { readMe } from "~/modules/users.server";
 import { getAccessToken } from "~/modules/session.server";
 import practiceStyles from "../styles/routes/practice.css";
-import { readPieces } from "~/modules/pieces.server";
+import { readPiece, readPieces } from "~/modules/pieces.server";
 import { getMostPracticedPiecesSorted, makePieceUrl, makeScarlattiPieceLabel } from "~/modules/pieces";
 import { readMyPractices } from "~/modules/practices.server";
 
@@ -29,16 +29,20 @@ export const links: LinksFunction = () => {
 };
 
 export const loader: LoaderFunction = async ({request}) => {
-  const pieces = (await readPieces()).sort((a, b) => Number(a.kIndex) - Number(b.kIndex));
-
   const accessToken = await getAccessToken(request);
-  const user = accessToken ? await readMe({accessToken}) : null;
-  const recentPieces = accessToken ? getMostPracticedPiecesSorted(await readMyPractices({ accessToken }), 5) : null;
+
+  const [pieces, user, practices] = await Promise.all([
+    readPieces(),
+    accessToken ? readMe({ accessToken }) : null,
+    accessToken ? readMyPractices({ accessToken }) : null,
+  ]);
+  const piecesKIndexSorted = pieces.sort((a, b) => Number(a.kIndex) - Number(b.kIndex));
+  const recentPieces = practices ? getMostPracticedPiecesSorted(practices, 5) : null;
 
   return {
-    user,
-    pieces,
-    recentPieces,
+    user: user,
+    pieces: piecesKIndexSorted,
+    recentPieces: recentPieces,
   };
 };
 

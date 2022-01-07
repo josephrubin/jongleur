@@ -36,7 +36,7 @@ export const action: ActionFunction = async ({ request }) => {
   }
 };
 
-export default function Register() {
+export default function Login() {
   const response = useActionData<ActionData | null>();
 
   return (

@@ -1,12 +1,8 @@
-import { createRef, useEffect, useRef, useState } from "react";
-import { Link, LinksFunction, LoaderFunction, useLoaderData } from "remix";
-import { PracticeSubset, Timeline } from "~/components/timeline";
+import { useEffect, useState } from "react";
+import { LoaderFunction, useLoaderData } from "remix";
 import { Waveform } from "~/components/waveform";
-import { Spinner } from "~/components/spinner";
-import { MAKE_PRESIGNED_UPLOAD_URL_ENDPOINT } from "~/modules/audio.server";
-import { useAccessToken } from "~/modules/session";
 import { Practice } from "~/generated/graphql-schema";
-import { readMyPractice, readMyPractices } from "~/modules/practices.server";
+import { readMyPractice } from "~/modules/practices.server";
 import { getAccessToken, redirectToLoginIfNull } from "~/modules/session.server";
 import { secondsToMinutesOrHoursString } from "~/modules/stats";
 
@@ -38,8 +34,7 @@ export default function PracticeId() {
   const segments = practice.segments;
 
   const averageSegmentDurationSeconds = segments.reduce(
-    (acc, segment) => acc + segment.durationSeconds,
-    0
+    (acc, segment) => acc + segment.durationSeconds, 0
   ) / segments.length;
 
   function stopPlayingAudio() {
