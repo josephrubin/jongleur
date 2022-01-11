@@ -24,10 +24,10 @@ any further modification.
 
 
 If working on any Python files locally (a few files), you'll need
-ffmpeg. On MacOS, for example:
+ffmpeg and libsndfile. On MacOS, for example:
 ```sh
 $ brew update
-$ brew install ffmpeg
+$ brew install ffmpeg libsndfile
 ```
 (You may need some other libraries depending on your exact setup; if so, install them and feel free to add them to this README!).
 You'll also want pipenv (`pip3 install pipenv`) so you can use the virtual
