@@ -10,9 +10,9 @@ Your learning. As a musician. Simplified.
 
 Jongleur helps musicians practice and track their hours by ingesting recordings and returning useful information and visuals. Currently we support Scarlatti solo sonatas.
 
-## Development
+# Development
 
-### Initial setup
+## Initial setup
 
 Most of the code is written in Typescript, so the setup is simply
 ```sh
@@ -37,7 +37,7 @@ $ pipenv install
 $ pipenv shell
 ```
 
-### Running the development server
+## Running the development server
 
 Use the command
 ```sh
@@ -51,7 +51,7 @@ Right now, we don't have emulation for the backend when developing locally.
 You just run the web app locally but connect to the remote server.
 This is generally fine, but it requires having a working server running (see deployment below). Right now you can connect to the version running at jongleur.app but once the app is out of initial development this will change.
 
-## Deployment
+# Deployment
 
 While it's not necessary for front-end development, you might want to deploy a stack of your very own.
 
@@ -78,7 +78,7 @@ Then you simply add the validation records to your DNS during deployment for the
 app should be good to go. If you're asked to bootstrap your CDK environment
 when attempting to deploy, do it.
 
-### Initial data
+## Initial data
 One thing you'll notice after deployment is that there is no initial data in the application's data stores.
 While you probably want the app to be deployed without any user accounts or user data, you might want to tell the app to support some pieces so you can play.
 
@@ -99,3 +99,11 @@ Because this command is being run locally, just make sure that your aws config i
 Following what I curently consider to be best practice, if you want to have {`prod`, `stage`, `qa`, etc.} environments, you should deploy the
 identical stack to separate accounts.
 It should be simple enough to set up a couple different deployment commands to choose the appropriate account, but that hasn't been done since this app has no active user-base yet! But soon!
+
+# Documentation
+
+Docs are kept in `documentation/`. To build the report from latex, I've set up my Mac as follows:
+1. Install MacTex
+2. Run `sudo tlmgr update --self` and then `sudo tlmgr install latexmk`
+
+This will make the Late Workshop VSCode extension work.

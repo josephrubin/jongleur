@@ -8,4 +8,5 @@
     "javascript"
   ],
   "editor.tabSize": 2,
+  "latex-workshop.latex.outDir": "%DIR%/build",
 }
