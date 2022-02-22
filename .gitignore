@@ -9,3 +9,5 @@ generated/
 cdk.out/
 
 coverage/
+
+.idea/
