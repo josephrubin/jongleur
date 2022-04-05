@@ -13,8 +13,11 @@
 \usepackage{graphicx}
 \usepackage{natbib}
 \usepackage{doi}
-
 \usepackage{arxiv}
+
+% Custom commands.
+\newcommand{\term}[1]{\textit{#1}}
+\newcommand{\newp}{\newline\indent}
 
 \begin{document}
 
@@ -31,7 +34,9 @@
 % ABSTRACT. %%%%
 
 \begin{abstract}
-    Jongleur is a web application that ingests audio practice recordings and returns useful information.
+    Rapidly innovating cloud providers have changed the way that distributed applications are designed, developed, and deployed.
+    We examine the practice of creating serverless architectures and build a number of applications with the goal of craeting engineering practices that are as stateless as possible.
+    In particular, Jongleur is a web application that ingests audio practice recordings and returns useful information.
     Users can create an account and browse a list of supported pieces.
     They can select one and begin uploading recordings of your practice session.
     After processing, each practice session is saved and displayed on a timeline.
@@ -44,44 +49,7 @@ Jongleur is a full-stack app built on AWS in several thousand lines of code.
 The majority is Typescript, and Python is used for audio analysis.
 The app consists of quite a lot of infrastructure.
 
-I'm requesting funds for AWS cloud infrastructure.
-Please note that I am not requesting Azure credits.
-The application is written specifically for AWS and it is infeasible to develop for a different platform.
-This is due to
-
-1. Prior work on this project in the previous semester
-
-2. AWS specific tools such as AppSync
-
-\section{Detailed Budget}
-
-Four months of costs.
-Each month is as follows:
-
-1. API Gateway - \$10
-
-2. AppSync - \$10
-
-3. CloudWatch - \$5
-
-4. Lambda - \$10
-
-5. Cognito - \$4
-
-6. DynamoDB - \$16
-
-7. ECR - \$10
-
-8. ECS / EC2 / ELB / Fargate - \$60
-
-Total = 4 * 125 = \$500
-
 \newpage
-
-\section{This Writeup}
-This writeup does not represent the submission of a single semester IW project.
-Jongleur is ongoing, continuing into the Spring semester as a two-semester / thesis project.
-As a progress report, I've included a brief explanation of the current project below:
 
 \subsection{Summary}
 Jongleur is a full-stack app built on AWS in several thousand lines of code.
@@ -119,7 +87,178 @@ The code is here: https://github.com/josephrubin/jongleur
 % Introduction. %%%%
 
 \section{Introduction}
+
+\section{Background}
+
+AWS
+
+serverless?
+
+FaaS
+
+IaaS
+
+\section{Things We Will Discuss}
+
+Toy example: Marcus
+
+Example: Traxler
+
+Example: Blodkorv
+
+Example: Agora
+
+Main example: Jongleur
+
+\section{What This is Not}
+
+Not about research into reducing cold starts.
+
+Not about SNS and SQS.
+
+Not specifically about FaaS.
+
+But also not about other aaS models.
+
+It's also not about the benefits of Serverless from an operational point of view.
+E.g. we aren't going to talk about reduced need for monitoring.
+In fact you probably still need to monitor the system as a whole even if not the lambda.
+Or maybe the lambda too... what if some VPC changes and the lambda no longer works?
+
+This is also not a report about testing or test-driven-development.
+
+\section{Applications That Scale}
+
+All it really takes to build custom software is computer access and some programming knowledge.
+Here are a few questions that may come up when you are making a web app:
+
+\begin{enumerate}
+  \item What version control system should I use?
+  \item How will I host this app and make it available to others?
+  \item What CSS framework will best suit this project?
+\end{enumerate}
+
+This report takes no sides on these issues.
+There's more than one decent option for each item above, but what we \textit{will} discuss is how to utilize the tools you've chosen.
+For example:
+
+\begin{enumerate}
+  \item What should I put in my version control?
+  \item Once my app is hosted, how do I neatly deploy new versions?
+  \item ... TODO
+\end{enumerate}
+
+\newp Writing applications that scale takes discipline and enough experience to make the right decisions.
+And by \term{scale}, we don't just mean \term{supports a large (or unpredictable) volume of users}.
+We mean that the application can easily grow as the users' needs change.
+It's the feature set which scales.
+It's the size of the development team which scales.
+It's the number of reported bugs which scales.
+
+In this report, we'll examine # key properties of successful software development that play an integral role in the development of apps that scale:
+
+\begin{enumerate}
+  \item Stateless
+  \item Repetition
+  \item Infrastructure as Code
+  \item Everything as Code
+\end{enumerate}
+
+In this report, we'll look at # example applications that display these finer details of software development.
+
+\section{Traditional, Not Serverless}
+
+Back when applications ran on servers you bought directly from Dell~\footnote{https://www.joelonsoftware.com/2005/02/05/colo-expansion-version-20/} and the first hire you needed to set up such a system was a sysadmin, it was difficult to create produciton-scale software with multiple components that was available to everyone on the internet.
+Nevertheless people persevered, until the 2000s when the launch of AWS brought IaaS, and most importantly, virtual servers-for-rent, into the hands of anyone who could figure out how to use it.
+AWS's product Elastic Compute Cloud (EC2) offers (to this day) virtual compute instances that can be launched, programmed, and terminated at the click of a button.
+Here's how development on EC2 might go:
+
+\newp A programmer wants to build the backend for their app (perhaps it's a music app that needs to fetch the user's song playlist from a database), so they put together a Flask~\footnote{TODO} scafolding like the following:
+
+\begin{verbatim}
+import api
+from flask import Flask, request, Response
+
+app = Flask(__name__)
+
+@app.route("/authenticate", methods=["POST"])
+def authenticate():
+  # Verify the user's credentials and return a session.
+  pass
+
+# ...
+
+@app.route("/next", methods=["GET"])
+def next():
+  # Return the next song in the user's playlist.
+  pass
+
+if __name__ == '__main__':
+    app.run()
+\end{verbatim}
+
+This is a basic HTTP API where each @app.route declares an endpoint for the client app to access.
+They create a script \texttt{serve.sh} which contains the necessary commands to start the Flask server.
+Now the developer needs to run the API service in a way that is (1) accessible over the internet and (2) always available, so they choose an instance type and launch an EC2 instance.
+They SSH into their instance, copy their code over, and run the script.
+They configure the machine to keep the server running after terminating the remote shell, then they log out.
+Every EC2 instance can be assigned a public IP (and DNS name under \texttt{compute.amazonaws.com}) so there's no need to configure any CNAMEs or A records.
+The server doesn't appear to be working, but after a while they realize that they need to configure the instance's security settings to allow inbound HTTP over the server's port.
+Now everything is set.
+
+\newp Well, there's no plan in place for deploying new versions of the backend, or for recovering the application should the server fail, but that's the subject of section ###.
+
+\newp What about scaling in response to load?
+If this app goes viral the volume of requests to the backend may bring the system to its knees.
+Ideally our developer could launch replicas of this instance, each with their own copy of the Flask server.
+Even if this were possible, how can they direct traffic to the least encumbered instance?
+Elastic Load Balancing (ELB) is usually the answer.
+
+\subsection {Separation of Concerns}
+
+But wait!
+The end-user's app really just wanted to call some functions.
+To do that, we encapsulated our routes in a "server" (using Flask) and then exposed the functions over the web with EC2.
+Why go through all the trouble?
+Can't we just work with the functions directly?
+
+TODO: do we even mention App Engine etc?
+
+\newp Not so anymore.
+
+% BUT IT'S NOT A FREE LUNCH \footnote{Adira \footnote{Joseph}}
+
+\section{Serverless Versus Stateless}
+
+Contrary to what many authors would have you believe, \term{serverless} and \term{stateless} are not the same.
+As defined by Amazon Web Services, serverless consists of three parts:
+
+\begin{enumerate}
+    \item automatic scaling
+    \item built-in high availability
+    \item a pay-for-use billing model
+\end{enumerate}
+
+But it's probably best encapsulated by the tagline "build and run applications without thinking about servers."
+
+On the other hand, \textit{stateless} is purely a software-architectural pattern.
+It refers to applications that handle each invocation instance separately, without persisting any data between executions.
+Now \term stateless is certainly a spectrum.
+An application riddled with global variables has more persistant state than one that acts mostly as a pure function with the exception of occasional trips to an external database to save some data.
+But AWS Lambda is not stateless.
+Not just because Lambdas can read and write external storage, but also because individual invocations are not completely isolated.
+
+Servers are sometimes stateless...~\footnote{https://xkcd.com/869/}
+
+\section{Marcus}
+
+Let's apply our methodology to a toy example.
+
+By the way, Marcus is a real app that I wrote for this report and the code can be found here~\footnote{https://github.com/josephrubin/marcus}.
+
 \subsection{Motivation} 
+
+% Maybe I want a section on the C linkedlist pointer extra indirection thing.
 
 \subsection{Goal}
 
@@ -129,11 +268,18 @@ The code is here: https://github.com/josephrubin/jongleur
 
 \section{Related Work}
 
+I think this section is mostly going to be an exposition on related work \_architecturaly\_ or \_technically\_ where I will discuss design patterns and application engineering.
+That being said, for now, the following is some realted work in the \_music\_ space.
+
+Practice apps like Instrumentive[https://instrumentive.com/] on the Google Play app store record the practicing musician and track practice time.
+Recordings can be named and organized into playlists.
+This app 
+For those learning with an instructor, Better Practice[https://betterpracticeapp.com/] lets the student share their practice log with their teacher.
+
 % Approach. %%%%
 
 \section{Approach} 
 \section{Implementation}
-
 \section{Evaluation}
 \subsection{Metrics}
 \subsection{Data}
@@ -142,9 +288,11 @@ The code is here: https://github.com/josephrubin/jongleur
 \subsection{Future Work}
 \subsection{Acknowledgements}
 \section*{Statement of Academic Integrity}
-This report represents my own work in accordance with University regulations.\\
+This thesis represents my own work in accordance with University regulations.\\
 Signed, /Joseph Rubin/.
 
+\nocite{*}
+\bibliographystyle{IEEEtranS}
 \bibliography{references}
 
 
