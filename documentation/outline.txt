@@ -1,0 +1,30 @@
+What's the main idea?
+
+The main idea is that we are talking about architecting cloud apps.
+
+This is a report in software design.
+
+
+Abstract
+
+Introduction
+
+Applications that Scale
+  (maybe mention here that I made blodkorv but can't speak to it due to legal)
+  (used by over 60 universities and touched by half a dozen engineers)
+  (across FE, mobile, backend)
+
+Items from that section:
+  Removing State
+  Repetition, Cons
+  Traditional, not serverless -- Serverless
+  Serverless vs Stateless
+  IaC
+  Env variables for config and infra location
+  Maybe everything as code
+  Maybe Cont delivery
+
+Marcus
+Traxler
+Agora
+Jongleur

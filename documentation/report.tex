@@ -18,6 +18,7 @@
 % Custom commands.
 \newcommand{\term}[1]{\textit{#1}}
 \newcommand{\newp}{\newline\indent}
+\newcommand{\imp}[2]{\newp| \textit{#2}\newp \textsc{#1}}
 
 \begin{document}
 
@@ -31,25 +32,385 @@
 
 \thispagestyle{empty}
 
-% ABSTRACT. %%%%
+% The Abstract and Introduction work together to motivate the thesis and launch the reader forward.
 
 \begin{abstract}
-    Rapidly innovating cloud providers have changed the way that distributed applications are designed, developed, and deployed.
-    We examine the practice of creating serverless architectures and build a number of applications with the goal of craeting engineering practices that are as stateless as possible.
-    In particular, Jongleur is a web application that ingests audio practice recordings and returns useful information.
-    Users can create an account and browse a list of supported pieces.
-    They can select one and begin uploading recordings of your practice session.
-    After processing, each practice session is saved and displayed on a timeline.
-    Each practice recording is then displayed as a waveform, segmented by the different "recording attempts."
+  As university students studying computer science we're often asked to complete solo coding assigments with lifespans of just a couple weeks or build projects that last one or two semesters.
+  For those of us going into industry, the Real World\textsuperscript{TM} has rules that challenge our experiences:
+  Software can't be thrown out after a fortnight because it might have to work for years, and projects with any amount of complexity are often completed by teams and not individuals.
+  How are production-grade applications built to persist across many person-months of development and years of use?
+  This thesis provides the answer.
+  This is a report in software design, and more specifically, in architecting cloud applications.
+  First we develop key ideas by examining the current cloud landscape and then we practice our method by building and examining a number of applications.
+  Of particular note is Jongleur, a web application for musicians that ingests and catalogues audio recordings, but we approach this capstone project by working our way through an assortment of interesting cloud apps.
 \end{abstract}
 
-\section{Summary}
-
-Jongleur is a full-stack app built on AWS in several thousand lines of code.
-The majority is Typescript, and Python is used for audio analysis.
-The app consists of quite a lot of infrastructure.
-
 \newpage
+
+\section{Introduction}
+
+In 2017 I met the brother-in-law of Joel Spolsky, Co-Founder and Chairman of Stack Overflow.~\footnote{https://stackoverflow.com/}
+Spolsky's blog \textit{Joel on Software} contains lots of gems on software engineering and business.
+Here's one:
+
+\begin{quote}
+  The idea that new code is better than old is patently absurd.
+  Old code has been \textit{used}.
+  It has been \textit{tested}.
+  \textit{Lots} of bugs have been found, and they’ve been \textit{fixed}.
+
+  \ldots
+
+  When you throw away code and start from scratch, you are throwing away all that knowledge.
+  All those collected bug fixes.
+  Years of programming work.
+
+  You are throwing away your market leadership.
+  You are giving a gift of two or three years to your competitors, and believe me, that is a \textit{long} time in software years.
+\end{quote}~\footnote{https://www.joelonsoftware.com/2000/04/06/things-you-should-never-do-part-i/}
+
+Seems pretty bad to rewrite code!
+But of course the only way to ensure your code doesn't \textit{need} to be thrown away is to write it well the first time.
+And it's not only about taking care to make each line just right; it's important to consider the macrolevel too.
+A well written algorithm will be torn out and replaced if that algorithm just isn't important to the system.
+If a part of your program reads from a database, writes files to a storage bucket, or spins up servers, you'll have to rip out all the code that interfaces with or runs on that infrastructure if you realize later down the line that your approach was misguided or you've chosen the wrong architecture.
+
+\term{Architecture}, incidentally, refers to all the parts of your software (such as modules of code and cloud resources) and the mechanisms with which they interact.
+
+Then it's no wonder that the software development lifecycle[fig ref] consists mostly of planning, analysis, and design; that is, not coding.
+<<insert wiki diagram of software lifecycle here (or a reproduction of it)>>
+Thus is seems prudent to focus on these phases of development.
+This thesis contains the knowledge I've gained as a result of researching and writing cloud software.
+In section XXX, there is XXX, YYY YYY TODO
+
+\section{Things We Will Discuss}
+
+TODO: merge this section up with the end of the Introduction.
+
+Toy example: Marcus
+
+Example: Traxler
+
+Example: Blodkorv
+
+Example: Agora
+
+Main example: Jongleur
+
+\subsection{What This Is Not}
+
+Before going further
+
+Not about research into reducing cold starts.
+
+Not about SNS and SQS.
+
+Not specifically about FaaS.
+
+But also not about other aaS models.
+
+It's also not about the benefits of Serverless from an operational point of view.
+E.g. we aren't going to talk about reduced need for monitoring.
+In fact you probably still need to monitor the system as a whole even if not the lambda.
+Or maybe the lambda too... what if some VPC changes and the lambda no longer works?
+
+This is also not a report about testing or test-driven-development.
+
+% Before going further, we provide a background section for any terms we don't wish to sufficiently explain in-context.
+
+\section{Background}
+
+AWS
+
+serverless?
+
+FaaS
+
+IaaS
+
+\section{Applications That Scale}
+
+All it really takes to build custom software is computer access and some programming knowledge.
+Here are a few questions that may come up when you are making a web app:
+
+\begin{enumerate}
+  \item What version control system should I use?
+  \item How will I host this app and make it available to others?
+  \item What CSS framework will best suit this project?
+\end{enumerate}
+
+This report takes no sides on these issues.
+There's more than one decent option for each item above, but what we \textit{will} discuss is how to utilize the tools you've chosen.
+For example:
+
+\begin{enumerate}
+  \item What should I put in my version control?
+  \item Once my app is hosted, how do I neatly deploy new versions?
+  \item ... TODO
+\end{enumerate}
+Writing applications that scale takes discipline and enough experience to make the right decisions.
+And by \term{scale}, we don't just mean \term{supports a large (or unpredictable) volume of users}.
+We mean that the application can easily grow as the users' needs change.
+It's the feature set which scales.
+It's the size of the development team which scales.
+It's the number of reported bugs which scales.
+
+In this report, we'll examine \# key properties of successful software development that play an integral role in the development of apps that scale:
+
+\begin{enumerate}
+  \item Stateless
+  \item Repetition, Consistency
+  \item Multiple Environments
+  \item Infrastructure as Code
+  \item Everything as Code
+  \item (Cont Delivery as a subsection)
+  \item Pass configuration bu tmostly infrastructure location as environment variables.
+\end{enumerate}
+Later, to demonstrate each one, we'll look at \# example applications that display these finer details of software development.
+
+\section{Removing State}
+
+State is bad.
+We all know that!
+Why is state bad?
+A functional programmer might argue that \textit{global state} is bad because it makes it hard to reason about the behavior of functions.
+For example, if a method relies on the value of a global variable, you might invoke the method twice with the same explicit input and get two different results if the global was modified in between.
+\newp But we aren't functional programmers; we build real apps that do useful things!
+The main idea still holds: state hinders \term{repeatablility} because, by definition, state is the result of \term{progress}, and \term{progress} means that things have changed in a potentially nonreproducible way.
+But not \textit{all} state is bad, just as not all state affects repeatability in a harmful way.
+\newp For example, a website that tracks how many visitors it's gotten each day on the file system of the server it's running on (and displays this number on the homepage) would be in violation of the Rule of State:
+\imp{Rule of State}{Don't mix global application state with code. (bad phrasing)}
+\newp Just think about it this way.
+If you wanted to run your application on multiple servers~\footnote{a note on horiz and vertic scaling} you wouldn't be able to, because each server would be tracking a different number.
+Now users who connect to different servers will see a different number on the homepage.
+Instead, the website could read from and write to an external, atomic data store to manage this kind of usage data.
+A database is definitely a form of global application state, but it's acceptable in this instance because it is separated from the business logic and thus can be scaled independantly of the application runtime.
+This way, the Rule of State is not violated.
+
+To summarize, the particular server that a user's session lives on should be transparent to the user (from a functional point of view).
+In general, any local state should be ephemeral.
+It's hard to back up and state that's kept on the same machine as your application code, but that's okay if the data isn't all that important.
+(Also this will come up later in IaC - we want to be able to delete infrastructure and relaunch with impunity).
+This way, 
+However, there \textit{are} times (when the user can't percieve a fucntional difference) where local state is acceptable.
+Talk about cache
+
+This is why we don't use sqlite !! (well actually we can use it for caching)
+
+\section{Traditional, Not Serverless}
+
+Back when applications ran on servers you bought directly from Dell~\footnote{https://www.joelonsoftware.com/2005/02/05/colo-expansion-version-20/} and the first hire you needed to set up such a system was a sysadmin, it was difficult to create produciton-scale software with multiple components that was available to everyone on the internet.
+Nevertheless people persevered, until the 2000s when the launch of AWS brought IaaS, and most importantly, virtual servers-for-rent, into the hands of anyone who could figure out how to use it.
+AWS's product Elastic Compute Cloud (EC2) offers (to this day) virtual compute instances that can be launched, programmed, and terminated at the click of a button.
+Here's how development on EC2 might go:
+\newp A programmer wants to build the backend for their app (perhaps it's a music app that needs to fetch the user's song playlist from a database), so they put together a Flask~\footnote{TODO} scafolding like the following:
+
+\begin{verbatim}
+import api
+from flask import Flask, request, Response
+
+app = Flask(__name__)
+
+@app.route("/authenticate", methods=["POST"])
+def authenticate():
+  # Verify the user's credentials and return a session.
+  pass
+
+# ...
+
+@app.route("/next", methods=["GET"])
+def next():
+  # Return the next song in the user's playlist.
+  pass
+
+if __name__ == '__main__':
+    app.run()
+\end{verbatim}
+
+This is a basic HTTP API where each @app.route declares an endpoint for the client app to access.
+They create a script \texttt{serve.sh} which contains the necessary commands to start the Flask server.
+Now the developer needs to run the API service in a way that is (1) accessible over the internet and (2) always available, so they choose an instance type and launch an EC2 instance.
+They SSH into their instance, copy their code over, and run the script.
+They configure the machine to keep the server running after terminating the remote shell, then they log out.
+Every EC2 instance can be assigned a public IP (and DNS name under \texttt{compute.amazonaws.com}) so there's no need to configure any CNAMEs or A records.
+The server doesn't appear to be working, but after a while they realize that they need to configure the instance's security settings to allow inbound HTTP over the server's port.
+Now everything is set.
+\newp Well, there's no plan in place for deploying new versions of the backend, or for recovering the application should the server fail, but that's the subject of section \#\#\#.
+\newp What about scaling in response to load?
+If this app goes viral the volume of requests to the backend may bring the system to its knees.
+Ideally our developer could launch replicas of this instance, each with their own copy of the Flask server.
+Even if this were possible, how can they direct traffic to the least encumbered instance?
+Elastic Load Balancing (ELB) is usually the answer.
+
+\subsection {Separation of Concerns}
+
+But wait!
+The end-user's app really just wanted to call some functions.
+To do that, we encapsulated our routes in a "server" (using Flask) and then exposed the functions over the web with EC2.
+Why go through all the trouble?
+Can't we just work with the functions directly?
+
+TODO: do we even mention App Engine etc?
+\newp Not so anymore.
+
+% BUT IT'S NOT A FREE LUNCH \footnote{Adira \footnote{Joseph}}
+
+\section{Serverless}
+
+Why I think CDK is good and imperative programmign is better than some weird DSL or only declarative.
+Line about:
+When the type system is good enough, the construct library and you IDEs autocomplete becomes your DSL.
+this is probably the most important line of this whole report.
+
+\section{Serverless Versus Stateless}
+
+Contrary to what many authors would have you believe, \term{serverless} and \term{stateless} are not the same.
+As defined by Amazon Web Services, serverless consists of three parts:
+
+\begin{enumerate}
+    \item automatic scaling
+    \item built-in high availability
+    \item a pay-for-use billing model
+\end{enumerate}
+
+But it's probably best encapsulated by the tagline "build and run applications without thinking about servers."
+
+On the other hand, \textit{stateless} is purely a software-architectural pattern.
+It refers to applications that handle each invocation instance separately, without persisting any data between executions.
+Now \term stateless is certainly a spectrum.
+An application riddled with global variables has more persistant state than one that acts mostly as a pure function with the exception of occasional trips to an external database to save some data.
+But AWS Lambda is not stateless.
+Not just because Lambdas can read and write external storage, but also because individual invocations are not completely isolated.
+
+Servers are sometimes stateless...~\footnote{https://xkcd.com/869/}
+
+\section{Marcus - Your Phone's Terminal}
+
+Let's apply our methodology to a toy example.
+
+Marcus is an SMS bot, a chat app that the user interacts with by sending and recieving text messages.
+There are many use-cases for an SMS bot like this one.
+For example:
+
+\begin{enumerate}
+  \item Create and manage lists and share them with friends over the internet (shopping lists, reading lists, etc.).
+  \item Add an event to your calendar app.
+\end{enumerate}
+
+Anywhere you might use your phone's voice assistant ("add an event/reminder to my calendar today at 6PM") you might wish to do with Marcus instead.
+The advantages of this text-based solution are that it's faster to use and it's more reliable than using your voice.
+
+Now we turn to the subject of architecting this app.
+We start by identifying the mechanism we will use for receiving and acting on text messages automatically.
+For the purposes of this discussion, imagine we wish to use a tool like Twilio which provides the developer with a phone number for the bot and will automatically send an HTTP request to a webhook supplied by the developer whenever the bot receives an SMS.
+
+Great!
+So what do we need to do to create a webhook?
+A webhook is just an HTTP endpoint that can respond to events.
+In this case, it will get the contents of the text message and it will return some text that will be sent back over SMS to the user who sent the message.
+
+This sounds like a perfect use case for FaaS!
+AWS Lambda will suit us well.
+Our architecture will thus consist of:
+
+\begin{enumerate}
+  \item A lambda to resolve SMS "queries" and return SMS "responses."
+  \item An API Gateway to expose the lambda through a public HTTP endpoint (more on this later).
+  \item Whatever else we need to store persistant data. For example, to implement the List application from above, we may want an object bucket to store the lists as files.
+\end{enumerate}
+
+When you think about it, this is pretty simple.
+Compare this approach to one which does not use FaaS.
+To launch your desired application logic (a single function which transforms input text messages to output text messages) you would need to launch an entire, say, Flask application on a server, or at the very least put your application inside a container and use a container orchistration service.
+It would be much more expensive because you will be paying even when your function is not running, but even more importantly, it would be much more difficult to deploy and test.
+This is because the more infrastructure that you manage yourself, the more time it takes to configure your app.
+Furthermore, since lambda scales in reponse to load automatically, you don't even need to think about it.
+
+Now we consider what needs to go into this lambda.
+This is not a treatise on how to write good code so we won't dwell too much on the TypeScript itself, but if we remove all the error checking and details of the Twilio API, the code basically boils down to:
+
+\begin{verbatim}
+/**
+ * Resolve the SMS query.
+ * @param event the SMS event containing the message contents.
+ */
+const lambdaHandler: SmsLambdaHandler = async (event) => {
+  const parsedRequestBody = parseRequestBody(event.body);
+
+  if (!isAuthorizedRequest(parsedRequestBody)) {
+    return "You are not authorized";
+  }
+
+  const userMessage = parsedRequestBody.get("Body");
+
+  // Convert the request SMS into tokens.
+  const tokens = parseTokens(parsedRequestBody.get("Body"));
+
+  // Convert the tokens into a command.
+  const command = parseCommand(tokens);
+
+  // Run the command and catch any unresolved errors.
+  try {
+    const commandResult = await command.execute(...command.args);
+    return commandResult.message;
+  }
+  catch (err) {
+    return `Uncaught error when running command: ${String(err)}`;
+  }
+};
+\end{verbatim}
+
+where \texttt{parseTokens}, \texttt{parseCommand}, and each command's \texttt{execute} function are defined elsewhere.
+
+As you can see, the code for Marcus isn't very complex, and all commands can be handled by a single lambda handler, so there's really no need to launch a server or run a managed container.
+What we want is a function running in the cloud and that's exactly what we get.
+
+But as we'll see in the next section, the serverless approach is not just appropriate for simple applications like this one.
+Even complicated cloud software can benefit from these design principals.
+
+By the way, Marcus is a real app that I wrote for this report and the code can be found here~\footnote{https://github.com/josephrubin/marcus}.
+The most expensive part of its operation is its usage of Twilio.
+With only a few users, the entire AWS side of things is nearly free.
+
+Let's continue analysing Marcus, because there's more to learn here.
+Talk about List, the bucket
+
+Then talk about the infrastructure for this.
+We've talked about repeatability / deployment etc.
+So how do we represent the infrastructure for this project?
+
+\section{Infrastructure as Code}
+
+Books have been written about this topic[O'Reilly book], so what makes this section worth reading?
+Well this report is being written in 2022 while the above book came out at the end of 2020.
+That doesn't seem like a big difference, but things move \textit{fast} in cloud computing.
+AWS CDK, the IaC tool we'll discuss in the most depth, only became generally available in 2019~\footnote{https://aws.amazon.com/about-aws/whats-new/2019/07/the-aws-cloud-development-kit-aws-cdk-is-now-generally-available1/} and CDK v2 only hit general availability at the end of 2021~\footnote{https://aws.amazon.com/about-aws/whats-new/2021/12/aws-cloud-development-kit-cdk-generally-available/}.
+
+Also, you'll find that the opinions expressed here differ from those that other authors express. Let's get into it.
+
+Infrastructure as code (IaC) is primarily a way to integrate the resources used by your app into your source code (and thus your version control).
+Consistent with the pattern of TODO we 
+
+TODO: discuss YAML/JSON templates, DSL, and cdk (with witty DSL comparison) as well as decl vs imper
+TODO: show how many lines of code even a short CDK script generates in terms of cloud formation
+TODO: writing in raw cloud formation is like writing in assembly language.
+
+Well for one, the CDK code for Marcus is only about 80 lines long but it synthesizes to a CloudFormation template that's 450 lines long.
+It's a good thing when you only have to mantain 20\% as much code.
+
+\section{Jongleur}
+
+Now we present the main object of study of this report: Jongleur.
+
+Jongleur is the practicing musician's assistant; users can upload practice recordings of sessions spent at their instrument and Jongleur will catalogue the audio, tracking how the user has practiced a piece and storing and splitting the practice waveform into logical segments for playback.
+
+Here's what Jongleur looks like:
+
+\begin{verbatim}
+[Figure One - a Practice page showing waveform and timeline]{Caption: a user has uploaded an audio recording, segmented blah blah blah}
+\end{verbatim}
+
+Jongluer is a web application.
 
 \subsection{Summary}
 Jongleur is a full-stack app built on AWS in several thousand lines of code.
@@ -83,178 +444,6 @@ In total, the CDK code that specifies this infrastructure is about nine hundred 
 But it's actually all serverless.
 
 The code is here: https://github.com/josephrubin/jongleur
-
-% Introduction. %%%%
-
-\section{Introduction}
-
-\section{Background}
-
-AWS
-
-serverless?
-
-FaaS
-
-IaaS
-
-\section{Things We Will Discuss}
-
-Toy example: Marcus
-
-Example: Traxler
-
-Example: Blodkorv
-
-Example: Agora
-
-Main example: Jongleur
-
-\section{What This is Not}
-
-Not about research into reducing cold starts.
-
-Not about SNS and SQS.
-
-Not specifically about FaaS.
-
-But also not about other aaS models.
-
-It's also not about the benefits of Serverless from an operational point of view.
-E.g. we aren't going to talk about reduced need for monitoring.
-In fact you probably still need to monitor the system as a whole even if not the lambda.
-Or maybe the lambda too... what if some VPC changes and the lambda no longer works?
-
-This is also not a report about testing or test-driven-development.
-
-\section{Applications That Scale}
-
-All it really takes to build custom software is computer access and some programming knowledge.
-Here are a few questions that may come up when you are making a web app:
-
-\begin{enumerate}
-  \item What version control system should I use?
-  \item How will I host this app and make it available to others?
-  \item What CSS framework will best suit this project?
-\end{enumerate}
-
-This report takes no sides on these issues.
-There's more than one decent option for each item above, but what we \textit{will} discuss is how to utilize the tools you've chosen.
-For example:
-
-\begin{enumerate}
-  \item What should I put in my version control?
-  \item Once my app is hosted, how do I neatly deploy new versions?
-  \item ... TODO
-\end{enumerate}
-
-\newp Writing applications that scale takes discipline and enough experience to make the right decisions.
-And by \term{scale}, we don't just mean \term{supports a large (or unpredictable) volume of users}.
-We mean that the application can easily grow as the users' needs change.
-It's the feature set which scales.
-It's the size of the development team which scales.
-It's the number of reported bugs which scales.
-
-In this report, we'll examine # key properties of successful software development that play an integral role in the development of apps that scale:
-
-\begin{enumerate}
-  \item Stateless
-  \item Repetition
-  \item Infrastructure as Code
-  \item Everything as Code
-\end{enumerate}
-
-In this report, we'll look at # example applications that display these finer details of software development.
-
-\section{Traditional, Not Serverless}
-
-Back when applications ran on servers you bought directly from Dell~\footnote{https://www.joelonsoftware.com/2005/02/05/colo-expansion-version-20/} and the first hire you needed to set up such a system was a sysadmin, it was difficult to create produciton-scale software with multiple components that was available to everyone on the internet.
-Nevertheless people persevered, until the 2000s when the launch of AWS brought IaaS, and most importantly, virtual servers-for-rent, into the hands of anyone who could figure out how to use it.
-AWS's product Elastic Compute Cloud (EC2) offers (to this day) virtual compute instances that can be launched, programmed, and terminated at the click of a button.
-Here's how development on EC2 might go:
-
-\newp A programmer wants to build the backend for their app (perhaps it's a music app that needs to fetch the user's song playlist from a database), so they put together a Flask~\footnote{TODO} scafolding like the following:
-
-\begin{verbatim}
-import api
-from flask import Flask, request, Response
-
-app = Flask(__name__)
-
-@app.route("/authenticate", methods=["POST"])
-def authenticate():
-  # Verify the user's credentials and return a session.
-  pass
-
-# ...
-
-@app.route("/next", methods=["GET"])
-def next():
-  # Return the next song in the user's playlist.
-  pass
-
-if __name__ == '__main__':
-    app.run()
-\end{verbatim}
-
-This is a basic HTTP API where each @app.route declares an endpoint for the client app to access.
-They create a script \texttt{serve.sh} which contains the necessary commands to start the Flask server.
-Now the developer needs to run the API service in a way that is (1) accessible over the internet and (2) always available, so they choose an instance type and launch an EC2 instance.
-They SSH into their instance, copy their code over, and run the script.
-They configure the machine to keep the server running after terminating the remote shell, then they log out.
-Every EC2 instance can be assigned a public IP (and DNS name under \texttt{compute.amazonaws.com}) so there's no need to configure any CNAMEs or A records.
-The server doesn't appear to be working, but after a while they realize that they need to configure the instance's security settings to allow inbound HTTP over the server's port.
-Now everything is set.
-
-\newp Well, there's no plan in place for deploying new versions of the backend, or for recovering the application should the server fail, but that's the subject of section ###.
-
-\newp What about scaling in response to load?
-If this app goes viral the volume of requests to the backend may bring the system to its knees.
-Ideally our developer could launch replicas of this instance, each with their own copy of the Flask server.
-Even if this were possible, how can they direct traffic to the least encumbered instance?
-Elastic Load Balancing (ELB) is usually the answer.
-
-\subsection {Separation of Concerns}
-
-But wait!
-The end-user's app really just wanted to call some functions.
-To do that, we encapsulated our routes in a "server" (using Flask) and then exposed the functions over the web with EC2.
-Why go through all the trouble?
-Can't we just work with the functions directly?
-
-TODO: do we even mention App Engine etc?
-
-\newp Not so anymore.
-
-% BUT IT'S NOT A FREE LUNCH \footnote{Adira \footnote{Joseph}}
-
-\section{Serverless Versus Stateless}
-
-Contrary to what many authors would have you believe, \term{serverless} and \term{stateless} are not the same.
-As defined by Amazon Web Services, serverless consists of three parts:
-
-\begin{enumerate}
-    \item automatic scaling
-    \item built-in high availability
-    \item a pay-for-use billing model
-\end{enumerate}
-
-But it's probably best encapsulated by the tagline "build and run applications without thinking about servers."
-
-On the other hand, \textit{stateless} is purely a software-architectural pattern.
-It refers to applications that handle each invocation instance separately, without persisting any data between executions.
-Now \term stateless is certainly a spectrum.
-An application riddled with global variables has more persistant state than one that acts mostly as a pure function with the exception of occasional trips to an external database to save some data.
-But AWS Lambda is not stateless.
-Not just because Lambdas can read and write external storage, but also because individual invocations are not completely isolated.
-
-Servers are sometimes stateless...~\footnote{https://xkcd.com/869/}
-
-\section{Marcus}
-
-Let's apply our methodology to a toy example.
-
-By the way, Marcus is a real app that I wrote for this report and the code can be found here~\footnote{https://github.com/josephrubin/marcus}.
 
 \subsection{Motivation} 
 
@@ -291,9 +480,9 @@ For those learning with an instructor, Better Practice[https://betterpracticeapp
 This thesis represents my own work in accordance with University regulations.\\
 Signed, /Joseph Rubin/.
 
-\nocite{*}
-\bibliographystyle{IEEEtranS}
-\bibliography{references}
+%\nocite{*}
+%\bibliographystyle{IEEEtranS}
+%\bibliography{references}
 
 
 \end{document}
