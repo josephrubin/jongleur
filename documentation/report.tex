@@ -15,8 +15,12 @@
 \usepackage{doi}
 \usepackage{arxiv}
 
+\usepackage{makeidx}
+\usepackage{hyperref}
+\makeindex
+
 % Custom commands.
-\newcommand{\term}[1]{\textit{#1}}
+\newcommand{\term}[1]{\textit{#1}\index{#1}}
 \newcommand{\newp}{\newline\indent}
 \newcommand{\imp}[2]{\newp| \textit{#2}\newp \textsc{#1}}
 
@@ -24,8 +28,7 @@
 
 \title{Jongleur}
 
-\author{Joseph Rubin '22 (jmrubin)
-\\Adviser: Dr. Jérémie Lumbroso}
+\author{Written by Joseph Rubin '22 (jmrubin) for the BSE COS program.}
 
 \date{}
 \maketitle
@@ -35,14 +38,16 @@
 % The Abstract and Introduction work together to motivate the thesis and launch the reader forward.
 
 \begin{abstract}
-  As university students studying computer science we're often asked to complete solo coding assigments with lifespans of just a couple weeks or build projects that last one or two semesters.
-  For those of us going into industry, the Real World\textsuperscript{TM} has rules that challenge our experiences:
-  Software can't be thrown out after a fortnight because it might have to work for years, and projects with any amount of complexity are often completed by teams and not individuals.
-  How are production-grade applications built to persist across many person-months of development and years of use?
-  This thesis provides the answer.
-  This is a report in software design, and more specifically, in architecting cloud applications.
-  First we develop key ideas by examining the current cloud landscape and then we practice our method by building and examining a number of applications.
-  Of particular note is Jongleur, a web application for musicians that ingests and catalogues audio recordings, but we approach this capstone project by working our way through an assortment of interesting cloud apps.
+  %\textit{
+    University students studying computer science are often asked to complete solo coding assigments with lifespans of just a couple weeks or build projects that last one or two semesters.
+    For those of us going into industry, the real world has rules that challenge our experiences:
+    Software can't be thrown out after a fortnight because it might have to work for years, and projects with any amount of complexity are often completed by teams and not individuals.
+    How are production-grade applications built to persist across many person-months of development and years of use?
+    This thesis provides the answer.
+    This is a report in software design, and more specifically, in architecting cloud applications.
+    First we develop key ideas by examining the current cloud landscape and then we practice our method by building and examining a number of applications.
+    Of particular note is Jongleur, a web application for musicians that ingests and catalogues audio recordings, but we approach this capstone project by working our way through an assortment of interesting cloud apps.
+  %}
 \end{abstract}
 
 \newpage
@@ -50,7 +55,7 @@
 \section{Introduction}
 
 In 2017 I met the brother-in-law of Joel Spolsky, Co-Founder and Chairman of Stack Overflow.~\footnote{https://stackoverflow.com/}
-Spolsky's blog \textit{Joel on Software} contains lots of gems on software engineering and business.
+Spolsky's blog \textit{Joel on Software} contains a lot of gems on software engineering and business.
 Here's one:
 
 \begin{quote}
@@ -66,8 +71,8 @@ Here's one:
   Years of programming work.
 
   You are throwing away your market leadership.
-  You are giving a gift of two or three years to your competitors, and believe me, that is a \textit{long} time in software years.
-\end{quote}~\footnote{https://www.joelonsoftware.com/2000/04/06/things-you-should-never-do-part-i/}
+  You are giving a gift of two or three years to your competitors, and believe me, that is a \textit{long} time in software years.~\footnote{https://www.joelonsoftware.com/2000/04/06/things-you-should-never-do-part-i/}
+\end{quote}
 
 Seems pretty bad to rewrite code!
 But of course the only way to ensure your code doesn't \textit{need} to be thrown away is to write it well the first time.
@@ -99,7 +104,7 @@ Main example: Jongleur
 
 \subsection{What This Is Not}
 
-Before going further
+Before going further let's discuss what \textit{won't} be covered.
 
 Not about research into reducing cold starts.
 
@@ -173,15 +178,33 @@ Later, to demonstrate each one, we'll look at \# example applications that displ
 State is bad.
 We all know that!
 Why is state bad?
+
+State refers to any part of a program that depends on what's already happened.
 A functional programmer might argue that \textit{global state} is bad because it makes it hard to reason about the behavior of functions.
 For example, if a method relies on the value of a global variable, you might invoke the method twice with the same explicit input and get two different results if the global was modified in between.
-\newp But we aren't functional programmers; we build real apps that do useful things!
-The main idea still holds: state hinders \term{repeatablility} because, by definition, state is the result of \term{progress}, and \term{progress} means that things have changed in a potentially nonreproducible way.
+
+But we aren't functional programmers; we build real apps that do useful things!
+Still, state is bad because it hinders \term{repeatablility}.
+This is because state is the result of \term{progress} and \term{progress} can't always be replayed later, especially if our state was caused by user interaction.
 But not \textit{all} state is bad, just as not all state affects repeatability in a harmful way.
-\newp For example, a website that tracks how many visitors it's gotten each day on the file system of the server it's running on (and displays this number on the homepage) would be in violation of the Rule of State:
+
+For example, a website might track how many visitors it's gotten each day and display this number on the homepage.
+Since this value presents a meaningful (and potentially useful) datum, it's a valid use of state.
+
+But if the website keeps track of this number on the file system of the server it's running on, it would be in violation of the Rule of State:
 \imp{Rule of State}{Don't mix global application state with code. (bad phrasing)}
-\newp Just think about it this way.
-If you wanted to run your application on multiple servers~\footnote{a note on horiz and vertic scaling} you wouldn't be able to, because each server would be tracking a different number.
+
+Just think about it this way.
+If you wanted to run your application on multiple servers~\footnotemark{} you wouldn't be able to, because each server would be tracking a different number. \footnotetext{
+  Why would you want to run an application on multiple servers at once?
+  If this website was receiving too much traffic for the original server to handle, you might try to increase the CPU or memory of the machine.
+  This is called \term{vertical scaling}, and it is generally easy to do using a cloud provider.
+  However, at a certain point it will become prohibitively costly or impossible to grow the single instance any further.
+  Instead, consider \term{horizonal scaling}, the practice of deploying your app to multiple servers at once.
+  The benefits are huge:
+  You no longer have a single point of failure, so if a machine goes down, traffic can be transparantly directed to the others.
+  Your app can dynamically scale by automatically launching or terminating instances in response to load.
+}
 Now users who connect to different servers will see a different number on the homepage.
 Instead, the website could read from and write to an external, atomic data store to manage this kind of usage data.
 A database is definitely a form of global application state, but it's acceptable in this instance because it is separated from the business logic and thus can be scaled independantly of the application runtime.
@@ -223,7 +246,7 @@ def next():
   # Return the next song in the user's playlist.
   pass
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run()
 \end{verbatim}
 
@@ -389,7 +412,20 @@ AWS CDK, the IaC tool we'll discuss in the most depth, only became generally ava
 Also, you'll find that the opinions expressed here differ from those that other authors express. Let's get into it.
 
 Infrastructure as code (IaC) is primarily a way to integrate the resources used by your app into your source code (and thus your version control).
+This provides two main benefits over 
 Consistent with the pattern of TODO we 
+mention using normals oftware practices
+
+There are a few different ways that we can encode our infrastructure into our source repository.
+The most basic way is to use a representation language like JSON or YAML.
+For example, the AWS CloudFormation service can read your JSON or YAML template and coax an infrastructure stack into existence that matches your description.
+As we'll see, this is a somewhat primitive form of IaC and there are better options.
+
+The second form that IaC mainly takes is the Domain Specific Language (DSL).
+This type of language is specifically designed to encode infrastructure.
+For example, the Terraform~\footnote{https://www.terraform.io/} project 
+
+Many people think that DSLs like HDL are better than imperative languages like 
 
 TODO: discuss YAML/JSON templates, DSL, and cdk (with witty DSL comparison) as well as decl vs imper
 TODO: show how many lines of code even a short CDK script generates in terms of cloud formation
@@ -480,12 +516,15 @@ For those learning with an instructor, Better Practice[https://betterpracticeapp
 This thesis represents my own work in accordance with University regulations.\\
 Signed, /Joseph Rubin/.
 
-\cite{test}
+\cite{tt}
 
 %\nocite{*}
-\bibliographystyle{IEEEtranS}
+%\bstctlcite{bstctl:etal, bstctl:nodash, bstctl:simpurl}
+%\bibliographystyle{IEEEtranS}
+\bibliographystyle{plain}
 \bibliography{references}
 
+\printindex
 
 \end{document}
 

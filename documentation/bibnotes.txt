@@ -1,0 +1,16 @@
+% Lambda started in 2014?
+
+% https://link.springer.com/chapter/10.1007/978-981-10-5026-8_1
+% https://arxiv.org/abs/1706.03178
+
+% https://journalofcloudcomputing.springeropen.com/articles/10.1186/s13677-021-00253-7
+
+% https://www.sciencedirect.com/science/article/abs/pii/S0167739X21004167
+
+% http://philstat.org.ph/index.php/MSEA/article/view/33
+
+% Self-managed servers can lack state too
+% https://xkcd.com/869/
+
+% RELATED WORK - OREILLY INFRASTRUCTURE AS CODE BOOK
+

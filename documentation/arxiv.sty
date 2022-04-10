@@ -2,6 +2,8 @@
 
 \ProcessOptions\relax
 
+\usepackage{xcolor}
+
 % fonts
 \renewcommand{\rmdefault}{ptm}
 \renewcommand{\sfdefault}{phv}
@@ -26,18 +28,18 @@
 
 
 
-\newcommand{\headeright}{Draft}
-\newcommand{\undertitle}{2022 BSE COS Thesis}
+\newcommand{\headeright}{Final Report}
+\newcommand{\undertitle}{Advised by Dr. Jérémie Lumbroso}
 \newcommand{\shorttitle}{\@title}
 
-\usepackage{fancyhdr}
-\fancyhf{}
-\pagestyle{fancy}
-\renewcommand{\headrulewidth}{0.4pt}
-\fancyheadoffset{0pt}
-\rhead{\scshape \footnotesize \headeright}
-\chead{\shorttitle}
-\cfoot{\thepage}
+%\usepackage{fancyhdr}
+%\fancyhf{}
+%\pagestyle{fancy}
+%\renewcommand{\headrulewidth}{0.4pt}
+%\fancyheadoffset{0pt}
+%\rhead{\scshape \footnotesize \headeright}
+%\chead{\shorttitle}
+%\cfoot{\thepage}
 
 
 %Handling Keywords
@@ -208,7 +210,7 @@
 \newcommand{\@bottomtitlebar}{
   \vskip 0.29in
   \vskip -\parskip
-  \hrule height 2\p@
+  {\color{gray}\hrule height 0.5\p@}
   \vskip 0.09in%
 }
 
@@ -219,11 +221,11 @@
     \hsize\textwidth
     \linewidth\hsize
     \vskip 0.1in
-    \@toptitlebar
+    %\@toptitlebar
     \centering
     {\LARGE\sc \@title\par}
     \@bottomtitlebar
-    \textsc{\undertitle}\\
+    {\color{gray}\textsc{\undertitle}}\\
     \vskip 0.1in
     \def\And{%
       \end{tabular}\hfil\linebreak[0]\hfil%

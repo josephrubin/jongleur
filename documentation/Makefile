@@ -4,12 +4,9 @@ BIBTEX=bibtex $(REPORT_BUILD_DIR)/report
 
 report: $(REPORT_BUILD_DIR)/report.pdf
 
-$(REPORT_BUILD_DIR)/report.pdf: report.tex references.bib
+$(REPORT_BUILD_DIR)/report.pdf: report.tex arxiv.sty references.bib
 	mkdir -p $(REPORT_BUILD_DIR)
-	$(PDFLATEX)
-	$(BIBTEX)
-	$(PDFLATEX)
-	$(PDFLATEX)
+	latexmk -outdir=$(REPORT_BUILD_DIR) -pdf
 
 .PHONY: clean
 clean:

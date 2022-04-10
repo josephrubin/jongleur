@@ -6,8 +6,13 @@ This is a report in software design.
 
 
 Abstract
+  As students we make things that last for only a weeklong assignment or a semester
+  After working for a while on trash, development slows down
+  What is it about bigger applications that things scale up
 
 Introduction
+  reference joel on software astronauts (rebuilding old stuff) so like if it is important
+    not to, then we better make this stuff mantainable
 
 Applications that Scale
   (maybe mention here that I made blodkorv but can't speak to it due to legal)
