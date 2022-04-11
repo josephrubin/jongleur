@@ -67,7 +67,7 @@
 
 \begin{document}
 
-\title{Cloud Smarts}
+\title{Cloud Enlightenment}
 
 \author{Written by Joseph Rubin '22 (jmrubin) for the BSE COS program.}
 
@@ -397,7 +397,7 @@ Using a general-purpose language has many advantages:
 Well-written IaC frameworks for imperative languages do not miss out on the advantages of DSLs because \textit{when the type system is good enough, the construct library and your text editor's autocomplete becomes your DSL.}
 
 This is very similar to how an Object-relational Mapper (ORM) hides the details of the underlying SQL code from the developer so she can communicate with the database using native objects to her programming language of choice.
-The fact that sqlalchemy, a popular Python ORM, gets over 45 million downloads a month shows that ORMs are extremely useful and they aren't going anywhere.\footnote{https://pypistats.org/packages/sqlalchemy}
+The fact that sqlalchemy, a popular Python ORM, gets over 45 million downloads a month shows that ORMs are extremely useful and they aren't going anywhere.~\cite{sqlalchemy-stats}
 Consider IaC frameworks like CDK to be in the same boat.
 
 And how much time do we save by writing our infrastructure using CDK vs CloudFormation?
@@ -443,10 +443,10 @@ This interfacing between hardware isn't just convenient; it is a crucial to esta
 
 Back when applications ran on servers you bought directly from Dell~\cite{joel-dell} and the first hire you needed to set up such a system was a sysadmin, it was difficult to create production-scale software with multiple components that was available to everyone on the internet.
 Nevertheless people persevered, until the 2000s when the launch of AWS brought IaaS, and most importantly, virtual servers-for-rent, into the hands of anyone who could figure out how to use it.
-AWS's product Elastic Compute Cloud (EC2)\footnote{https://aws.amazon.com/ec2/} offers (to this day) virtual compute instances that can be launched, programmed, and terminated at the click of a button.
+AWS's product Elastic Compute Cloud (EC2)~\cite{ec2} offers (to this day) virtual compute instances that can be launched, programmed, and terminated at the click of a button.
 
 Here's how development on EC2 might go.
-A programmer wants to build the backend for their app (perhaps it's a music app that needs to fetch the user's song playlist from a database), so they put together a Flask\footnote{https://flask.palletsprojects.com/en/2.1.x/} scafolding like the following:
+A programmer wants to build the backend for their app (perhaps it's a music app that needs to fetch the user's song playlist from a database), so they put together a Flask~\cite{flask} scafolding like the following:
 
 \begin{verbatim}
 import api
@@ -486,7 +486,7 @@ What about scaling in response to load?
 If this app goes viral the volume of requests to the backend may bring the system to its knees.
 Ideally our developer could launch replicas of this instance, each with their own copy of the Flask server.
 Even if this were possible, how can they direct traffic to the least encumbered instance?
-Elastic Load Balancing (ELB)\footnote{https://aws.amazon.com/elasticloadbalancing/} is usually the answer.
+Elastic Load Balancing (ELB)~\cite{ELB} is usually the answer.
 
 To use ELB they'll need to set up a target group, an autoscaling group, configure listeners to direct traffic through the load balancer's ports\ldots.
 
@@ -516,7 +516,7 @@ FaaS is a form of \term{serverless} computing, and lots of people are wrong abou
 \section{Serverless versus stateless}
 
 Contrary to what many authors would have you believe, \term{serverless} and \term{stateless} are not the same.
-As defined by Amazon Web Services, serverless\footnote{https://aws.amazon.com/serverless/} consists of three parts:
+As defined by Amazon Web Services, serverless~\cite{serverless} consists of three parts:
 
 \begin{enumerate}
     \item automatic scaling
@@ -537,7 +537,7 @@ Lambdas can keep state both in their local memory and in their temporary filesys
 Why isn't local memory wiped between invocations?
 Because in practice this would lead to too many \term{cold starts}, users waiting a long time because the lambdas they are trying to invoke are booting up.
 
-Another type of serverless computing, serverless compute containers (such as those offerd by AWS Fargate\footnote{https://aws.amazon.com/fargate/}) are clearly not stateless.
+Another type of serverless computing, serverless compute containers (such as those offerd by AWS Fargate~\cite{fargate}) are clearly not stateless.
 Much like with any containerized application, you can keep state however you want; the difference is that Fargate does not make you choose an instance type to run your containers on.
 
 (And of course actual servers are sometimes stateless too\ldots.~\cite{xkcd-1})
@@ -743,7 +743,7 @@ If it does change, CDK will create a new bucket, detatch the old one from our st
 
 \subsection{Results}
 
-Marcus is a real app that I wrote for this report and the code can be found here~\footnote{https://github.com/josephrubin/marcus}.
+Marcus is a real app that I wrote for this report and the code can be found here~\cite{marcus}.
 The most expensive part of its operation is its usage of Twilio.
 With only a few users, the entire AWS side of things is nearly free.
 
@@ -768,11 +768,11 @@ The second is to host static files that are served as-is to the user.
 Those files can have JavaScript in them that pull down dynamic data at runtime, but this is different from SSR which injects the data into the page before the client sees it.
 Static files can be served from a CDN at the speed of sound.
 
-This development practice is often called Jamstack\footnote{https://jamstack.org/} by believers.
+This development practice is often called Jamstack~\cite{jamstack} by believers.
 The limitations of throwing away your server are made up for by a simpler hosting strategy.
 As long as you make uploading your static content part of your deployment pipeline, you'll have an easy time developing and updating your app.
 It also makes it easy to launch a hermetic version of your app that you can run tests against.
-This is the approach used by Traxler\footnote{https://github.com/josephrubin/traxler}, a defunct directory for Princeton students that I wrote two years ago.
+This is the approach used by Traxler~\cite{traxler}, a defunct directory for Princeton students that I wrote two years ago.
 
 \index{Continuous delivery}
 \infobox{Continuous delivery}{
@@ -1043,7 +1043,7 @@ There are no bare EC2 instances or ECS containers running Jongleur code.
 That means we'll never have to worry about individual machines going down and we will be paying as little as possible when our application isn't being heavily used.
 
 All of the infrastructure is written as code in CDK which makes it reproducible and also easy to deploy.
-You can launch the full stack with one command.\footnote{https://github.com/josephrubin/jongleur}
+You can launch the full stack with one command.~\cite{jongleur}
 
 \subsection{Conclusions}
 
