@@ -32,4 +32,20 @@ Items from that section:
 Marcus
 Traxler
 Agora
+
+Maybe kentcdodds??
+(maybe use this for a data section, like, how well did I do with my suggestions)
+
 Jongleur
+As this is the project I made, we should really be talking about it.
+
+1. Summary
+2. Screenshots
+3. Features
+4. Infrastructure
+5. How certain things were implemented
+
+One reason this IaC stuff id better than old servers is because of AWS APIs and IaC. Don't believe me? then why do so many companies use the EC2 APIs even on their own servers.
+
+Challenges:
+audio processing requres big libraries. Must make a whole docker image out of our lambda

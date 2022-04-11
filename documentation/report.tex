@@ -11,22 +11,43 @@
 \usepackage{cleveref}       % smart cross-referencing
 \usepackage{lipsum}         % Can be removed after putting your text content
 \usepackage{graphicx}
+\graphicspath{ {./image/} }
 \usepackage{natbib}
 \usepackage{doi}
 \usepackage{arxiv}
+\usepackage{makecell}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows}
+\usepackage{setspace}
+\doublespacing
 
 \usepackage{makeidx}
 \usepackage{hyperref}
 \makeindex
 
-% Custom commands.
-\newcommand{\term}[1]{\textit{#1}\index{#1}}
+% Format terms and optionally add to our index.
+\newcommand{\noterm}[1]{\textit{#1}}
+\newcommand{\term}[1]{\noterm{#1}\index{#1}}
+
+% Archaic new paragraph, not used in the text itself.
 \newcommand{\newp}{\newline\indent}
-\newcommand{\imp}[2]{\newp| \textit{#2}\newp \textsc{#1}}
+
+% Line formatted as an important callout with a text label.
+\newcommand{\imp}[2]{
+  \begin{quote}
+    \textit{#2}\newp \textsc{#1}
+  \end{quote}
+}
+
+% Marcus conversation formatting.
+\newcommand{\user}[1]{\texttt{#1}}
+\newcommand{\marcus}[1]{\textit{#1}}
+
+\newcommand{\isubsubsubsection}[1]{\subsubsubsection{\textbf{#1}}}
 
 \begin{document}
 
-\title{Jongleur}
+\title{Cloud Smarts}
 
 \author{Written by Joseph Rubin '22 (jmrubin) for the BSE COS program.}
 
@@ -38,16 +59,14 @@
 % The Abstract and Introduction work together to motivate the thesis and launch the reader forward.
 
 \begin{abstract}
-  %\textit{
-    University students studying computer science are often asked to complete solo coding assigments with lifespans of just a couple weeks or build projects that last one or two semesters.
-    For those of us going into industry, the real world has rules that challenge our experiences:
-    Software can't be thrown out after a fortnight because it might have to work for years, and projects with any amount of complexity are often completed by teams and not individuals.
-    How are production-grade applications built to persist across many person-months of development and years of use?
-    This thesis provides the answer.
-    This is a report in software design, and more specifically, in architecting cloud applications.
-    First we develop key ideas by examining the current cloud landscape and then we practice our method by building and examining a number of applications.
-    Of particular note is Jongleur, a web application for musicians that ingests and catalogues audio recordings, but we approach this capstone project by working our way through an assortment of interesting cloud apps.
-  %}
+  University students studying computer science are often asked to complete solo coding assigments with lifespans of just a couple weeks or build projects that last one or two semesters.
+  For those of us going into industry, the real world has rules that challenge our experiences:
+  Software can't be thrown out after a fortnight because it might have to work for years, and projects with any amount of complexity are often completed by teams and not individuals.
+  How are production-grade applications built to persist across many person-months of development and years of use?
+  This thesis provides the answer.
+  This is a report in software design, and more specifically, in architecting cloud applications.
+  First we develop key ideas by examining the current cloud landscape and then we practice our method by building and examining a number of applications.
+  Of particular note is Jongleur, a web application for musicians that ingests and catalogues audio recordings, but we approach this capstone project by working our way through an assortment of interesting cloud apps.
 \end{abstract}
 
 \newpage
@@ -80,12 +99,34 @@ And it's not only about taking care to make each line just right; it's important
 A well written algorithm will be torn out and replaced if that algorithm just isn't important to the system.
 If a part of your program reads from a database, writes files to a storage bucket, or spins up servers, you'll have to rip out all the code that interfaces with or runs on that infrastructure if you realize later down the line that your approach was misguided or you've chosen the wrong architecture.
 
-\term{Architecture}, incidentally, refers to all the parts of your software (such as modules of code and cloud resources) and the mechanisms with which they interact.
+It's no wonder that the software development lifecycle consists heavily of planning, analysing, and designing.
 
-Then it's no wonder that the software development lifecycle[fig ref] consists mostly of planning, analysis, and design; that is, not coding.
-<<insert wiki diagram of software lifecycle here (or a reproduction of it)>>
-Thus is seems prudent to focus on these phases of development.
-This thesis contains the knowledge I've gained as a result of researching and writing cloud software.
+\begin{figure}[h]
+  \centering
+  \tikzstyle{notcoding} = [rectangle, rounded corners, minimum width=2.427cm, minimum height=1.5cm, text centered, draw=black, text=white, fill=gray]
+  \tikzstyle{coding} = [rectangle, rounded corners, minimum width=2.427cm, minimum height=1.5cm, text centered, draw=black]
+  \tikzstyle{arrow} = [thick,->,>=stealth]
+  \begin{tikzpicture}[node distance=4cm]
+    \node (one) [notcoding] {Plan};
+    \node (two) [notcoding, right of=one] {Analysis};
+    \node (three) [notcoding, right of=two] {Design};
+    \node (four) [coding, below of=three] {Implementation};
+    \node (five) [coding, left of=four] {Verification};
+    \node (six) [coding, left of=five] {Deployment};
+
+    \draw [arrow] (one) -- (two);
+    \draw [arrow] (two) -- (three);
+    \draw [arrow] (three) -- (four);
+    \draw [arrow] (four) -- (five);
+    \draw [arrow] (five) -- (six);
+    \draw [arrow] (six) -- (one);
+  \end{tikzpicture}
+  \label{fig:sdl}
+\end{figure}
+
+Thus is seems prudent to focus on these phases, the output of which is your \term{architecture}, a high-level description of all the components of your software, such as modules of code and cloud resources, and the mechanisms by which they interact with each other.
+
+This thesis contains the knowledge I've gained as a result of researching, designing, and writing cloud software.
 In section XXX, there is XXX, YYY YYY TODO
 
 \section{Things We Will Discuss}
@@ -135,7 +176,8 @@ IaaS
 
 \section{Applications That Scale}
 
-All it really takes to build custom software is computer access and some programming knowledge.
+All it takes to build custom software is computer access and some programming knowledge.
+But to build \textit{good} software, now that takes the right tools!
 Here are a few questions that may come up when you are making a web app:
 
 \begin{enumerate}
@@ -144,18 +186,17 @@ Here are a few questions that may come up when you are making a web app:
   \item What CSS framework will best suit this project?
 \end{enumerate}
 
-This report takes no sides on these issues.
-There's more than one decent option for each item above, but what we \textit{will} discuss is how to utilize the tools you've chosen.
+Rather than taking a side on these issues (as there is more than one decent option for each item above), we'll discuss how to utilize the tools you've chosen.
 For example:
 
 \begin{enumerate}
   \item What should I put in my version control?
   \item Once my app is hosted, how do I neatly deploy new versions?
-  \item ... TODO
+  \item How do I run my CSS preprocessor during the build step?
 \end{enumerate}
 Writing applications that scale takes discipline and enough experience to make the right decisions.
-And by \term{scale}, we don't just mean \term{supports a large (or unpredictable) volume of users}.
-We mean that the application can easily grow as the users' needs change.
+And by \term{scale}, I don't just mean \term{supports a large (or unpredictable) volume of users}.
+I mean that the application can easily grow as the users' needs change.
 It's the feature set which scales.
 It's the size of the development team which scales.
 It's the number of reported bugs which scales.
@@ -163,17 +204,49 @@ It's the number of reported bugs which scales.
 In this report, we'll examine \# key properties of successful software development that play an integral role in the development of apps that scale:
 
 \begin{enumerate}
-  \item Stateless
-  \item Repetition, Consistency
-  \item Multiple Environments
+  \item Repetition and consistency
+  \item Statelessness
   \item Infrastructure as Code
+  \item Environments
   \item Everything as Code
   \item (Cont Delivery as a subsection)
   \item Pass configuration bu tmostly infrastructure location as environment variables.
 \end{enumerate}
 Later, to demonstrate each one, we'll look at \# example applications that display these finer details of software development.
 
-\section{Removing State}
+\section{Do your best, then do it again!}
+
+Projects that succeed must succeed over and over again.
+The \textit{worst} kind of software to work on is one where things sometimes work and sometimes fail.
+We usually write test casess to ensure that our code works, but this isn't enough by itself.
+Consider that Google has a team dedicated to understanding and monitoring flaky tests~\footnote{https://testing.googleblog.com/2016/05/flaky-tests-at-google-and-how-we.html} (tests which behave inconsistently even when the code doesn't change) and they've written extensively about their research into detecting the causes of flakiness.\footnote{https://ieeexplore.ieee.org/document/9240685}
+Almost unbelievably, in 2018 Google spent "between 2 and 16\% of [their] compute resources re-running flaky tests."\footnote{https://research.google/pubs/pub46593/ page 35}
+
+One way to make sure that code always works the same way every time is the so-called \term{Hermetic Server}.\footnote{https://testing.googleblog.com/2012/10/hermetic-servers.html}
+Picture a sealed application environment running your binary without any uncontrolled access to the outside world.
+The addresses of any network connections that the system needs are hardwired into the server's environment when it's deployed, and any required data is mocked locally.\footnote{
+  We'll stray a little from the definition given in the reference here and allow hardwired addresses to databases too, as long as the database is populated deterministically at deploy time or as a result of automated tests that run the same way every time.
+}
+Once you have a Hermetic Server, it should be easy to run automated tests against it that behave \term{consistently}; we'll discuss this further in section \#.
+But how can we create one whenever we want to run our tests?
+
+Since deploying our application generally involves (1) building our program from the source repository and (2) running our program on its intended infrastructure, the best way to produce a predictable system is to have everything that could possibly affect the deployment residing in the repository.
+Of course, all of your source code will be there, but all of the packages and libraries you depend on should be too (or at the very least a detailed list of each package and exactly which version you need so that they can be retrieved when the program is being built).
+Additionally, for cloud apps, every resource that the system is comprised of should be detailed in the repository.
+This is the meaning of \term{Infrastructure as Code}, discussed in TODO: sec:IAC.
+Furthermore, the test files themselves should be kept in version control alongside the source code.
+
+What do we gain from hermeticity?
+By creating an environment that's consistent and airtight, a commit in your version control software becomes \textit{a complete and accurate account of the behavior of your software project at a single point in time}.
+If you write code later than introduces a bug, you will always be able to revert to a previous commit and expect the exact same (working) behavior that you had before, no exceptions.
+
+By the way, if merged commits automatically get deployed (see TODO: sec:CD) then commits are now not just a representation of your application's behavior but also a representation of exactly what you are offering your user.
+That is pretty sweet because it means that you will be confident that any issue in production can be immediately remedied by rolling back to a previous version that your users were happy with.
+
+This only works if deploying an old version of your app doesn't cause loss of valuable state that's been built up as the program has been running.
+So it's time to\ldots.
+
+\section{Remove state!}
 
 State is bad.
 We all know that!
@@ -220,13 +293,120 @@ Talk about cache
 
 This is why we don't use sqlite !! (well actually we can use it for caching)
 
-\section{Traditional, Not Serverless}
+\section{Infrastructure as Code}
+\label{IAC}
 
-Back when applications ran on servers you bought directly from Dell~\footnote{https://www.joelonsoftware.com/2005/02/05/colo-expansion-version-20/} and the first hire you needed to set up such a system was a sysadmin, it was difficult to create produciton-scale software with multiple components that was available to everyone on the internet.
+Books have been written about this topic[O'Reilly book], so what makes this section worth reading?
+Well this report is being written in 2022 while the above book came out at the end of 2020.
+That doesn't seem like a big difference, but things move \textit{fast} in cloud computing.
+AWS CDK, the IaC tool we'll discuss in the most depth, only became generally available in 2019~\footnote{https://aws.amazon.com/about-aws/whats-new/2019/07/the-aws-cloud-development-kit-aws-cdk-is-now-generally-available1/} and CDK v2 only hit general availability at the end of 2021~\footnote{https://aws.amazon.com/about-aws/whats-new/2021/12/aws-cloud-development-kit-cdk-generally-available/}.
+
+Also, you'll find that the opinions expressed here differ from those that other authors express. Let's get into it.
+
+Infrastructure as code (IaC) is primarily a way to integrate the resources used by your app into your source code (and thus your version control).
+This provides two main benefits over 
+Consistent with the pattern of TODO we 
+mention using normals oftware practices
+
+There are a few different ways that we can encode our infrastructure into our source repository.
+The most basic way is to use a representation language like JSON or YAML.
+For example, the AWS CloudFormation service can read your JSON or YAML template and coax an infrastructure stack into existence that matches your description.
+This is a somewhat primitive form of IaC, much like writing your infrastructure in assembly language, and there are better options.
+
+The second form that IaC mainly takes is the \term{Domain Specific Language} (DSL).
+A DSL is a language built for a particular purpose, and there are a few designed specifically to encode infrastructure.
+For example, the Terraform~\footnote{https://www.terraform.io/} project's DSL is called HashiCorp Configuration Language (HCL) and it looks like this:
+
+\begin{verbatim}
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.27"
+    }
+  }
+
+  required_version = ">= 0.14.9"
+}
+
+provider "aws" {
+  profile = "default"
+  region  = "us-west-2"
+}
+
+resource "aws_instance" "app_server" {
+  ami           = "ami-830c94e3"
+  instance_type = "t2.micro"
+
+  tags = {
+    Name = "ExampleAppServerInstance"
+  }
+}
+\end{verbatim}~\footnote{https://learn.hashicorp.com/tutorials/terraform/aws-build}
+
+Each resource is \textit{declared} along with its configuration arguments and Terraform figures out how to deploy your infrastructure when you tell it to.
+
+The last option is an IaC framework for an imperative language.
+The framework provides a library of classes and functions for describing infrastructure in a familiar language like TypeScript, Python, or Java, and tools to turn your code into a representation template that is read by a classical system like CloudFormation.
+The AWS Cloud Development Kit (CDK) is a particularly popular framework and is available for many imperative languages.
+It looks like this:
+
+\begin{verbatim}
+const vpc = new ec2.Vpc(this, 'Vpc');
+
+// Declare a new EC2 Instance in our virtual private cloud.
+new ec2.Instance(this, 'Instance', {
+  vpc: vpc,
+  instanceType: ec2.InstanceType.of(ec2.InstanceClass.R5, ec2.InstanceSize.LARGE),
+  machineImage: new ec2.AmazonLinuxImage(),
+});
+\end{verbatim}
+
+Some think that declarative DSLs like HCL are better suited for IaC than imperative languages.
+After all, the DSL is specifically designed for this use, and its limitations mean you will make fewer mistakes.
+
+This is misguided.
+Using a general-purpose language has many advantages:
+
+\begin{enumerate}
+  \item You can use the same tools and programming practices you use for the rest of your code, including testing frameworks and IDE autocompletion, not to mention programming paradigms like modules and classes.
+  \item Control-flow statements are useful when templating infrastructure because they allow you to specify complex behavior with fewer lines of code.
+  \item You can write your IaC in the same language as your application's source code; doing so allows you to share types, constants, and utilities easily, eliminating lots of bugs.
+  \item The software engineer takes back control of their own infrastrcture from the DevOps people by writing in a language they are already familiar with.
+\end{enumerate}
+
+Well-written IaC frameworks for imperative languages do not miss out on the advantages of DSLs because \textit{when the type system is good enough, the construct library and your text editor's autocomplete becomes your DSL.}
+
+How much time do we save by writing our infrastructure using CDK vs CloudFormation?
+Turns out, quite a lot.
+We'll later consider a project called Marcus whose CDK code is only 80 lines long but which synthesizes to a CloudFormation template that's 450 lines long.
+It's a good thing when you only have to mantain 20\% as much code, but that's not the only advantage that IaC provides.
+
+\subsection{Save the environment}
+
+A major part of consistency is ensuring that your test/qa/stage environments behave exactly the same as your production environment.
+You would be extremely displeased if you spent hours writing an extensive suite of end-to-end tests for your application and got all of them to pass during QA if the actual production deployment had issues.
+
+\term{Infrastructure as code} really helps in this regard because a stack will deploy the same way every time.
+You can change the line of code that says what account to provision the resources in and just like that you've created an isolated environment with a full copy of all of your infrastructure running your code.
+
+My recommendation is to have a single deploy script that takes the name of the environment you want to deploy to (\texttt{stage}, \texttt{prod}, \texttt{test}, \texttt{qa}, whatever) and starts the deployment process targeting the chosen environment so you don't need to modify any code to switch deployment targets.
+It's output should be the addresses of the resources that were actually deployed (whether on a public or private network).
+This makes it really easy to integrate automatic end-to-end tests into your development pipeline.
+Simply have your test runner deploy your app to a test environment, run tests on it, then clean up.
+Congratulations, you've just tested a complete version of your app, exactly like your users will see it.~\footnote{
+  If you have many developers running tests at the same time, you'll want to assign each test deployment a unique ID and scale down the resources for each deployment to save costs, especially if your tests take a long time to run.
+  But remember that every change you make will set your test enviroment apart from production so do so sparingly.
+}
+
+\section{Heavy metal}
+
+Back when applications ran on servers you bought directly from Dell~\footnote{https://www.joelonsoftware.com/2005/02/05/colo-expansion-version-20/} and the first hire you needed to set up such a system was a sysadmin, it was difficult to create production-scale software with multiple components that was available to everyone on the internet.
 Nevertheless people persevered, until the 2000s when the launch of AWS brought IaaS, and most importantly, virtual servers-for-rent, into the hands of anyone who could figure out how to use it.
 AWS's product Elastic Compute Cloud (EC2) offers (to this day) virtual compute instances that can be launched, programmed, and terminated at the click of a button.
-Here's how development on EC2 might go:
-\newp A programmer wants to build the backend for their app (perhaps it's a music app that needs to fetch the user's song playlist from a database), so they put together a Flask~\footnote{TODO} scafolding like the following:
+
+Here's how development on EC2 might go.
+A programmer wants to build the backend for their app (perhaps it's a music app that needs to fetch the user's song playlist from a database), so they put together a Flask~\footnote{https://flask.palletsprojects.com/en/2.1.x/} scafolding like the following:
 
 \begin{verbatim}
 import api
@@ -258,8 +438,10 @@ They configure the machine to keep the server running after terminating the remo
 Every EC2 instance can be assigned a public IP (and DNS name under \texttt{compute.amazonaws.com}) so there's no need to configure any CNAMEs or A records.
 The server doesn't appear to be working, but after a while they realize that they need to configure the instance's security settings to allow inbound HTTP over the server's port.
 Now everything is set.
-\newp Well, there's no plan in place for deploying new versions of the backend, or for recovering the application should the server fail, but that's the subject of section \#\#\#.
-\newp What about scaling in response to load?
+
+Well, there's no plan in place for deploying new versions of the backend, or for recovering the application should the server fail, but that's the subject of section \#\#\#.
+
+What about scaling in response to load?
 If this app goes viral the volume of requests to the backend may bring the system to its knees.
 Ideally our developer could launch replicas of this instance, each with their own copy of the Flask server.
 Even if this were possible, how can they direct traffic to the least encumbered instance?
@@ -307,7 +489,7 @@ Not just because Lambdas can read and write external storage, but also because i
 
 Servers are sometimes stateless...~\footnote{https://xkcd.com/869/}
 
-\section{Marcus - Your Phone's Terminal}
+\section{Marcus}
 
 Let's apply our methodology to a toy example.
 
@@ -321,16 +503,49 @@ For example:
 \end{enumerate}
 
 Anywhere you might use your phone's voice assistant ("add an event/reminder to my calendar today at 6PM") you might wish to do with Marcus instead.
-The advantages of this text-based solution are that it's faster to use and it's more reliable than using your voice.
+Marcus is faster to use than Siri or Google Assistant and there's no risk of your voice being misunderstood.
+I like to think of Marcus as the command line for your phone.
 
-Now we turn to the subject of architecting this app.
-We start by identifying the mechanism we will use for receiving and acting on text messages automatically.
-For the purposes of this discussion, imagine we wish to use a tool like Twilio which provides the developer with a phone number for the bot and will automatically send an HTTP request to a webhook supplied by the developer whenever the bot receives an SMS.
+For example, here's a sample user interaction with Marcus, where user's commands look like \user{this} and Marcus's replies look like \marcus{this} (explanation on the right).
 
+\begin{tabular}{ l l }
+  \user{Lm, groceries} & Make a list called "groceries." The command \user{Lm} means "List make." \\
+  \marcus{groceries: created list.} & \\
+
+  \\
+
+  \user{La, groceries, milk, dozen eggs} & Append two items to the "groceries" list. \\
+  \marcus{groceries: added 2 lines.} & \\
+
+  \\
+
+  \user{Lp, groceries} & Print the "groceries" list. \\
+  \marcus{1: milk} & \\
+  \marcus{2: dozen eggs} & \\
+  \marcus{\textasciitilde} & \\
+
+  \\
+
+  \user{Lr, groceries, 1, soy milk} & Replace line $1$ in the "groceries" list with "soy milk." \\
+  \marcus{groceries: replaced line 1 with soy milk.} & \\
+
+  \\
+
+  \user{Lp, groceries} & Print the "groceries" list. \\
+  \marcus{1: soy milk} & \\
+  \marcus{2: dozen eggs} & \\
+  \marcus{\textasciitilde} & \\
+\end{tabular}
+
+Let's design and architect this app.
+We start by identifying the mechanism we'll use for receiving and acting on text messages automatically.
+Let's use Twilio, a telecommunications API, because it provides the developer with a phone number for the bot and will automatically send an HTTP request to a webhook supplied by the developer whenever the bot receives an SMS.
+Whatever we program our webhook to respond with will be sent back from the bot as a text.
 Great!
+
 So what do we need to do to create a webhook?
 A webhook is just an HTTP endpoint that can respond to events.
-In this case, it will get the contents of the text message and it will return some text that will be sent back over SMS to the user who sent the message.
+In this case, it will get the contents of the text message, execute the user's command, and return the results.
 
 This sounds like a perfect use case for FaaS!
 AWS Lambda will suit us well.
@@ -338,8 +553,9 @@ Our architecture will thus consist of:
 
 \begin{enumerate}
   \item A lambda to resolve SMS "queries" and return SMS "responses."
-  \item An API Gateway to expose the lambda through a public HTTP endpoint (more on this later).
-  \item Whatever else we need to store persistant data. For example, to implement the List application from above, we may want an object bucket to store the lists as files.
+  \item An API Gateway to expose the lambda through a public HTTP endpoint.
+  \item Whatever else we need to store persistant data.
+    For example, to implement the List application from above, we may want an object bucket to store the lists as files.
 \end{enumerate}
 
 When you think about it, this is pretty simple.
@@ -350,7 +566,7 @@ This is because the more infrastructure that you manage yourself, the more time 
 Furthermore, since lambda scales in reponse to load automatically, you don't even need to think about it.
 
 Now we consider what needs to go into this lambda.
-This is not a treatise on how to write good code so we won't dwell too much on the TypeScript itself, but if we remove all the error checking and details of the Twilio API, the code basically boils down to:
+Modulo some error checking and details of the Twilio API, the code boils down to:
 
 \begin{verbatim}
 /**
@@ -367,7 +583,7 @@ const lambdaHandler: SmsLambdaHandler = async (event) => {
   const userMessage = parsedRequestBody.get("Body");
 
   // Convert the request SMS into tokens.
-  const tokens = parseTokens(parsedRequestBody.get("Body"));
+  const tokens = lexTokens(parsedRequestBody.get("Body"));
 
   // Convert the tokens into a command.
   const command = parseCommand(tokens);
@@ -383,60 +599,91 @@ const lambdaHandler: SmsLambdaHandler = async (event) => {
 };
 \end{verbatim}
 
-where \texttt{parseTokens}, \texttt{parseCommand}, and each command's \texttt{execute} function are defined elsewhere.
+where \texttt{lexTokens}, \texttt{parseCommand}, and each command's \texttt{execute} function are defined elsewhere.
 
 As you can see, the code for Marcus isn't very complex, and all commands can be handled by a single lambda handler, so there's really no need to launch a server or run a managed container.
 What we want is a function running in the cloud and that's exactly what we get.
 
-But as we'll see in the next section, the serverless approach is not just appropriate for simple applications like this one.
-Even complicated cloud software can benefit from these design principals.
+Let's take a quick look at a portion of the main IaC file for Marcus:
+
+\begin{verbatim}
+/* Store data for the List application. */
+const listBucket = new s3.Bucket(this, "ListBucket", {
+  bucketName: "marcus-list-bucket",
+  versioned: true,
+  encryption: s3.BucketEncryption.S3_MANAGED,
+});
+
+/* Receive SMS messages and send a message back. */
+const smsResolverLambda = new nodelambda.NodejsFunction(this, "SmsResolverLambda", {
+  functionName: "MarcusSmsResolverLambda",
+
+  runtime: lambda.Runtime.NODEJS_14_X,
+  entry: "gateway/resolver.ts",
+  handler: "lambdaHandler",
+  tracing: lambda.Tracing.ACTIVE,
+
+  timeout: Duration.seconds(3),
+
+  bundling: {
+    minify: true,
+    banner: "/* Marcus Sms Bot - minified and bundled. */",
+  },
+
+  environment: {
+    MARCUS_REGION: "us-east-1",
+    MARCUS_LIST_BUCKET_NAME: listBucket.bucketName,
+    MARCUS_APPROVED_USER_PHONE_NUMBERS: fs.readFileSync(userPhoneNumbersFileName),
+  },
+});
+listBucket.grantReadWrite(smsResolverLambda);
+
+/* Provide access to our SMS resolver lambda. */
+const api = new apigateway.RestApi(this, "SmsGatewayApi", {
+  restApiName: "MarcusSmsGatewayApi",
+  disableExecuteApiEndpoint: false,
+});
+const receiveSms = api.root.addResource("receiveSms");
+receiveSms.addMethod("POST", new apigateway.LambdaIntegration(smsResolverLambda));
+\end{verbatim}
+
+First, we create an S3 bucket to store the lists for the List program.
+By storing on the cloud, multiple users of Marcus can interact with the same lists.
+Of course, we can add access controls if we don't want lists to always be public.
+
+Second, we create the TypeScript lambda to resolve the SMS queries.
+Notice how we pass environment variables into the lambda function.
+This is how we "connect" the lambda to the S3 bucket and tell the lambda who is approved to use Marcus.
+Since \texttt{userPhoneNumbersFileName} refers to a text file in the repository, the data we are injecting here is completely controlled by the version control commit.
+
+Third, we expose our Lambda to the internet through an API Gateway whose single HTTP POST endpoint "/receiveSms" will be given to Twilio as the webhook.
+
+Now the List program can use the TypeScript AWS SDK to connect to S3 and upload a list like so:
+
+\begin{verbatim}
+const s3Client = new S3({
+  region: process.env.MARCUS_REGION,
+});
+
+await s3Client.putObject({
+  Bucket: process.env.MARCUS_LIST_BUCKET_NAME,
+  Key: listName,
+  Body: listText,
+});
+\end{verbatim}
+
+I can't stress how easy it is to develop and deploy this application.
+All three major pieces of infrastructure we've used do not require us to provision hardware or choose an instance type, and there is no state aside from the lists stored in the bucket.
+CDK is smart - if the bucket's configuration doesn't change, it will simply remain during a new deploy.
+If it does change, CDK will create a new bucket, detatch the old one from our stack, and preserve its data.
 
 By the way, Marcus is a real app that I wrote for this report and the code can be found here~\footnote{https://github.com/josephrubin/marcus}.
 The most expensive part of its operation is its usage of Twilio.
 With only a few users, the entire AWS side of things is nearly free.
 
-Let's continue analysing Marcus, because there's more to learn here.
-Talk about List, the bucket
-
-Then talk about the infrastructure for this.
-We've talked about repeatability / deployment etc.
-So how do we represent the infrastructure for this project?
-
-\section{Infrastructure as Code}
-
-Books have been written about this topic[O'Reilly book], so what makes this section worth reading?
-Well this report is being written in 2022 while the above book came out at the end of 2020.
-That doesn't seem like a big difference, but things move \textit{fast} in cloud computing.
-AWS CDK, the IaC tool we'll discuss in the most depth, only became generally available in 2019~\footnote{https://aws.amazon.com/about-aws/whats-new/2019/07/the-aws-cloud-development-kit-aws-cdk-is-now-generally-available1/} and CDK v2 only hit general availability at the end of 2021~\footnote{https://aws.amazon.com/about-aws/whats-new/2021/12/aws-cloud-development-kit-cdk-generally-available/}.
-
-Also, you'll find that the opinions expressed here differ from those that other authors express. Let's get into it.
-
-Infrastructure as code (IaC) is primarily a way to integrate the resources used by your app into your source code (and thus your version control).
-This provides two main benefits over 
-Consistent with the pattern of TODO we 
-mention using normals oftware practices
-
-There are a few different ways that we can encode our infrastructure into our source repository.
-The most basic way is to use a representation language like JSON or YAML.
-For example, the AWS CloudFormation service can read your JSON or YAML template and coax an infrastructure stack into existence that matches your description.
-As we'll see, this is a somewhat primitive form of IaC and there are better options.
-
-The second form that IaC mainly takes is the Domain Specific Language (DSL).
-This type of language is specifically designed to encode infrastructure.
-For example, the Terraform~\footnote{https://www.terraform.io/} project 
-
-Many people think that DSLs like HDL are better than imperative languages like 
-
-TODO: discuss YAML/JSON templates, DSL, and cdk (with witty DSL comparison) as well as decl vs imper
-TODO: show how many lines of code even a short CDK script generates in terms of cloud formation
-TODO: writing in raw cloud formation is like writing in assembly language.
-
-Well for one, the CDK code for Marcus is only about 80 lines long but it synthesizes to a CloudFormation template that's 450 lines long.
-It's a good thing when you only have to mantain 20\% as much code.
-
 \section{Jongleur}
 
-Now we present the main object of study of this report: Jongleur.
+Now I present the main object of study in this report: Jongleur.
 
 Jongleur is the practicing musician's assistant; users can upload practice recordings of sessions spent at their instrument and Jongleur will catalogue the audio, tracking how the user has practiced a piece and storing and splitting the practice waveform into logical segments for playback.
 
@@ -446,73 +693,231 @@ Here's what Jongleur looks like:
 [Figure One - a Practice page showing waveform and timeline]{Caption: a user has uploaded an audio recording, segmented blah blah blah}
 \end{verbatim}
 
-Jongluer is a web application.
+\subsection{Those who have come before us}
+
+To understand our app's domain better, it's useful to consider related apps that are already out there.
+
+The practice app Instrumentive~\footnote{https://instrumentive.com/} for mobile devices records the practicing musician and tracks practice time.
+It doesn't sort recordings by the piece the user was practicing or split the audio into segments but it provides a nice interface for tracking practice hours and setting goals.
+It even comes with an included metronome.
+
+For those learning with an instructor, Better Practice~\footnote{https://betterpracticeapp.com/} lets the student share their practice log with their teacher.
+
+Apps like Simply Piano~\footnote{https://www.joytunes.com/simply-piano} help the student learn their instrument in a lesson-based style; Jongleur does not distract the user while they are playingbut instead waits for them to upload an audio file at the session's end.
 
 \subsection{Summary}
-Jongleur is a full-stack app built on AWS in several thousand lines of code.
-The majority is Typescript, and Python is used for audio analysis.
+Jongleur is a full-stack web app built on AWS in several thousand lines of code.
+The majority is Typescript, but some Python is used for audio analysis.
 The app consists of quite a lot of infrastructure.
 
-On the front end, I'm using Remix, a new React framework (it came out just this Thanksgiving).
+The architecture of the app follows the design patterns we've developed above.
+Great care went into the quality of its code; it's well organized, doesn't make "tech-debt" compromises in many places, and is extremely extensible and easy to build off of.
+Where security is important, I've made it a focus.
+
+On the frontend, I'm using Remix~\footnote{https://remix.run/}, a new React framework (it went open source just this past Thanksgiving).
 Its focus is on nested routing and server-side generation of pages.
-Audio analysis uses librosa.
 
-Although the analysis we're doing isn't extremely complicated (segmentation, tempo calculation), there were some small challenges, and one HUGE challenge: since we want to be able to handle large, multi-hour uploads (think 1 to 3 hours), I had to dispense with the assumption that the audio file could fit in memory all at once. 
-We have to stream the audio files in chunks and process those chunks one at a time.
-This changes the kinds of analyses you can do.
+The backend consists of four main components:
 
-But the payoff is great - Jongleur can process large audio files without eating up endless amounts of memory resources.
-Also, notably, this focus on large files was a consideration when designing the process by which users upload their files into Jongleur in the first place, but I won't get to that here.
-The rest of the app is the back end / middle end. We store data in DynamoDB and use S3 for audio file storage.
-We use GraphQL (AWS AppSync) to serve data to the front end.
+\begin{enumerate}
+  \item Authentication \ authorization
+  \item Data
+  \item Audio
+  \item GraphQL
+\end{enumerate}
 
-Some front-end operations go through API Gateway instead, but most are through GraphQL.
-Our user authentication system is built on Cognito.
-Users authenticate to the GraphQL API using a Cognito accessToken JWT, so they can only access their own stuff.
+How would we scope out and design this app?
 
-The Remix app server is built into a Docker image and runs on AWS Fargate.
-The audio processing pipeline uses a few lambdas and is orchestrated by an AWS StepFunction.
-The primary one is also built into a Docker image so it can access all the requisite dependencies and run predictably.
-Audio files are served from CloudFront so they stream very quickly.
+\subsection{Features}
 
-All of the infrastructure is written as code in CDK, which makes it reproducible (and also easy to deploy. You can launch the full stack with one command and a few small logistical tasks. See the README.md).
-In total, the CDK code that specifies this infrastructure is about nine hundred lines long; there's a lot of infrastructure (see infrastructure/lib/).
-But it's actually all serverless.
+First, consider the features we want to support.
 
-The code is here: https://github.com/josephrubin/jongleur
+\subsubsection{User accounts}
 
-\subsection{Motivation} 
+Because musicians should be able to track their own statistics and view only their own practice recordings, we must allow the creation of user accounts.
+This means we need to support signing up and signing in.
 
-% Maybe I want a section on the C linkedlist pointer extra indirection thing.
+\subsubsection{Practice pieces}
 
-\subsection{Goal}
+The app should show a list of pieces that a user can practice.
+Selecting a piece should show the user all of the practice sessions they've already had for that piece on a timeline.
+Selecting a session should show the practice recording's waveform along with some information such as the tempo of the recording.
 
-\subsection{Limitations}
+\subsubsection{Audio playback}
 
-% Related Work. %%%%
+Practice waveforms should be sliced into segments separated by periods of silence (where the musician paused to try replaying a section of the piece).
+Each segment should display in a different color and clicking on a segment should play that part of the original audio file.
 
-\section{Related Work}
+\subsubsection{Your stats}
 
-I think this section is mostly going to be an exposition on related work \_architecturaly\_ or \_technically\_ where I will discuss design patterns and application engineering.
-That being said, for now, the following is some realted work in the \_music\_ space.
+Each user should be able to see an overview of the pieces they've practiced along with how long they've practiced each one.
+They should also be able to view a list of all the practice recordings they've uploaded.
 
-Practice apps like Instrumentive[https://instrumentive.com/] on the Google Play app store record the practicing musician and track practice time.
-Recordings can be named and organized into playlists.
-This app 
-For those learning with an instructor, Better Practice[https://betterpracticeapp.com/] lets the student share their practice log with their teacher.
+\subsection{Architecture}
+
+Now that we understand what the app should do, let's figure out how to make it happen.
+Some of the features above will translate into a lot of infrastructure.
+But because we are using AWS CDK, we'll be able to manage it all quite nicely.~\footnote{https://github.com/josephrubin/jongleur/blob/master/infrastructure/lib/jongleur-infrastructure-stack.ts}
+
+\subsubsection{Auth}
+
+AWS's serverless identity management offering is Cognito; its abundant configuration options makes it somewhat difficult to understand but it makes up for this by being extremely useful.
+We'll use a Cognito user pool configured to allow admin actions (such as creating and verifying users) only from our backend.
+
+Cognito allows the developer to store most user data in itself, but we'll store that elsewhere with the rest of our data to make it easier for us to develop the rest of the app.
+
+When a user signs in, we'll have Cognito generate an access token (in the form of a JSON Web Token) that they'll use to make authenticated requests.
+They'll also get a refresh token which allows the user to request a new access token when there's expires.
+
+When the frontend makes an API request on behalf of the logged in user, our backend will verify and decode the JWT.
+
+\subsubsection{Data}
+
+Let's create a data model.
+The main objects that our app deals with are the Piece and the Practice.
+Pieces will represent music that a user can practice.
+When a user uploads an audio recording, we'll create a Practice and file it under the Piece that they've selected.
+
+Each Practice will store some metadata and a scaled-down version of the original waveform to be displayed on the frontend as a series of amplitudes.
+A Practice will be made up of a number of Segments, calculated in advance during the audio processing pipeline.
+Segments will contain their portion of the waveform and a link to a presliced audio sample from the original recording.
+
+Because we are using JWTs, a login session from the perspective of Cognito will be stored as a cookie on the user's browser.
+
+All the data that we want to store in our backend needs to go into a database of some sort.
+We could go with a classical relational database, but this will be overkill as there are very few complicated relationships between our units of data.
+Fitting our data into a serverless key-value store like DynamoDB will pay off dividends in the future because DynamoDB is faster to deploy, automatically scales, and doesn't require us to execute SQL commands to create a schema.
+
+To support the database queries that we'll need, we'll create a few DynamoDB global secondary indices.
+At this point in the planning, though, we don't know yet what queries will be most useful.
+This is where IaC really shines; when we know more, it's easy to come back to our infrastructure files and make modifications.
+
+There's one more thing: since our app needs to hold on to the audio files uploaded by users, we'll have an S3 bucket available for this purpose.
+The S3 bucket will sit behind a CloudFront distribution to serve these large files quickly.
+
+\subsubsection{GraphQL}
+
+This whole time we've been talking about the backend without concretely designing its function.
+Recall our data model.
+It's basically a bunch of objects sitting in a heirarchy where to root of the tree is the user:
+
+[Diagram here]
+
+Thus it is sensible to use GraphQL to expose our queries and mutations.
+GraphQL makes us define a resolver, basically a piece of code that connects the API to the data store.
+This is a great time to use our old friend, AWS Lambda.
+
+Our lambda will take as input the object and field that we're trying to resolve and, respecting the current user session, retrieve from or update the database.
+Thus this resolver will contain the majority of our backend code.
+
+When a user signs up or signs in, it is the resolver that will invoke Cognito to take the appropriate action.
+
+Our resolver knows where all the data is kept because we wire this information through environment variables in our IaC.
+
+AWS offers a serverless implementation of GraphQL called AppSync; this will work for our purposes.
+To tell AppSync about the API surface we want to support, we will write a GraphQL schema~\footnote{https://github.com/josephrubin/jongleur/blob/master/graphql/schema.graphql}.
+Using a tool called \texttt{graphql-codegen} we'll generate TypeScript interfaces for all the types in our schema whenever we edit the file.
+This will help immensely when it comes to programming the frontend.
+
+\subsubsection{Audio}
+
+The other part to our backend is the audio processing pipeline which is also built from AWS Lambda.
+Here, every decision we make must keep in mind that audio files can be quite large, especially as we expect our users to upload practice recordings that are a few hours long.
+Because of this, we can't assume that our lambdas will be able to fit the entire file in memory at once.
+Let's tackle the problems one at a time.
+
+\isubsubsubsection{Uploading audio}
+
+The pipeline will begin when the user uploads an audio file.
+Here's the first challenge.
+Almost all of our client-server interaction happens through our GraphQL API, but it would be wasteful to try and stream large audio files through any excess middleware.
+We want the user to be able to upload a file directly to an audio intake S3 bucket, using the browser's native capabilities for multi-part background uploads.
+
+The thing is, we don't want to expose our S3 bucket to the public and allow anyone to upload files, so the upload process will actually consist of two steps.
+
+First, the user requests a \term{presigned url} from the backend, which is an upload target to a specific spot in S3 that is associated with their account.
+Then, using this URL (before it expires), the user can make the upload directly to the bucket.
+
+One of the hallmarks of serverless design is the \term{event}.
+When an upload completes, S3 will generate an event to kick off the audio processing.
+
+\isubsubsubsection{Processing audio}
+
+We do audio analysis on the backend using the Python library librosa.~\footnote{TODO}
+We want to do this in a lambda, but this might take a while, so we want to let the user know something is happening.
+
+Let's pull another serverless tool out of our belt, the AWS Step Function.
+A Step Function can run a sequence of tasks in series, gracefully catching errors and retrying or recovering.
+Our state machine will consist of three parts:
+
+First, record in DynamoDB that we are processing a new audio file.
+Second, do the actual processing.~\footnote{https://github.com/josephrubin/jongleur/blob/master/audio/process/main.py}
+Third, record that we are done (either succeefully or with an error).
+
+The actual processing will be done on the audio file in chunks because we can't load the entire thing at once.
+We'll pull the entire file down from S3 into the lambda's temporary file system and then read it one block at a time using librosa's streaming capabilities.
+
+The main thing we want to do is identify nonsilent intervals of music.
+Each block can be easily split on its own, but we'll have to implement a custom algorithm to merge the results of adjacent blocks.
+
+Now that we have a list of pairs of frame indices representing intervals, we need to split the audio file and upload each chunk to an S3 bucket.
+Because each interval could ostensibly be as long as the entire audio file (if there is no silence at all), we have to assemble each audio chunk in blocks.
+Librosa can't do this, but luckily, we can use ffmpeg.
+
+As mentioned previously, our destination S3 bucket will be hooked up to CloudFront so our backend can return authenticated URLs to user audio content.
+
+\subsubsection{Web}
+
+The Remix web app contains frontend JavaScript and data loaders which technically run on the server and make requests to our GraphQL API.
+It's not super easily to pull out all of the server-side code and make lambdas out of them while hosting the frontend statically.
+Instead, we'll package the whole Remix app into a Docker image and run it on AWS Fargate, Amazon's serverless container engine.
+
+\subsection{Implementation details}
+
+Now that we know how all the pieces fit together it's time to write the code!
+But architecting everything was the hard part; since we know which modules need access to what, we should be able to complete each part in isolation.
+I find that it's best to start with the the GraphQL schema, then the IaC, ensuring that you pass the appropriate environment variables around the stack, then develop the frontend and backend in tandum.
+
+\subsubsection{Challenges}
+
+A few challenges came up as I was completing the project.
+One of them was that the Python audio and data libraries were so large that they couldn't fit in a standard lambda so I had to create a Docker image that runs the lambda service and make a container Lambda out of it which is allowed to be bigger.
+
+Another challenge was that S3 events can't actually trigger Step Functions directly so I had to create a small lambda to bridge the gap.
+
+\subsubsection{Results}
+
+The result of the implementation is a project that is about 80\% TypeScript, 10\% Python, 10\% assorted utility languages; contains about 900 source lines of infrastructure code that synthesizes to over 3000 lines of CloudFormation and over 100 cloud resources; and contains over 6000 source lines of code total.
+
+The app can handle audio files of any size that I've thrown at it, and it does it relatively quickly.
+
+There are some things lacking, though.
+For one, users are not able to add their own pieces to the platform; they must choose a piece that is already there under which to file their recording.
+
+For another, while GraphQL's ability to define structured queries that the client can use to retreive precisely the desired data is incredibly useful, it is not a free lunch.
+It is well known that GraphQL APIs can suffer from server-side overfetching and indeed Jongleur can be slow at times.
+I implemented some data caching to speed up the app, but caching in general is a hard problem in computer science.
+
+The best part about Jongleur is that the infrastructure is all serverless.
+There are no bare EC2 isntances or ECS containers running Jongleur code.
+
+All of the infrastructure is written as code in CDK which akes it reproducible and also easy to deploy.
+You can launch the full stack with one command.~\footnote{https://github.com/josephrubin/jongleur}
 
 % Approach. %%%%
 
-\section{Approach} 
-\section{Implementation}
 \section{Evaluation}
 \subsection{Metrics}
 \subsection{Data}
-\section{Summary}
 \subsection{Conclusions}
 \subsection{Future Work}
-\subsection{Acknowledgements}
+
+\section{Acknowledgements}
+
+A genuine appreciation for Dr. Jérémie Lumbroso.
+
 \section*{Statement of Academic Integrity}
+
 This thesis represents my own work in accordance with University regulations.\\
 Signed, /Joseph Rubin/.
 
