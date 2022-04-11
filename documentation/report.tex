@@ -29,6 +29,8 @@
 \newcommand{\noterm}[1]{\textit{#1}}
 \newcommand{\term}[1]{\noterm{#1}\index{#1}}
 
+\newcommand{\icode}[1]{\texttt{#1}}
+
 % Archaic new paragraph, not used in the text itself.
 \newcommand{\newp}{\newline\indent}
 
@@ -96,7 +98,7 @@ Here's one:
 Seems pretty bad to rewrite code!
 But of course the only way to ensure your code doesn't \textit{need} to be thrown away is to write it well the first time.
 And it's not only about taking care to make each line just right; it's important to consider the macrolevel too.
-A well written algorithm will be torn out and replaced if that algorithm just isn't important to the system.
+A well written algorithm will be torn out and replaced if that algorithm isn't important to the system.
 If a part of your program reads from a database, writes files to a storage bucket, or spins up servers, you'll have to rip out all the code that interfaces with or runs on that infrastructure if you realize later down the line that your approach was misguided or you've chosen the wrong architecture.
 
 It's no wonder that the software development lifecycle consists heavily of planning, analysing, and designing.
@@ -129,7 +131,7 @@ Thus is seems prudent to focus on these phases, the output of which is your \ter
 This thesis contains the knowledge I've gained as a result of researching, designing, and writing cloud software.
 In section XXX, there is XXX, YYY YYY TODO
 
-\section{Things We Will Discuss}
+\section{Things we will discuss}
 
 TODO: merge this section up with the end of the Introduction.
 
@@ -143,7 +145,7 @@ Example: Agora
 
 Main example: Jongleur
 
-\subsection{What This Is Not}
+\subsection{What this is not}
 
 Before going further let's discuss what \textit{won't} be covered.
 
@@ -162,19 +164,7 @@ Or maybe the lambda too... what if some VPC changes and the lambda no longer wor
 
 This is also not a report about testing or test-driven-development.
 
-% Before going further, we provide a background section for any terms we don't wish to sufficiently explain in-context.
-
-\section{Background}
-
-AWS
-
-serverless?
-
-FaaS
-
-IaaS
-
-\section{Applications That Scale}
+\section{Applications that scale}
 
 All it takes to build custom software is computer access and some programming knowledge.
 But to build \textit{good} software, now that takes the right tools!
@@ -195,7 +185,7 @@ For example:
   \item How do I run my CSS preprocessor during the build step?
 \end{enumerate}
 Writing applications that scale takes discipline and enough experience to make the right decisions.
-And by \term{scale}, I don't just mean \term{supports a large (or unpredictable) volume of users}.
+And by \term{scale}, I don't just mean \noterm{supports a large (or unpredictable) volume of users}.
 I mean that the application can easily grow as the users' needs change.
 It's the feature set which scales.
 It's the size of the development team which scales.
@@ -222,13 +212,19 @@ We usually write test casess to ensure that our code works, but this isn't enoug
 Consider that Google has a team dedicated to understanding and monitoring flaky tests~\footnote{https://testing.googleblog.com/2016/05/flaky-tests-at-google-and-how-we.html} (tests which behave inconsistently even when the code doesn't change) and they've written extensively about their research into detecting the causes of flakiness.\footnote{https://ieeexplore.ieee.org/document/9240685}
 Almost unbelievably, in 2018 Google spent "between 2 and 16\% of [their] compute resources re-running flaky tests."\footnote{https://research.google/pubs/pub46593/ page 35}
 
+Why do tests flake?
+Most often it's because they rely on some external agent to run.
+If the test needs to make a request over the public internet, for example, any number of network-dependant factors could vary between runs.
+And if the data that comes back from the request isn't generated from scratch at the beginning of the test, you can't be sure that the test will execute the same way every time.
+Of course, tests which rely on pseudorandom number generation will also be prone to flakiness unless you fix the seed at the beginning of testing.
+
 One way to make sure that code always works the same way every time is the so-called \term{Hermetic Server}.\footnote{https://testing.googleblog.com/2012/10/hermetic-servers.html}
 Picture a sealed application environment running your binary without any uncontrolled access to the outside world.
 The addresses of any network connections that the system needs are hardwired into the server's environment when it's deployed, and any required data is mocked locally.\footnote{
   We'll stray a little from the definition given in the reference here and allow hardwired addresses to databases too, as long as the database is populated deterministically at deploy time or as a result of automated tests that run the same way every time.
 }
 Once you have a Hermetic Server, it should be easy to run automated tests against it that behave \term{consistently}; we'll discuss this further in section \#.
-But how can we create one whenever we want to run our tests?
+But how can we create a Hermetic Server whenever we want to run our tests?
 
 Since deploying our application generally involves (1) building our program from the source repository and (2) running our program on its intended infrastructure, the best way to produce a predictable system is to have everything that could possibly affect the deployment residing in the repository.
 Of course, all of your source code will be there, but all of the packages and libraries you depend on should be too (or at the very least a detailed list of each package and exactly which version you need so that they can be retrieved when the program is being built).
@@ -240,7 +236,7 @@ What do we gain from hermeticity?
 By creating an environment that's consistent and airtight, a commit in your version control software becomes \textit{a complete and accurate account of the behavior of your software project at a single point in time}.
 If you write code later than introduces a bug, you will always be able to revert to a previous commit and expect the exact same (working) behavior that you had before, no exceptions.
 
-By the way, if merged commits automatically get deployed (see TODO: sec:CD) then commits are now not just a representation of your application's behavior but also a representation of exactly what you are offering your user.
+By the way, if merged commits automatically get deployed (see TODO: sec:CD) then commits are now not just a representation of your application's behavior but also a representation of exactly what your users are seeing.
 That is pretty sweet because it means that you will be confident that any issue in production can be immediately remedied by rolling back to a previous version that your users were happy with.
 
 This only works if deploying an old version of your app doesn't cause loss of valuable state that's been built up as the program has been running.
@@ -268,7 +264,7 @@ But if the website keeps track of this number on the file system of the server i
 \imp{Rule of State}{Don't mix global application state with code. (bad phrasing)}
 
 Just think about it this way.
-If you wanted to run your application on multiple servers~\footnotemark{} you wouldn't be able to, because each server would be tracking a different number. \footnotetext{
+If you wanted to run your application on multiple servers~\footnotemark{} you wouldn't be able to, because each server would be tracking a different value. \footnotetext{
   Why would you want to run an application on multiple servers at once?
   If this website was receiving too much traffic for the original server to handle, you might try to increase the CPU or memory of the machine.
   This is called \term{vertical scaling}, and it is generally easy to do using a cloud provider.
@@ -283,17 +279,19 @@ Instead, the website could read from and write to an external, atomic data store
 A database is definitely a form of global application state, but it's acceptable in this instance because it is separated from the business logic and thus can be scaled independantly of the application runtime.
 This way, the Rule of State is not violated.
 
-To summarize, the particular server that a user's session lives on should be transparent to the user (from a functional point of view).
+To summarize, the particular server that a user's session lives on should be functionally transparent to the user.
+(In section TODO \#, we take this to the extreme and discuss how to make the server transparant to the developer as well.)
 In general, any local state should be ephemeral.
 It's hard to back up and state that's kept on the same machine as your application code, but that's okay if the data isn't all that important.
-(Also this will come up later in IaC - we want to be able to delete infrastructure and relaunch with impunity).
+
+TODO:
 This way, 
 However, there \textit{are} times (when the user can't percieve a fucntional difference) where local state is acceptable.
 Talk about cache
 
 This is why we don't use sqlite !! (well actually we can use it for caching)
 
-\section{Infrastructure as Code}
+\section{Infrastructure-as-Code}
 \label{IAC}
 
 Books have been written about this topic[O'Reilly book], so what makes this section worth reading?
@@ -345,9 +343,10 @@ resource "aws_instance" "app_server" {
 \end{verbatim}~\footnote{https://learn.hashicorp.com/tutorials/terraform/aws-build}
 
 Each resource is \textit{declared} along with its configuration arguments and Terraform figures out how to deploy your infrastructure when you tell it to.
+Also using a DSL means you have to learn a new language, the resultant code is much clearer thatn the equivalent JSON or YAML.
 
 The last option is an IaC framework for an imperative language.
-The framework provides a library of classes and functions for describing infrastructure in a familiar language like TypeScript, Python, or Java, and tools to turn your code into a representation template that is read by a classical system like CloudFormation.
+The framework provides a library of classes and functions for describing infrastructure in a familiar language like TypeScript, Python, or Java, and tools to turn your code into a representation template that is read by a classical IaC system like CloudFormation.
 The AWS Cloud Development Kit (CDK) is a particularly popular framework and is available for many imperative languages.
 It looks like this:
 
@@ -362,6 +361,8 @@ new ec2.Instance(this, 'Instance', {
 });
 \end{verbatim}
 
+As you can see, resources are created and configured using normal JavaScript objects.
+
 Some think that declarative DSLs like HCL are better suited for IaC than imperative languages.
 After all, the DSL is specifically designed for this use, and its limitations mean you will make fewer mistakes.
 
@@ -372,15 +373,20 @@ Using a general-purpose language has many advantages:
   \item You can use the same tools and programming practices you use for the rest of your code, including testing frameworks and IDE autocompletion, not to mention programming paradigms like modules and classes.
   \item Control-flow statements are useful when templating infrastructure because they allow you to specify complex behavior with fewer lines of code.
   \item You can write your IaC in the same language as your application's source code; doing so allows you to share types, constants, and utilities easily, eliminating lots of bugs.
-  \item The software engineer takes back control of their own infrastrcture from the DevOps people by writing in a language they are already familiar with.
+  \item The software engineer takes back control of their own infrastrcture from the sysadmins by writing in a language they are already familiar with.
+    After all, the developer is the expert in their application; not the system administrator.
 \end{enumerate}
 
 Well-written IaC frameworks for imperative languages do not miss out on the advantages of DSLs because \textit{when the type system is good enough, the construct library and your text editor's autocomplete becomes your DSL.}
 
-How much time do we save by writing our infrastructure using CDK vs CloudFormation?
+This is very similar to how an Object-relational Mapper (ORM) hides the details of the underlying SQL code from the developer so she can communicate with the database using native objects to her programming language of choice.
+The fact that sqlalchemy, a popular Python ORM, gets over 45 million downloads a month shows that ORMs are extremely useful and they aren't going anywhere.~\footnote{https://pypistats.org/packages/sqlalchemy}
+Consider IaC frameworks like CDK to be in the same boat.
+
+And how much time do we save by writing our infrastructure using CDK vs CloudFormation?
 Turns out, quite a lot.
 We'll later consider a project called Marcus whose CDK code is only 80 lines long but which synthesizes to a CloudFormation template that's 450 lines long.
-It's a good thing when you only have to mantain 20\% as much code, but that's not the only advantage that IaC provides.
+It's a good thing when you only have to maintain less than 20\% of the code!
 
 \subsection{Save the environment}
 
@@ -391,13 +397,24 @@ You would be extremely displeased if you spent hours writing an extensive suite 
 You can change the line of code that says what account to provision the resources in and just like that you've created an isolated environment with a full copy of all of your infrastructure running your code.
 
 My recommendation is to have a single deploy script that takes the name of the environment you want to deploy to (\texttt{stage}, \texttt{prod}, \texttt{test}, \texttt{qa}, whatever) and starts the deployment process targeting the chosen environment so you don't need to modify any code to switch deployment targets.
-It's output should be the addresses of the resources that were actually deployed (whether on a public or private network).
+Its output should be the addresses of the resources that were actually deployed (whether on a public or private network).
 This makes it really easy to integrate automatic end-to-end tests into your development pipeline.
 Simply have your test runner deploy your app to a test environment, run tests on it, then clean up.
 Congratulations, you've just tested a complete version of your app, exactly like your users will see it.~\footnote{
   If you have many developers running tests at the same time, you'll want to assign each test deployment a unique ID and scale down the resources for each deployment to save costs, especially if your tests take a long time to run.
   But remember that every change you make will set your test enviroment apart from production so do so sparingly.
 }
+
+\subsection{Fusion}
+
+There's a lot to love about CDK in particular, such as the way it handles granting permissions between objects and outputs from infrastructure stacks.
+But the documentation is a better place to learn about that.
+Here I'll give you one more reason to write your code in a full-fledged programming language.
+
+Your app is likely to contain multiple pieces of cloud infrastructure and those different components will want to talk to each other.
+In order to tell your server, for example, where the database lies, you can very easily pass the ID of the database in an environment variable to the server.
+You do this by accessing the ID property of your database object and, through the magic of code generation, the synthesizer will ensure that the right values get placed into the constructed template.
+This interfacing between hardware isn't just convenient; it is a crucial to establishing a hermetic system as a whole even when there are hundreds of cloud resources because each one knows how to directly connect (often using your cloud provider's private intranet) to each other one if it needs to!
 
 \section{Heavy metal}
 
@@ -430,7 +447,7 @@ if __name__ == "__main__":
     app.run()
 \end{verbatim}
 
-This is a basic HTTP API where each @app.route declares an endpoint for the client app to access.
+This is a basic HTTP API where each \icode{@app.route} declares an endpoint for the client app to access.
 They create a script \texttt{serve.sh} which contains the necessary commands to start the Flask server.
 Now the developer needs to run the API service in a way that is (1) accessible over the internet and (2) always available, so they choose an instance type and launch an EC2 instance.
 They SSH into their instance, copy their code over, and run the script.
@@ -439,7 +456,8 @@ Every EC2 instance can be assigned a public IP (and DNS name under \texttt{compu
 The server doesn't appear to be working, but after a while they realize that they need to configure the instance's security settings to allow inbound HTTP over the server's port.
 Now everything is set.
 
-Well, there's no plan in place for deploying new versions of the backend, or for recovering the application should the server fail, but that's the subject of section \#\#\#.
+Well, there's no plan in place for deploying new versions of the backend, or for recovering the application should the server fail, so if they're smart they'll use IaC to make it really easy to at least redeploy the infrastructure.
+As for the code itself, they'll have to find another way to get the code up and running automatically during deployment if they want to have a really tight development and iteration pipeline.
 
 What about scaling in response to load?
 If this app goes viral the volume of requests to the backend may bring the system to its knees.
@@ -447,30 +465,35 @@ Ideally our developer could launch replicas of this instance, each with their ow
 Even if this were possible, how can they direct traffic to the least encumbered instance?
 Elastic Load Balancing (ELB) is usually the answer.
 
-\subsection {Separation of Concerns}
+But to use ELB they'll need to set up a target group, an autoscaling group, configure listeners to direct traffic through the load balancer's ports\ldots.
 
 But wait!
-The end-user's app really just wanted to call some functions.
-To do that, we encapsulated our routes in a "server" (using Flask) and then exposed the functions over the web with EC2.
-Why go through all the trouble?
-Can't we just work with the functions directly?
+This is getting out of hand!
 
-TODO: do we even mention App Engine etc?
-\newp Not so anymore.
+The develop just wanted to expose some functions over the internet.
+To do that, they encapsulated the routes in a "server" using Flask, then used EC2 to host the server (though of course little more than the server's intermittent computing power and network connectivity was needed), then set up a whole bunch of infrastructure to replicate the code across servers and direct user requests.
 
-% BUT IT'S NOT A FREE LUNCH \footnote{Adira \footnote{Joseph}}
+This seems like a lot of trouble for something so ubiquitous as a web API!
+Can't we just work with route functions directly?
 
-\section{Serverless}
+\section{Function-as-a-Service}
 
-Why I think CDK is good and imperative programmign is better than some weird DSL or only declarative.
-Line about:
-When the type system is good enough, the construct library and you IDEs autocomplete becomes your DSL.
-this is probably the most important line of this whole report.
+Yes, that's really what it's called:
 
-\section{Serverless Versus Stateless}
+\begin{quote}
+  Function-as-a-Service, or FaaS, is a kind of cloud computing service that allows developers to build, compute, run, and manage application packages as functions without having to maintain their own infrastructure.~\footnote{https://www.redhat.com/en/topics/cloud-native-apps/what-is-faas}
+\end{quote}
+
+The idea is quite simple; if you can run a function on your own computer, why can't you run it on someone else's computer too?
+By "someone else's computer" I mean the cloud, and by "function" I mean some piece of code that executes in response to an event.
+
+Cloud provider \term{FaaS} offerings make it super easy to package up your code and deploy it to a fully managed environment where you pay only for the resources used when your functions are actually running.
+FaaS is a form of \term{serverless} computing, and lots of people are wrong about exactly what that means.
+
+\section{Serverless versus stateless}
 
 Contrary to what many authors would have you believe, \term{serverless} and \term{stateless} are not the same.
-As defined by Amazon Web Services, serverless consists of three parts:
+As defined by Amazon Web Services, serverless~\footnote{https://aws.amazon.com/serverless/} consists of three parts:
 
 \begin{enumerate}
     \item automatic scaling
@@ -480,18 +503,30 @@ As defined by Amazon Web Services, serverless consists of three parts:
 
 But it's probably best encapsulated by the tagline "build and run applications without thinking about servers."
 
-On the other hand, \textit{stateless} is purely a software-architectural pattern.
+On the other hand, \term{stateless} is purely a software-architectural pattern.
 It refers to applications that handle each invocation instance separately, without persisting any data between executions.
-Now \term stateless is certainly a spectrum.
+Now stateless is certainly a spectrum.
 An application riddled with global variables has more persistant state than one that acts mostly as a pure function with the exception of occasional trips to an external database to save some data.
-But AWS Lambda is not stateless.
-Not just because Lambdas can read and write external storage, but also because individual invocations are not completely isolated.
 
-Servers are sometimes stateless...~\footnote{https://xkcd.com/869/}
+But FaaS products like AWS Lambda are not really stateless.
+Not just because lambdas can read and write external storage, but also because individual invocations are not completely isolated.
+Lambdas can keep state both in their local memory and in their temporary filesystem.
+Why isn't local memory wiped between invocations?
+Because in practice this would lead to too many \term{cold starts}, users waiting a long time because the lambdas they are trying to invoke are booting up.
+
+Another type of serverless computing, serverless compute containers (such as those offerd by AWS Fargate~\footnote{https://aws.amazon.com/fargate/}) are clearly not stateless.
+Much like with any containerized application, you can keep state however you want; the difference is that Fargate does not make you choose an instance type to run your containers on.
+
+(And of course actual servers are sometimes stateless too\ldots.~\footnote{https://xkcd.com/869/})
+
+\section{What we've learned}
+
+So far we've learned a lot about elegant cloud application design.
+We've covered consistency, statelessness, infrastructure as code, FaaS, and serverlessness.
+
+Now it's time to move to the more hands-on parts of the software development lifecycle and apply our methodologies to some examples.
 
 \section{Marcus}
-
-Let's apply our methodology to a toy example.
 
 Marcus is an SMS bot, a chat app that the user interacts with by sending and recieving text messages.
 There are many use-cases for an SMS bot like this one.
@@ -500,15 +535,17 @@ For example:
 \begin{enumerate}
   \item Create and manage lists and share them with friends over the internet (shopping lists, reading lists, etc.).
   \item Add an event to your calendar app.
+  \item Start playing a song from your library.
+  \item Set an alarm.
 \end{enumerate}
 
 Anywhere you might use your phone's voice assistant ("add an event/reminder to my calendar today at 6PM") you might wish to do with Marcus instead.
 Marcus is faster to use than Siri or Google Assistant and there's no risk of your voice being misunderstood.
 I like to think of Marcus as the command line for your phone.
 
-For example, here's a sample user interaction with Marcus, where user's commands look like \user{this} and Marcus's replies look like \marcus{this} (explanation on the right).
+Here's a sample user interaction with Marcus, where user's commands look like \user{this} and Marcus's replies look like \marcus{this} (explanation on the right).
 
-\begin{tabular}{ l l }
+\begin{tabular}{ l | l }
   \user{Lm, groceries} & Make a list called "groceries." The command \user{Lm} means "List make." \\
   \marcus{groceries: created list.} & \\
 
@@ -553,7 +590,7 @@ Our architecture will thus consist of:
 
 \begin{enumerate}
   \item A lambda to resolve SMS "queries" and return SMS "responses."
-  \item An API Gateway to expose the lambda through a public HTTP endpoint.
+  \item An API Gateway to expose the lambda through a public HTTP endpoint. This is not strictly necessary anymore as lambdas now support the assignment of function URLs directly. This feature just came out five days ago! But we'll stick with the old way for the time being.
   \item Whatever else we need to store persistant data.
     For example, to implement the List application from above, we may want an object bucket to store the lists as files.
 \end{enumerate}
@@ -563,7 +600,7 @@ Compare this approach to one which does not use FaaS.
 To launch your desired application logic (a single function which transforms input text messages to output text messages) you would need to launch an entire, say, Flask application on a server, or at the very least put your application inside a container and use a container orchistration service.
 It would be much more expensive because you will be paying even when your function is not running, but even more importantly, it would be much more difficult to deploy and test.
 This is because the more infrastructure that you manage yourself, the more time it takes to configure your app.
-Furthermore, since lambda scales in reponse to load automatically, you don't even need to think about it.
+Furthermore, since lambda scales in reponse to load automatically, you don't even need to think about your app throttling.
 
 Now we consider what needs to go into this lambda.
 Modulo some error checking and details of the Twilio API, the code boils down to:
@@ -604,6 +641,7 @@ where \texttt{lexTokens}, \texttt{parseCommand}, and each command's \texttt{exec
 As you can see, the code for Marcus isn't very complex, and all commands can be handled by a single lambda handler, so there's really no need to launch a server or run a managed container.
 What we want is a function running in the cloud and that's exactly what we get.
 
+As you've guessed by now, we'll encode the infrastructure using IaC.
 Let's take a quick look at a portion of the main IaC file for Marcus:
 
 \begin{verbatim}
@@ -672,12 +710,15 @@ await s3Client.putObject({
 });
 \end{verbatim}
 
-I can't stress how easy it is to develop and deploy this application.
+Note how we use Node's \texttt{process.env} to access the environment variables we passed earlier in the IaC.
+
+I can't stress enough how easy it is to develop and deploy this application.
 All three major pieces of infrastructure we've used do not require us to provision hardware or choose an instance type, and there is no state aside from the lists stored in the bucket.
-CDK is smart - if the bucket's configuration doesn't change, it will simply remain during a new deploy.
+CDK is smart.
+If the bucket's configuration doesn't change, it will simply remain during a new deploy.
 If it does change, CDK will create a new bucket, detatch the old one from our stack, and preserve its data.
 
-By the way, Marcus is a real app that I wrote for this report and the code can be found here~\footnote{https://github.com/josephrubin/marcus}.
+Marcus is a real app that I wrote for this report and the code can be found here~\footnote{https://github.com/josephrubin/marcus}.
 The most expensive part of its operation is its usage of Twilio.
 With only a few users, the entire AWS side of things is nearly free.
 
@@ -685,7 +726,7 @@ With only a few users, the entire AWS side of things is nearly free.
 
 Now I present the main object of study in this report: Jongleur.
 
-Jongleur is the practicing musician's assistant; users can upload practice recordings of sessions spent at their instrument and Jongleur will catalogue the audio, tracking how the user has practiced a piece and storing and splitting the practice waveform into logical segments for playback.
+Jongleur is the musician's assistant; users can upload practice recordings of sessions spent at their instrument and Jongleur will catalogue the audio, tracking how long the user has practiced a piece and storing and splitting the practice waveform into logical segments for playback.
 
 Here's what Jongleur looks like:
 
@@ -729,7 +770,7 @@ The backend consists of four main components:
 How would we scope out and design this app?
 
 \subsection{Features}
-
+textit
 First, consider the features we want to support.
 
 \subsubsection{User accounts}
@@ -878,6 +919,10 @@ Now that we know how all the pieces fit together it's time to write the code!
 But architecting everything was the hard part; since we know which modules need access to what, we should be able to complete each part in isolation.
 I find that it's best to start with the the GraphQL schema, then the IaC, ensuring that you pass the appropriate environment variables around the stack, then develop the frontend and backend in tandum.
 
+One thing that will make development easier is setting up scripts for common tasks.
+There's never any reaseon to waste time chaining together a series of commands when you can make a single script to run all of them.
+For example, I have a script that runs the Remix app locally for development, but first that same script also runs type generation on the graphql schema to keep everything in sync.
+
 \subsubsection{Challenges}
 
 A few challenges came up as I was completing the project.
@@ -899,7 +944,8 @@ It is well known that GraphQL APIs can suffer from server-side overfetching and 
 I implemented some data caching to speed up the app, but caching in general is a hard problem in computer science.
 
 The best part about Jongleur is that the infrastructure is all serverless.
-There are no bare EC2 isntances or ECS containers running Jongleur code.
+There are no bare EC2 instances or ECS containers running Jongleur code.
+That means we'll never have to worry about individual machines going down and we will be paying as little as possible when our application isn't being heavily used.
 
 All of the infrastructure is written as code in CDK which akes it reproducible and also easy to deploy.
 You can launch the full stack with one command.~\footnote{https://github.com/josephrubin/jongleur}
