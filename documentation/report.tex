@@ -11,6 +11,7 @@
 \usepackage{cleveref}       % smart cross-referencing
 \usepackage{lipsum}         % Can be removed after putting your text content
 \usepackage{graphicx}
+\usepackage{caption}
 \graphicspath{ {./image/} }
 \usepackage{natbib}
 \usepackage{doi}
@@ -47,6 +48,13 @@
 
 \newcommand{\isubsubsubsection}[1]{\subsubsubsection{\textbf{#1}}}
 
+\newcommand{\screenshot}[2]{
+  \begin{figure}[h]
+    \includegraphics[width=\textwidth]{#1}
+    \caption*{#2}
+  \end{figure}
+}
+
 \begin{document}
 
 \title{Cloud Smarts}
@@ -75,7 +83,7 @@
 
 \section{Introduction}
 
-In 2017 I met the brother-in-law of Joel Spolsky, Co-Founder and Chairman of Stack Overflow.~\footnote{https://stackoverflow.com/}
+In 2017 I met the brother-in-law of Joel Spolsky, Co-Founder and Chairman of Stack Overflow.\footnote{https://stackoverflow.com/}
 Spolsky's blog \textit{Joel on Software} contains a lot of gems on software engineering and business.
 Here's one:
 
@@ -92,7 +100,7 @@ Here's one:
   Years of programming work.
 
   You are throwing away your market leadership.
-  You are giving a gift of two or three years to your competitors, and believe me, that is a \textit{long} time in software years.~\footnote{https://www.joelonsoftware.com/2000/04/06/things-you-should-never-do-part-i/}
+  You are giving a gift of two or three years to your competitors, and believe me, that is a \textit{long} time in software years.\footnote{https://www.joelonsoftware.com/2000/04/06/things-you-should-never-do-part-i/}
 \end{quote}
 
 Seems pretty bad to rewrite code!
@@ -209,7 +217,7 @@ Later, to demonstrate each one, we'll look at \# example applications that displ
 Projects that succeed must succeed over and over again.
 The \textit{worst} kind of software to work on is one where things sometimes work and sometimes fail.
 We usually write test casess to ensure that our code works, but this isn't enough by itself.
-Consider that Google has a team dedicated to understanding and monitoring flaky tests~\footnote{https://testing.googleblog.com/2016/05/flaky-tests-at-google-and-how-we.html} (tests which behave inconsistently even when the code doesn't change) and they've written extensively about their research into detecting the causes of flakiness.\footnote{https://ieeexplore.ieee.org/document/9240685}
+Consider that Google has a team dedicated to understanding and monitoring flaky tests\footnote{https://testing.googleblog.com/2016/05/flaky-tests-at-google-and-how-we.html} (tests which behave inconsistently even when the code doesn't change) and they've written extensively about their research into detecting the causes of flakiness.\footnote{https://ieeexplore.ieee.org/document/9240685}
 Almost unbelievably, in 2018 Google spent "between 2 and 16\% of [their] compute resources re-running flaky tests."\footnote{https://research.google/pubs/pub46593/ page 35}
 
 Why do tests flake?
@@ -264,7 +272,7 @@ But if the website keeps track of this number on the file system of the server i
 \imp{Rule of State}{Don't mix global application state with code. (bad phrasing)}
 
 Just think about it this way.
-If you wanted to run your application on multiple servers~\footnotemark{} you wouldn't be able to, because each server would be tracking a different value. \footnotetext{
+If you wanted to run your application on multiple servers\footnotemark{} you wouldn't be able to, because each server would be tracking a different value. \footnotetext{
   Why would you want to run an application on multiple servers at once?
   If this website was receiving too much traffic for the original server to handle, you might try to increase the CPU or memory of the machine.
   This is called \term{vertical scaling}, and it is generally easy to do using a cloud provider.
@@ -297,7 +305,7 @@ This is why we don't use sqlite !! (well actually we can use it for caching)
 Books have been written about this topic[O'Reilly book], so what makes this section worth reading?
 Well this report is being written in 2022 while the above book came out at the end of 2020.
 That doesn't seem like a big difference, but things move \textit{fast} in cloud computing.
-AWS CDK, the IaC tool we'll discuss in the most depth, only became generally available in 2019~\footnote{https://aws.amazon.com/about-aws/whats-new/2019/07/the-aws-cloud-development-kit-aws-cdk-is-now-generally-available1/} and CDK v2 only hit general availability at the end of 2021~\footnote{https://aws.amazon.com/about-aws/whats-new/2021/12/aws-cloud-development-kit-cdk-generally-available/}.
+AWS CDK, the IaC tool we'll discuss in the most depth, only became generally available in 2019\footnote{https://aws.amazon.com/about-aws/whats-new/2019/07/the-aws-cloud-development-kit-aws-cdk-is-now-generally-available1/} and CDK v2 only hit general availability at the end of 2021\footnote{https://aws.amazon.com/about-aws/whats-new/2021/12/aws-cloud-development-kit-cdk-generally-available/}.
 
 Also, you'll find that the opinions expressed here differ from those that other authors express. Let's get into it.
 
@@ -313,7 +321,7 @@ This is a somewhat primitive form of IaC, much like writing your infrastructure 
 
 The second form that IaC mainly takes is the \term{Domain Specific Language} (DSL).
 A DSL is a language built for a particular purpose, and there are a few designed specifically to encode infrastructure.
-For example, the Terraform~\footnote{https://www.terraform.io/} project's DSL is called HashiCorp Configuration Language (HCL) and it looks like this:
+For example, the Terraform\footnote{https://www.terraform.io/} project's DSL is called HashiCorp Configuration Language (HCL) and it looks like this:
 
 \begin{verbatim}
 terraform {
@@ -380,7 +388,7 @@ Using a general-purpose language has many advantages:
 Well-written IaC frameworks for imperative languages do not miss out on the advantages of DSLs because \textit{when the type system is good enough, the construct library and your text editor's autocomplete becomes your DSL.}
 
 This is very similar to how an Object-relational Mapper (ORM) hides the details of the underlying SQL code from the developer so she can communicate with the database using native objects to her programming language of choice.
-The fact that sqlalchemy, a popular Python ORM, gets over 45 million downloads a month shows that ORMs are extremely useful and they aren't going anywhere.~\footnote{https://pypistats.org/packages/sqlalchemy}
+The fact that sqlalchemy, a popular Python ORM, gets over 45 million downloads a month shows that ORMs are extremely useful and they aren't going anywhere.\footnote{https://pypistats.org/packages/sqlalchemy}
 Consider IaC frameworks like CDK to be in the same boat.
 
 And how much time do we save by writing our infrastructure using CDK vs CloudFormation?
@@ -400,7 +408,7 @@ My recommendation is to have a single deploy script that takes the name of the e
 Its output should be the addresses of the resources that were actually deployed (whether on a public or private network).
 This makes it really easy to integrate automatic end-to-end tests into your development pipeline.
 Simply have your test runner deploy your app to a test environment, run tests on it, then clean up.
-Congratulations, you've just tested a complete version of your app, exactly like your users will see it.~\footnote{
+Congratulations, you've just tested a complete version of your app, exactly like your users will see it.\footnote{
   If you have many developers running tests at the same time, you'll want to assign each test deployment a unique ID and scale down the resources for each deployment to save costs, especially if your tests take a long time to run.
   But remember that every change you make will set your test enviroment apart from production so do so sparingly.
 }
@@ -418,12 +426,12 @@ This interfacing between hardware isn't just convenient; it is a crucial to esta
 
 \section{Heavy metal}
 
-Back when applications ran on servers you bought directly from Dell~\footnote{https://www.joelonsoftware.com/2005/02/05/colo-expansion-version-20/} and the first hire you needed to set up such a system was a sysadmin, it was difficult to create production-scale software with multiple components that was available to everyone on the internet.
+Back when applications ran on servers you bought directly from Dell\footnote{https://www.joelonsoftware.com/2005/02/05/colo-expansion-version-20/} and the first hire you needed to set up such a system was a sysadmin, it was difficult to create production-scale software with multiple components that was available to everyone on the internet.
 Nevertheless people persevered, until the 2000s when the launch of AWS brought IaaS, and most importantly, virtual servers-for-rent, into the hands of anyone who could figure out how to use it.
 AWS's product Elastic Compute Cloud (EC2) offers (to this day) virtual compute instances that can be launched, programmed, and terminated at the click of a button.
 
 Here's how development on EC2 might go.
-A programmer wants to build the backend for their app (perhaps it's a music app that needs to fetch the user's song playlist from a database), so they put together a Flask~\footnote{https://flask.palletsprojects.com/en/2.1.x/} scafolding like the following:
+A programmer wants to build the backend for their app (perhaps it's a music app that needs to fetch the user's song playlist from a database), so they put together a Flask\footnote{https://flask.palletsprojects.com/en/2.1.x/} scafolding like the following:
 
 \begin{verbatim}
 import api
@@ -481,7 +489,7 @@ Can't we just work with route functions directly?
 Yes, that's really what it's called:
 
 \begin{quote}
-  Function-as-a-Service, or FaaS, is a kind of cloud computing service that allows developers to build, compute, run, and manage application packages as functions without having to maintain their own infrastructure.~\footnote{https://www.redhat.com/en/topics/cloud-native-apps/what-is-faas}
+  Function-as-a-Service, or FaaS, is a kind of cloud computing service that allows developers to build, compute, run, and manage application packages as functions without having to maintain their own infrastructure.\footnote{https://www.redhat.com/en/topics/cloud-native-apps/what-is-faas}
 \end{quote}
 
 The idea is quite simple; if you can run a function on your own computer, why can't you run it on someone else's computer too?
@@ -493,7 +501,7 @@ FaaS is a form of \term{serverless} computing, and lots of people are wrong abou
 \section{Serverless versus stateless}
 
 Contrary to what many authors would have you believe, \term{serverless} and \term{stateless} are not the same.
-As defined by Amazon Web Services, serverless~\footnote{https://aws.amazon.com/serverless/} consists of three parts:
+As defined by Amazon Web Services, serverless\footnote{https://aws.amazon.com/serverless/} consists of three parts:
 
 \begin{enumerate}
     \item automatic scaling
@@ -514,10 +522,10 @@ Lambdas can keep state both in their local memory and in their temporary filesys
 Why isn't local memory wiped between invocations?
 Because in practice this would lead to too many \term{cold starts}, users waiting a long time because the lambdas they are trying to invoke are booting up.
 
-Another type of serverless computing, serverless compute containers (such as those offerd by AWS Fargate~\footnote{https://aws.amazon.com/fargate/}) are clearly not stateless.
+Another type of serverless computing, serverless compute containers (such as those offerd by AWS Fargate\footnote{https://aws.amazon.com/fargate/}) are clearly not stateless.
 Much like with any containerized application, you can keep state however you want; the difference is that Fargate does not make you choose an instance type to run your containers on.
 
-(And of course actual servers are sometimes stateless too\ldots.~\footnote{https://xkcd.com/869/})
+(And of course actual servers are sometimes stateless too\ldots.\footnote{https://xkcd.com/869/})
 
 \section{What we've learned}
 
@@ -718,9 +726,13 @@ CDK is smart.
 If the bucket's configuration doesn't change, it will simply remain during a new deploy.
 If it does change, CDK will create a new bucket, detatch the old one from our stack, and preserve its data.
 
+\subsection{Results}
+
 Marcus is a real app that I wrote for this report and the code can be found here~\footnote{https://github.com/josephrubin/marcus}.
 The most expensive part of its operation is its usage of Twilio.
 With only a few users, the entire AWS side of things is nearly free.
+
+I use Marcus all the time to create lists because it is extremely fast and convenient and I encourage anybody who is interested in learning how to write cloud software to fork the project and start writing Marcus commands of their own.
 
 \section{Jongleur}
 
@@ -728,40 +740,36 @@ Now I present the main object of study in this report: Jongleur.
 
 Jongleur is the musician's assistant; users can upload practice recordings of sessions spent at their instrument and Jongleur will catalogue the audio, tracking how long the user has practiced a piece and storing and splitting the practice waveform into logical segments for playback.
 
-Here's what Jongleur looks like:
-
-\begin{verbatim}
-[Figure One - a Practice page showing waveform and timeline]{Caption: a user has uploaded an audio recording, segmented blah blah blah}
-\end{verbatim}
+\screenshot{jong-practice}{A user's practice recording is displayed along with a timeline of all other practice sessions of this piece. Clicking on any colored part of the waveform will play that segment of the original audio file.}
 
 \subsection{Those who have come before us}
 
-To understand our app's domain better, it's useful to consider related apps that are already out there.
+To understand our app's domain better, it's useful to consider related apps that already exist.
 
-The practice app Instrumentive~\footnote{https://instrumentive.com/} for mobile devices records the practicing musician and tracks practice time.
+The practice app Instrumentive\footnote{https://instrumentive.com/} for mobile devices records the practicing musician and tracks practice time.
 It doesn't sort recordings by the piece the user was practicing or split the audio into segments but it provides a nice interface for tracking practice hours and setting goals.
 It even comes with an included metronome.
 
-For those learning with an instructor, Better Practice~\footnote{https://betterpracticeapp.com/} lets the student share their practice log with their teacher.
+For those learning with an instructor, Better Practice\footnote{https://betterpracticeapp.com/} lets the student share their practice log with their teacher.
 
-Apps like Simply Piano~\footnote{https://www.joytunes.com/simply-piano} help the student learn their instrument in a lesson-based style; Jongleur does not distract the user while they are playingbut instead waits for them to upload an audio file at the session's end.
+Apps like Simply Piano\footnote{https://www.joytunes.com/simply-piano} help the student learn their instrument in a lesson-based style; on the other hand, Jongleur does not distract the user while they are playingbut instead waits for them to upload an audio file at the end of their session.
 
-\subsection{Summary}
+\subsection{Overview}
 Jongleur is a full-stack web app built on AWS in several thousand lines of code.
 The majority is Typescript, but some Python is used for audio analysis.
 The app consists of quite a lot of infrastructure.
 
-The architecture of the app follows the design patterns we've developed above.
+The architecture of the app follows the design patterns we've developed.
 Great care went into the quality of its code; it's well organized, doesn't make "tech-debt" compromises in many places, and is extremely extensible and easy to build off of.
 Where security is important, I've made it a focus.
 
-On the frontend, I'm using Remix~\footnote{https://remix.run/}, a new React framework (it went open source just this past Thanksgiving).
+On the frontend, I'm using Remix,\footnote{https://remix.run/} a new React framework (it went open source just this past Thanksgiving).
 Its focus is on nested routing and server-side generation of pages.
 
 The backend consists of four main components:
 
 \begin{enumerate}
-  \item Authentication \ authorization
+  \item Authentication / authorization
   \item Data
   \item Audio
   \item GraphQL
@@ -777,6 +785,9 @@ First, consider the features we want to support.
 
 Because musicians should be able to track their own statistics and view only their own practice recordings, we must allow the creation of user accounts.
 This means we need to support signing up and signing in.
+Our frontend must be able to pull customized data about the current user and display it on the web page.
+
+\screenshot{jong-signup}{A user can enter a username and password to create an account and join the party.}
 
 \subsubsection{Practice pieces}
 
@@ -791,26 +802,28 @@ Each segment should display in a different color and clicking on a segment shoul
 
 \subsubsection{Your stats}
 
-Each user should be able to see an overview of the pieces they've practiced along with how long they've practiced each one.
-They should also be able to view a list of all the practice recordings they've uploaded.
+Each user should be able to see an overview of the pieces they've practiced and they should be able to click on each one to view a list of all the practice recordings they've uploaded.
+The user should also have access to aggregated stats about their total practice time.
+
+\screenshot{jong-stats}{On their stats page, a user sees a list of their favorite pieces to practice and the total amount of practice that they've completed.}
 
 \subsection{Architecture}
 
 Now that we understand what the app should do, let's figure out how to make it happen.
 Some of the features above will translate into a lot of infrastructure.
-But because we are using AWS CDK, we'll be able to manage it all quite nicely.~\footnote{https://github.com/josephrubin/jongleur/blob/master/infrastructure/lib/jongleur-infrastructure-stack.ts}
+But because we are using AWS CDK, we'll be able to manage it all quite nicely.\footnote{https://github.com/josephrubin/jongleur/blob/master/infrastructure/lib/jongleur-infrastructure-stack.ts}
 
 \subsubsection{Auth}
 
 AWS's serverless identity management offering is Cognito; its abundant configuration options makes it somewhat difficult to understand but it makes up for this by being extremely useful.
 We'll use a Cognito user pool configured to allow admin actions (such as creating and verifying users) only from our backend.
 
-Cognito allows the developer to store most user data in itself, but we'll store that elsewhere with the rest of our data to make it easier for us to develop the rest of the app.
+Cognito allows the developer to store most user data in the user pool but we'll store it with the rest of our data to make it easier for us to pull it all down together to the frontend.
 
 When a user signs in, we'll have Cognito generate an access token (in the form of a JSON Web Token) that they'll use to make authenticated requests.
-They'll also get a refresh token which allows the user to request a new access token when there's expires.
+They'll also get a refresh token which allows the user to request a new access token when theirs expires.
 
-When the frontend makes an API request on behalf of the logged in user, our backend will verify and decode the JWT.
+When the frontend makes an API request on behalf of the logged in user, our backend will verify and decode the JWT to figure out what actions the user should be able to take.
 
 \subsubsection{Data}
 
@@ -819,14 +832,34 @@ The main objects that our app deals with are the Piece and the Practice.
 Pieces will represent music that a user can practice.
 When a user uploads an audio recording, we'll create a Practice and file it under the Piece that they've selected.
 
+\begin{figure}[h]
+  \centering
+  \tikzstyle{single} = [rectangle, rounded corners, minimum width=2.427cm, minimum height=1.5cm, text centered, draw=black]
+  \tikzstyle{arrow} = [thick,->,>=stealth]
+  \tikzstyle{doublearrow} = [thick,<->,>=stealth]
+  \begin{tikzpicture}[node distance=4cm]
+    \node (one) [single] {Piece};
+    \node (two) [single, right of=one] {User};
+    \node (three) [single, below of=one] {Practice};
+    \node (four) [single, right of=three] {Session};
+    \node (five) [single, below of=three] {Segment};
+    \node (six) [single, right of=five] {Audio File};
+
+    \draw [doublearrow] (one) -- (three);
+    \draw [doublearrow] (two) -- (three);
+    \draw [doublearrow] (three) -- (five);
+    \draw [arrow] (two) -- (four);
+    \draw [arrow] (five) -- (six);
+  \end{tikzpicture}
+  \label{fig:sdl}
+\end{figure}
+
 Each Practice will store some metadata and a scaled-down version of the original waveform to be displayed on the frontend as a series of amplitudes.
 A Practice will be made up of a number of Segments, calculated in advance during the audio processing pipeline.
 Segments will contain their portion of the waveform and a link to a presliced audio sample from the original recording.
 
-Because we are using JWTs, a login session from the perspective of Cognito will be stored as a cookie on the user's browser.
-
 All the data that we want to store in our backend needs to go into a database of some sort.
-We could go with a classical relational database, but this will be overkill as there are very few complicated relationships between our units of data.
+We could go with a classical relational database, but this will be overkill as we won't be doing any complicated JOINs when we query data.
 Fitting our data into a serverless key-value store like DynamoDB will pay off dividends in the future because DynamoDB is faster to deploy, automatically scales, and doesn't require us to execute SQL commands to create a schema.
 
 To support the database queries that we'll need, we'll create a few DynamoDB global secondary indices.
@@ -834,15 +867,16 @@ At this point in the planning, though, we don't know yet what queries will be mo
 This is where IaC really shines; when we know more, it's easy to come back to our infrastructure files and make modifications.
 
 There's one more thing: since our app needs to hold on to the audio files uploaded by users, we'll have an S3 bucket available for this purpose.
-The S3 bucket will sit behind a CloudFront distribution to serve these large files quickly.
+Actually, we'll have two buckets.
+One for the files the user uploads, and one for the slices that our audio processing pipeline emits.
+The S3 bucket with the final audio files will sit behind a CloudFront distribution to serve these large files quickly.
+
+Because we are using JWTs, a login session from the perspective of Cognito will be stored as a cookie on the user's browser so we don't need to reserve a place for it in our infrastructure.
 
 \subsubsection{GraphQL}
 
 This whole time we've been talking about the backend without concretely designing its function.
-Recall our data model.
-It's basically a bunch of objects sitting in a heirarchy where to root of the tree is the user:
-
-[Diagram here]
+Recall our data model; it's a bunch of objects sitting in a relational graph.
 
 Thus it is sensible to use GraphQL to expose our queries and mutations.
 GraphQL makes us define a resolver, basically a piece of code that connects the API to the data store.
@@ -856,16 +890,17 @@ When a user signs up or signs in, it is the resolver that will invoke Cognito to
 Our resolver knows where all the data is kept because we wire this information through environment variables in our IaC.
 
 AWS offers a serverless implementation of GraphQL called AppSync; this will work for our purposes.
-To tell AppSync about the API surface we want to support, we will write a GraphQL schema~\footnote{https://github.com/josephrubin/jongleur/blob/master/graphql/schema.graphql}.
+To tell AppSync about the API surface we want to support, we will write a GraphQL schema\footnote{https://github.com/josephrubin/jongleur/blob/master/graphql/schema.graphql}.
 Using a tool called \texttt{graphql-codegen} we'll generate TypeScript interfaces for all the types in our schema whenever we edit the file.
-This will help immensely when it comes to programming the frontend.
+This will help immensely when it comes to programming the frontend, because our React code will know exactly what fields to expect from the backend.
+
+This will also help in programming the backend resolver, because it is also written in TypeScript and as such will be able to know exactly what fields to expect from the data stores.
 
 \subsubsection{Audio}
 
 The other part to our backend is the audio processing pipeline which is also built from AWS Lambda.
 Here, every decision we make must keep in mind that audio files can be quite large, especially as we expect our users to upload practice recordings that are a few hours long.
 Because of this, we can't assume that our lambdas will be able to fit the entire file in memory at once.
-Let's tackle the problems one at a time.
 
 \isubsubsubsection{Uploading audio}
 
@@ -884,7 +919,7 @@ When an upload completes, S3 will generate an event to kick off the audio proces
 
 \isubsubsubsection{Processing audio}
 
-We do audio analysis on the backend using the Python library librosa.~\footnote{TODO}
+We'll do audio analysis on the backend using the Python library librosa.\footnote{TODO}
 We want to do this in a lambda, but this might take a while, so we want to let the user know something is happening.
 
 Let's pull another serverless tool out of our belt, the AWS Step Function.
@@ -892,7 +927,7 @@ A Step Function can run a sequence of tasks in series, gracefully catching error
 Our state machine will consist of three parts:
 
 First, record in DynamoDB that we are processing a new audio file.
-Second, do the actual processing.~\footnote{https://github.com/josephrubin/jongleur/blob/master/audio/process/main.py}
+Second, do the actual processing.\footnote{https://github.com/josephrubin/jongleur/blob/master/audio/process/main.py}
 Third, record that we are done (either succeefully or with an error).
 
 The actual processing will be done on the audio file in chunks because we can't load the entire thing at once.
@@ -900,18 +935,22 @@ We'll pull the entire file down from S3 into the lambda's temporary file system 
 
 The main thing we want to do is identify nonsilent intervals of music.
 Each block can be easily split on its own, but we'll have to implement a custom algorithm to merge the results of adjacent blocks.
+We won't go into depth on this here because that's not the point of this paper, but feel free to take a look at the code.
 
-Now that we have a list of pairs of frame indices representing intervals, we need to split the audio file and upload each chunk to an S3 bucket.
+Now that we have a list of pairs of frame indices representing intervals, we'll need to split the audio file and upload each chunk to an S3 bucket.
 Because each interval could ostensibly be as long as the entire audio file (if there is no silence at all), we have to assemble each audio chunk in blocks.
 Librosa can't do this, but luckily, we can use ffmpeg.
 
-As mentioned previously, our destination S3 bucket will be hooked up to CloudFront so our backend can return authenticated URLs to user audio content.
+As mentioned previously, our destination S3 bucket will be hooked up to CloudFront so our backend can return authenticated URLs to user audio content that streams to the user's device extremely quickly.
 
 \subsubsection{Web}
 
-The Remix web app contains frontend JavaScript and data loaders which technically run on the server and make requests to our GraphQL API.
-It's not super easily to pull out all of the server-side code and make lambdas out of them while hosting the frontend statically.
+The Remix web app contains frontend TypeScript and data loaders which technically run on the server and make requests to our GraphQL API.
+It's not super easy to pull out all of the server-side code and make lambdas out of them while hosting the frontend statically.
 Instead, we'll package the whole Remix app into a Docker image and run it on AWS Fargate, Amazon's serverless container engine.
+
+Because Fargate expects a container definition in order to deploy our app's tasks, uploading the code is just another part of the deployment pipeline.
+This is a big win for us because it means that no additional work needs to be done to start our app after the containers launch.
 
 \subsection{Implementation details}
 
@@ -926,29 +965,33 @@ For example, I have a script that runs the Remix app locally for development, bu
 \subsubsection{Challenges}
 
 A few challenges came up as I was completing the project.
-One of them was that the Python audio and data libraries were so large that they couldn't fit in a standard lambda so I had to create a Docker image that runs the lambda service and make a container Lambda out of it which is allowed to be bigger.
+One of them was that the Python audio and data libraries were so large that they couldn't fit in a standard lambda so I had to create a Docker image that runs the lambda service and make a container lambda out of it which is allowed to be larger.
 
-Another challenge was that S3 events can't actually trigger Step Functions directly so I had to create a small lambda to bridge the gap.
+Another challenge was that S3 events can't actually trigger Step Functions directly but rather only lambdas so I had to create a small lambda to bridge the gap.
+
+At the end of the day we have a fully fledged app that tailors itself to the user.
+
+\screenshot{jong-home-in}{The homepage when a user is logged in.}
 
 \subsubsection{Results}
 
 The result of the implementation is a project that is about 80\% TypeScript, 10\% Python, 10\% assorted utility languages; contains about 900 source lines of infrastructure code that synthesizes to over 3000 lines of CloudFormation and over 100 cloud resources; and contains over 6000 source lines of code total.
 
-The app can handle audio files of any size that I've thrown at it, and it does it relatively quickly.
+The app can handle audio files of any size that I've thrown at it, and it does so relatively quickly.
 
 There are some things lacking, though.
 For one, users are not able to add their own pieces to the platform; they must choose a piece that is already there under which to file their recording.
 
 For another, while GraphQL's ability to define structured queries that the client can use to retreive precisely the desired data is incredibly useful, it is not a free lunch.
 It is well known that GraphQL APIs can suffer from server-side overfetching and indeed Jongleur can be slow at times.
-I implemented some data caching to speed up the app, but caching in general is a hard problem in computer science.
+I implemented some data caching to speed up the app, but caching in general is a hard problem in computer science and I felt that my time was better spent developing the architecture to make a clean demonstration of software design for this report.
 
 The best part about Jongleur is that the infrastructure is all serverless.
 There are no bare EC2 instances or ECS containers running Jongleur code.
 That means we'll never have to worry about individual machines going down and we will be paying as little as possible when our application isn't being heavily used.
 
-All of the infrastructure is written as code in CDK which akes it reproducible and also easy to deploy.
-You can launch the full stack with one command.~\footnote{https://github.com/josephrubin/jongleur}
+All of the infrastructure is written as code in CDK which makes it reproducible and also easy to deploy.
+You can launch the full stack with one command.\footnote{https://github.com/josephrubin/jongleur}
 
 % Approach. %%%%
 
