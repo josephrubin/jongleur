@@ -17,6 +17,7 @@
 \usepackage{doi}
 \usepackage{arxiv}
 \usepackage{makecell}
+\usepackage{tcolorbox}
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric, arrows}
 \usepackage{setspace}
@@ -25,6 +26,15 @@
 \usepackage{makeidx}
 \usepackage{hyperref}
 \makeindex
+
+\tcbset{colframe=gray}
+
+% Make a box for interesting side information.
+\newcommand{\infobox}[2]{
+  \begin{tcolorbox}[width=\textwidth,colback={white},title={\strut\textbf{#1}},colbacktitle=blue!15,coltitle=black,boxrule=0.2pt,parbox=false]
+    #2
+  \end{tcolorbox}
+}
 
 % Format terms and optionally add to our index.
 \newcommand{\noterm}[1]{\textit{#1}}
@@ -244,7 +254,7 @@ What do we gain from hermeticity?
 By creating an environment that's consistent and airtight, a commit in your version control software becomes \textit{a complete and accurate account of the behavior of your software project at a single point in time}.
 If you write code later than introduces a bug, you will always be able to revert to a previous commit and expect the exact same (working) behavior that you had before, no exceptions.
 
-By the way, if merged commits automatically get deployed (see TODO: sec:CD) then commits are now not just a representation of your application's behavior but also a representation of exactly what your users are seeing.
+By the way, if merged commits automatically get deployed then commits are now not just a representation of your application's behavior but also a representation of exactly what your users are seeing. TODO: ref sec on CD
 That is pretty sweet because it means that you will be confident that any issue in production can be immediately remedied by rolling back to a previous version that your users were happy with.
 
 This only works if deploying an old version of your app doesn't cause loss of valuable state that's been built up as the program has been running.
@@ -269,35 +279,38 @@ For example, a website might track how many visitors it's gotten each day and di
 Since this value presents a meaningful (and potentially useful) datum, it's a valid use of state.
 
 But if the website keeps track of this number on the file system of the server it's running on, it would be in violation of the Rule of State:
-\imp{Rule of State}{Don't mix global application state with code. (bad phrasing)}
+\imp{Rule of State}{Don't put global application state on the same infrastructure as your code.}
 
 Just think about it this way.
-If you wanted to run your application on multiple servers\footnotemark{} you wouldn't be able to, because each server would be tracking a different value. \footnotetext{
-  Why would you want to run an application on multiple servers at once?
-  If this website was receiving too much traffic for the original server to handle, you might try to increase the CPU or memory of the machine.
-  This is called \term{vertical scaling}, and it is generally easy to do using a cloud provider.
-  However, at a certain point it will become prohibitively costly or impossible to grow the single instance any further.
-  Instead, consider \term{horizonal scaling}, the practice of deploying your app to multiple servers at once.
-  The benefits are huge:
-  You no longer have a single point of failure, so if a machine goes down, traffic can be transparantly directed to the others.
-  Your app can dynamically scale by automatically launching or terminating instances in response to load.
-}
+If you wanted to run your application on multiple servers you wouldn't be able to, because each server would be tracking a different value.
 Now users who connect to different servers will see a different number on the homepage.
 Instead, the website could read from and write to an external, atomic data store to manage this kind of usage data.
 A database is definitely a form of global application state, but it's acceptable in this instance because it is separated from the business logic and thus can be scaled independantly of the application runtime.
 This way, the Rule of State is not violated.
 
+\infobox{Horizonal scaling}{
+  Why would you want to run an application on multiple servers at once?
+  If this website was receiving too much traffic for the original server to handle, you might try to increase the CPU or memory of the machine.
+  This is called \term{vertical scaling}, and it is generally easy to do using a cloud provider.
+
+  However, at a certain point it will become prohibitively costly or impossible to grow the single instance any further.
+  Instead, consider \term{horizonal scaling}, the practice of deploying your app to multiple servers at once.
+
+  The benefits are huge:
+  You no longer have a single point of failure, so if a machine goes down, traffic can be transparantly directed to the others.
+  Your app can dynamically scale by automatically launching or terminating instances in response to load.
+}
+
 To summarize, the particular server that a user's session lives on should be functionally transparent to the user.
-(In section TODO \#, we take this to the extreme and discuss how to make the server transparant to the developer as well.)
-In general, any local state should be ephemeral.
-It's hard to back up and state that's kept on the same machine as your application code, but that's okay if the data isn't all that important.
+(In section \ref{sec:serverless}, we take this to the extreme and discuss how to make the server transparant to the developer as well.)
 
-TODO:
-This way, 
-However, there \textit{are} times (when the user can't percieve a fucntional difference) where local state is acceptable.
-Talk about cache
+And in general, any local state should be ephemeral.
+It's hard to back up state that's kept on the same machine as your application code, but that's okay if the data isn't all that important.
 
-This is why we don't use sqlite !! (well actually we can use it for caching)
+However, there \textit{are} times (when the user can't percieve a functional difference) where local state is acceptable.
+For example, if each server running your code builds up a local cache of data in its filesystem to speed up transactions, the user will only ever be positively impacted by this use of state.
+It's okay for each server to have a different cache; the cache does not affect the behavior of the code, only its performance.
+And if one of the servers gets terminated, no important information was lost.
 
 \section{Infrastructure-as-Code}
 \label{IAC}
@@ -408,8 +421,14 @@ My recommendation is to have a single deploy script that takes the name of the e
 Its output should be the addresses of the resources that were actually deployed (whether on a public or private network).
 This makes it really easy to integrate automatic end-to-end tests into your development pipeline.
 Simply have your test runner deploy your app to a test environment, run tests on it, then clean up.
-Congratulations, you've just tested a complete version of your app, exactly like your users will see it.\footnote{
-  If you have many developers running tests at the same time, you'll want to assign each test deployment a unique ID and scale down the resources for each deployment to save costs, especially if your tests take a long time to run.
+Congratulations, you've just tested a complete version of your app, exactly like your users will see it.
+
+\infobox{More on remote tests}{
+  If you have many developers running tests at the same time (or an automated system running your test suite on multiple commits at once), it won't be enough to just have a single test environment.
+
+  It's best to have mutiple completely separate test environments, but this may get expensive if tests are constantly running.
+
+  You may need to scale down the resources for each deployment to save costs, especially if your tests take a long time to run.
   But remember that every change you make will set your test enviroment apart from production so do so sparingly.
 }
 
@@ -734,7 +753,44 @@ With only a few users, the entire AWS side of things is nearly free.
 
 I use Marcus all the time to create lists because it is extremely fast and convenient and I encourage anybody who is interested in learning how to write cloud software to fork the project and start writing Marcus commands of their own.
 
+TODO: infra diagram
+
+\section{Traxler}
+
+A small note on interfaces.
+The Marcus project interfaces with the user through SMS.
+This means that you can talk to Marcus through the messages app on your phone.
+
+Many cloud applications are web apps which interface with the user through their browser.
+To make an app for the browser, there are two main paths.
+
+The first is to have a server generate HTML files upon request and return them to the user.
+This is called server side rendering (SSR) and should be familiar from the days of PHP.
+Below we'll discuss Jongleur which uses this approach.
+
+The second is to host static files that are served as-is to the user.
+Those files can have JavaScript in them that pull down dynamic data at runtime, but this is different from SSR which injects the data into the page before the client sees it.
+Static files can be served from a CDN at the speed of sound.
+
+This development practice is often called Jamstack\footnote{https://jamstack.org/} by believers.
+The limitations of throwing away your server are made up for by a simpler hosting strategy.
+As long as you make uploading your static content part of your deployment pipeline, you'll have an easy time developing and updating your app.
+It also makes it easy to launch a hermetic version of your app that you can run tests against.
+This is the approach used by Traxler\footnote{https://github.com/josephrubin/traxler}, a defunct directory for Princeton students that I wrote two years ago.
+
+\index{Continuous delivery}
+\infobox{Continuous delivery}{
+  Why all the focus on easy deployments and Hermetic Servers?
+  
+  When your application can be thoroughly tested in a consistent manner, you enable short development loops and Continuous Delivery (CD).
+  CD is the practice of giving your app's users regular cuts from your main branch without having to worry about things breaking.
+
+  To make this possible, merged commits should trigger a full build and a suite of automated tests.
+  If the tests pass, you should have the ability to tell the system to run a full deployment without manual intervention.
+}
+
 \section{Jongleur}
+\label{JONG}
 
 Now I present the main object of study in this report: Jongleur.
 
@@ -993,13 +1049,9 @@ That means we'll never have to worry about individual machines going down and we
 All of the infrastructure is written as code in CDK which makes it reproducible and also easy to deploy.
 You can launch the full stack with one command.\footnote{https://github.com/josephrubin/jongleur}
 
-% Approach. %%%%
-
-\section{Evaluation}
-\subsection{Metrics}
-\subsection{Data}
 \subsection{Conclusions}
-\subsection{Future Work}
+
+TODO: conclusions here.
 
 \section{Acknowledgements}
 
