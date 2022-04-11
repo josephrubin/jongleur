@@ -14,7 +14,7 @@ In production, the real endpoint is available through the env var.
 In development, we'll have to hardcode the URL if it ever changes. */
 const GRAPHQL_ENDPOINT =
   process.env.JONG_GRAPHQL_URL
-  || "https://xvjyccqrpbdcjj3wsop4mg7ode.appsync-api.us-east-1.amazonaws.com/graphql";
+  || "https://gzicusij7vgi5jrgn2pkmljmqi.appsync-api.us-east-1.amazonaws.com/graphql";
 console.log(`Creating GraphQL module and attaching to endpoint: ${GRAPHQL_ENDPOINT}`);
 
 const graphqlClient = new GraphQLClient(GRAPHQL_ENDPOINT, {

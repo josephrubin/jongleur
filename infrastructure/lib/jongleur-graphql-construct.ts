@@ -1,7 +1,6 @@
 import { Construct } from "constructs";
 import {
   Duration,
-  Expiration,
   aws_cognito as cognito,
   aws_iam as iam
 } from "aws-cdk-lib";
@@ -33,6 +32,25 @@ export class JongleurGraphqlConstruct extends Construct {
     super(scope, id);
 
     // ------------------------------------------------------------------------
+    // Authorizer.
+    // ------------------------------------------------------------------------
+
+    // Use lambda authorization. See the lambda code for more details on this choice.
+    const graphqlApiAuthorizer = makeNodejsLambda(this, "JongleurGraphqlApiAuthorizer", {
+      entry: "graphql/authorizer.ts",
+      description: "Jongleur - authorization for our GraphQL API.",
+      timeout: Duration.seconds(1),
+    });
+
+    // The lambda authorizer must be able to assume the AppSync service principal.
+    // Nowhere is it documented how to do this, but after much trial and error I
+    // have figured out the following addPermission declaration.
+    graphqlApiAuthorizer.addPermission("AppSyncServicePrincipalPermission", {
+      principal: new iam.ServicePrincipal("appsync.amazonaws.com"),
+      action: "lambda:InvokeFunction",
+    });
+
+    // ------------------------------------------------------------------------
     // Interface.
     // ------------------------------------------------------------------------
 
@@ -43,15 +61,10 @@ export class JongleurGraphqlConstruct extends Construct {
       // having a schema file allows us to use graphql tooling throughout our project.
       schema: appsync.Schema.fromAsset(props.graphqlSchemaFile),
       authorizationConfig: {
-        // Use lambda authorization. See the lambda code for more details on this choice.
         defaultAuthorization: {
           authorizationType: appsync.AuthorizationType.LAMBDA,
           lambdaAuthorizerConfig: {
-            handler: makeNodejsLambda(this, "JongleurGraphqlApiAuthorizer", {
-              entry: "graphql/authorizer.ts",
-              description: "Jongleur - authorization for our GraphQL API.",
-              timeout: Duration.seconds(1),
-            }),
+            handler: graphqlApiAuthorizer,
             resultsCacheTtl: Duration.minutes(10),
           },
         },
