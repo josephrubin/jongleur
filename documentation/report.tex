@@ -119,7 +119,7 @@ And it's not only about taking care to make each line just right; it's important
 A well written algorithm will be torn out and replaced if that algorithm isn't important to the system.
 If a part of your program reads from a database, writes files to a storage bucket, or spins up servers, you'll have to rip out all the code that interfaces with or runs on that infrastructure if you realize later down the line that your approach was misguided or you've chosen the wrong architecture.
 
-It's no wonder that the software development lifecycle consists heavily of planning, analysing, and designing.
+It's no wonder that the software development lifecycle consists heavily of planning, analyzing, and designing.
 
 \begin{figure}[h]
   \centering
@@ -144,7 +144,7 @@ It's no wonder that the software development lifecycle consists heavily of plann
   \label{fig:sdl}
 \end{figure}
 
-Thus is seems prudent to focus on these phases, the output of which is your \term{architecture}, a high-level description of all the components of your software, such as modules of code and cloud resources, and the mechanisms by which they interact with each other.
+Thus, is seems prudent to focus on these phases, the output of which is your \term{architecture}, a high-level description of all the components of your software, such as modules of code and cloud resources, and the mechanisms by which they interact with each other.
 
 This thesis contains the knowledge I've gained as a result of researching, designing, and writing cloud software.
 In section XXX, there is XXX, YYY YYY TODO
@@ -233,18 +233,18 @@ If the test needs to make a request over the public internet, for example, any n
 And if the data that comes back from the request isn't generated from scratch at the beginning of the test, you can't be sure that the test will execute the same way every time.
 Of course, tests which rely on pseudorandom number generation will also be prone to flakiness unless you fix the seed at the beginning of testing.
 
-One way to make sure that code always works the same way every time is the so-called \term{Hermetic Server}.~\cite{google-hermetic-servers}
+One way to make sure that code always works the same way every time is the so-called \term{hermetic server}.~\cite{google-hermetic-servers}
 Picture a sealed application environment running your binary without any uncontrolled access to the outside world.
 The addresses of any network connections that the system needs are hardwired into the server's environment when it's deployed, and any required data is mocked locally.\footnote{
   We'll stray a little from the definition given in the reference here and allow hardwired addresses to databases too, as long as the database is populated deterministically at deploy time or as a result of automated tests that run the same way every time.
 }
-Once you have a Hermetic Server, it should be easy to run automated tests against it that behave \term{consistently}.
-But how can we create a Hermetic Server whenever we want to run our tests?
+Once you have a hermetic server, it should be easy to run automated tests against it that behave \term{consistently}.
+But how can we create a hermetic server whenever we want to run our tests?
 
 Since deploying our application generally involves (1) building our program from the source repository and (2) running our program on its intended infrastructure, the best way to produce a predictable system is to have everything that could possibly affect the deployment residing in the repository.
 Of course, all of your source code will be there, but all of the packages and libraries you depend on should be too (or at the very least a detailed list of each package and exactly which version you need so that they can be retrieved when the program is being built).
 Additionally, for cloud apps, every resource that the system is comprised of should be detailed in the repository.
-This is the meaning of \term{Infrastructure as Code}, discussed in \ref{sec:IAC}.
+This is the meaning of \term{Infrastructure as code}, discussed in \ref{sec:IAC}.
 Furthermore, the test files themselves should be kept in version control alongside the source code.
 
 What do we gain from hermeticity?
@@ -312,7 +312,7 @@ And if one of the servers gets terminated, no important information was lost.
 \section{Infrastructure-as-Code}
 \label{IAC}
 
-Megillas have been written about this topic~\cite{iac-book}, so what makes this section worth reading?
+Megillahs have been written about this topic~\cite{iac-book}, so what makes this section worth reading?
 Well this report is being written in 2022 while the above book came out at the end of 2020.
 That doesn't seem like a big difference, but things move \textit{fast} in cloud computing.
 AWS CDK, the IaC tool we'll discuss in the most depth, only became generally available in 2019~\cite{cdk-1} and CDK v2 only hit general availability at the end of 2021.~\cite{cdk-2}
@@ -360,7 +360,7 @@ resource "aws_instance" "app_server" {
 \end{verbatim}~\cite{terraform-example}
 
 Each resource is \textit{declared} along with its configuration arguments and Terraform figures out how to deploy your infrastructure when you tell it to.
-Also using a DSL means you have to learn a new language, the resultant code is much clearer than the equivalent JSON or YAML.
+Although using a DSL means you have to learn a new language, the resultant code is much clearer than the equivalent JSON or YAML.
 
 The last option is an IaC framework for an imperative language.
 The framework provides a library of classes and functions for describing infrastructure in a familiar language like TypeScript, Python, or Java, and tools to turn your code into a representation template that is read by a classical IaC system like CloudFormation.
@@ -391,7 +391,7 @@ Using a general-purpose language has many advantages:
   \item Control-flow statements are useful when templating infrastructure because they allow you to specify complex behavior with fewer lines of code.
   \item You can write your IaC in the same language as your application's source code; doing so allows you to share types, constants, and utilities easily, eliminating lots of bugs.
   \item The software engineer takes back control of their own infrastructure from the sysadmins by writing in a language they are already familiar with.
-    After all, the developer is the expert in their application; not the system administrator.
+    After all, the developer is the expert in their application, not the system administrator.
 \end{enumerate}
 
 Well-written IaC frameworks for imperative languages do not miss out on the advantages of DSLs because \textit{when the type system is good enough, the construct library and your text editor's autocomplete becomes your DSL.}
@@ -402,7 +402,7 @@ Consider IaC frameworks like CDK to be in the same boat.
 
 And how much time do we save by writing our infrastructure using CDK vs CloudFormation?
 Turns out, quite a lot.
-We'll later consider a project called Marcus whose CDK code is only 80 lines long but which synthesizes to a CloudFormation template that's 450 lines long.
+We'll later consider a project called Marcus whose CDK code is only 80 lines long, but which synthesizes to a CloudFormation template that's 450 lines long.
 It's a good thing when you only have to maintain less than 20\% of the code!
 
 \subsection{Save the environment}
@@ -442,7 +442,7 @@ This interfacing between hardware isn't just convenient; it is a crucial to esta
 \section{Heavy metal}
 
 Back when applications ran on servers you bought directly from Dell~\cite{joel-dell} and the first hire you needed to set up such a system was a sysadmin, it was difficult to create production-scale software with multiple components that was available to everyone on the internet.
-Nevertheless people persevered, until the 2000s when the launch of AWS brought IaaS, and most importantly, virtual servers-for-rent, into the hands of anyone who could figure out how to use it.
+Nevertheless, people persevered, until the 2000s when the launch of AWS brought IaaS, and most importantly, virtual servers-for-rent, into the hands of anyone who could figure out how to use it.
 AWS's product Elastic Compute Cloud (EC2)~\cite{ec2} offers (to this day) virtual compute instances that can be launched, programmed, and terminated at the click of a button.
 
 Here's how development on EC2 might go.
@@ -659,7 +659,7 @@ const lambdaHandler: SmsLambdaHandler = async (event) => {
 };
 \end{verbatim}
 
-where \texttt{lexTokens}, \texttt{parseCommand}, and each command's \texttt{execute} function are defined elsewhere.
+where \texttt{lexTokens}, \texttt{parseCommand}, and each command's \texttt{execute} function is defined elsewhere.
 
 As you can see, the code for Marcus isn't very complex, and all commands can be handled by a single lambda handler, so there's really no need to launch a server or run a managed container.
 What we want is a function running in the cloud and that's exactly what we get.
@@ -776,7 +776,7 @@ This is the approach used by Traxler~\cite{traxler}, a defunct directory for Pri
 
 \index{Continuous delivery}
 \infobox{Continuous delivery}{
-  Why all the focus on easy deployments and Hermetic Servers?
+  Why all the focus on easy deployments and hermetic servers?
   
   When your application can be thoroughly tested in a consistent manner, you enable short development loops and Continuous Delivery (CD).
   CD is the practice of giving your app's users regular cuts from your main branch without having to worry about things breaking.
@@ -830,7 +830,6 @@ The backend consists of four main components:
 How would we scope out and design this app?
 
 \subsection{Features}
-textit
 First, consider the features we want to support.
 
 \subsubsection{User accounts}
@@ -844,7 +843,7 @@ Our frontend must be able to pull customized data about the current user and dis
 \subsubsection{Practice pieces}
 
 The app should show a list of pieces that a user can practice.
-Selecting a piece should show the user all of the practice sessions they've already had for that piece on a timeline.
+Selecting a piece should show the user all the practice sessions they've already had for that piece on a timeline.
 Selecting a session should show the practice recording's waveform along with some information such as the tempo of the recording.
 
 \subsubsection{Audio playback}
@@ -854,7 +853,7 @@ Each segment should display in a different color and clicking on a segment shoul
 
 \subsubsection{Your stats}
 
-Each user should be able to see an overview of the pieces they've practiced and they should be able to click on each one to view a list of all the practice recordings they've uploaded.
+Each user should be able to see an overview of the pieces they've practiced, and they should be able to click on each one to view a list of all the practice recordings they've uploaded.
 The user should also have access to aggregated stats about their total practice time.
 
 \screenshot{jong-stats}{On their stats page, a user sees a list of their favorite pieces to practice and the total amount of practice that they've completed.}
@@ -867,10 +866,10 @@ But because we are using AWS CDK, we'll be able to manage it all quite nicely.\f
 
 \subsubsection{Auth}
 
-AWS's serverless identity management offering is Cognito; its abundant configuration options makes it somewhat difficult to understand but it makes up for this by being extremely useful.
+AWS's serverless identity management offering is Cognito; its abundant configuration options make it somewhat difficult to understand but it makes up for this by being extremely useful.
 We'll use a Cognito user pool configured to allow admin actions (such as creating and verifying users) only from our backend.
 
-Cognito allows the developer to store most user data in the user pool but we'll store it with the rest of our data to make it easier for us to pull it all down together to the frontend.
+Cognito allows the developer to store most user data in the user pool, but we'll store it with the rest of our data to make it easier for us to pull it all down together to the frontend.
 
 When a user signs in, we'll have Cognito generate an access token (in the form of a JSON Web Token) that they'll use to make authenticated requests.
 They'll also get a refresh token which allows the user to request a new access token when theirs expires.
@@ -908,7 +907,7 @@ When a user uploads an audio recording, we'll create a Practice and file it unde
 
 Each Practice will store some metadata and a scaled-down version of the original waveform to be displayed on the frontend as a series of amplitudes.
 A Practice will be made up of a number of Segments, calculated in advance during the audio processing pipeline.
-Segments will contain their portion of the waveform and a link to a presliced audio sample from the original recording.
+Segments will contain their portion of the waveform and a link to a pre-sliced audio sample from the original recording.
 
 All the data that we want to store in our backend needs to go into a database of some sort.
 We could go with a classical relational database, but this will be overkill as we won't be doing any complicated JOINs when we query data.
@@ -930,12 +929,12 @@ Because we are using JWTs, a login session from the perspective of Cognito will 
 This whole time we've been talking about the backend without concretely designing its function.
 Recall our data model; it's a bunch of objects sitting in a relational graph.
 
-Thus it is sensible to use GraphQL to expose our queries and mutations.
+Thus, it is sensible to use GraphQL to expose our queries and mutations.
 GraphQL makes us define a resolver, basically a piece of code that connects the API to the data store.
 This is a great time to use our old friend, AWS Lambda.
 
 Our lambda will take as input the object and field that we're trying to resolve and, respecting the current user session, retrieve from or update the database.
-Thus this resolver will contain the majority of our backend code.
+Thus, this resolver will contain the majority of our backend code.
 
 When a user signs up or signs in, it is the resolver that will invoke Cognito to take the appropriate action.
 
@@ -946,7 +945,7 @@ To tell AppSync about the API surface we want to support, we will write a GraphQ
 Using a tool called \texttt{graphql-codegen} we'll generate TypeScript interfaces for all the types in our schema whenever we edit the file.
 This will help immensely when it comes to programming the frontend, because our React code will know exactly what fields to expect from the backend.
 
-This will also help in programming the backend resolver, because it is also written in TypeScript and as such will be able to know exactly what fields to expect from the data stores.
+This will also help in programming the backend resolver because it is also written in TypeScript and as such will be able to know exactly what fields to expect from the data stores.
 
 \subsubsection{Audio}
 
@@ -1036,13 +1035,13 @@ For one, users are not able to add their own pieces to the platform; they must c
 
 For another, while GraphQL's ability to define structured queries that the client can use to retrieve precisely the desired data is incredibly useful, it is not a free lunch.
 It is well known that GraphQL APIs can suffer from server-side over-fetching and indeed Jongleur can be slow at times.
-I implemented some data caching to speed up the app, but caching in general is a hard problem in computer science and I felt that my time was better spent developing the architecture to make a clean demonstration of software design for this report.
+I implemented some data caching to speed up the app but caching in general is a hard problem in computer science and I felt that my time was better spent developing the architecture to make a clean demonstration of software design for this report.
 
 The best part about Jongleur is that the infrastructure is all serverless.
 There are no bare EC2 instances or ECS containers running Jongleur code.
 That means we'll never have to worry about individual machines going down and we will be paying as little as possible when our application isn't being heavily used.
 
-All of the infrastructure is written as code in CDK which makes it reproducible and also easy to deploy.
+All the infrastructure is written as code in CDK which makes it reproducible and also easy to deploy.
 You can launch the full stack with one command.~\cite{jongleur}
 
 \screenshot{jong-infra}{Infrastructure diagram for Jongleur. In the interest of clarity, I've included only the most important components of each layer and have abstractly represented the inter-layer dependencies.}
@@ -1076,6 +1075,11 @@ Signed, /Joseph Rubin/.
 \printindex
 
 \section{Appendix}
+
+\screenshot{jong-home-out}{The Jongleur homepage when not logged in.}
+\screenshot{jong-signin}{The Jongleur page for signing in.}
+\screenshot{marcus-demo}{Sample interaction with Marcus.}
+\screenshot{traxler-home}{The Traxler homepage.}
 
 TODO: any additional screenshots.
 jong and marcus and traxler.
