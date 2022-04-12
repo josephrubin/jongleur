@@ -65,6 +65,14 @@
   \end{figure}
 }
 
+\newcommand{\screenshottwo}[2]{
+  \begin{figure}[h]
+    \centering
+    \includegraphics[width=0.6\textwidth]{#1}
+    \caption*{#2}
+  \end{figure}
+}
+
 \begin{document}
 
 \title{Cloud Enlightenment}
@@ -86,7 +94,7 @@
   This thesis provides the answer.
   This is a report in software design, and more specifically, in architecting cloud applications.
   First we develop key ideas by examining the current cloud landscape and then we practice our method by building and examining a number of applications.
-  Of particular note is Jongleur, a web application for musicians that ingests and catalogs audio recordings, but we approach this capstone project by working our way through an assortment of interesting cloud apps.
+  Of particular note is Jongleur, a web application for musicians that ingests and catalogs audio recordings, but we approach this capstone project by working our way through a couple of interesting cloud apps.
 \end{abstract}
 
 \newpage
@@ -147,42 +155,10 @@ It's no wonder that the software development lifecycle consists heavily of plann
 Thus, is seems prudent to focus on these phases, the output of which is your \term{architecture}, a high-level description of all the components of your software, such as modules of code and cloud resources, and the mechanisms by which they interact with each other.
 
 This thesis contains the knowledge I've gained as a result of researching, designing, and writing cloud software.
-In section XXX, there is XXX, YYY YYY TODO
-
-\section{Things we will discuss}
-
-TODO: merge this section up with the end of the Introduction.
-
-Toy example: Marcus
-
-Example: Traxler
-
-Example: Blodkorv
-
-Example: Agora
-
-Main example: Jongleur
-
-\subsection{What this is not}
-
-Before going further let's discuss what \textit{won't} be covered.
-
-Not about research into reducing cold starts.
-
-Not about SNS and SQS.
-
-Not specifically about FaaS.
-
-But also not about other aaS models.
-
-It's also not about the benefits of Serverless from an operational point of view.
-E.g. we aren't going to talk about reduced need for monitoring.
-In fact you probably still need to monitor the system as a whole even if not the lambda.
-Or maybe the lambda too... what if some VPC changes and the lambda no longer works?
-
-This is also not a report about testing or test-driven-development.
+In section 2, we'll propose a list of design principals for architecting cloud software, in sections 3 through 9 we'll explore those patterns, and in sections 10 through 12 we'll apply them to real projects.
 
 \section{Applications that scale}
+\label{scale}
 
 All it takes to build custom software is computer access and some programming knowledge.
 But to build \textit{good} software, now that takes the right tools!
@@ -217,14 +193,16 @@ In this report, we'll examine four key properties of successful software develop
   \item Infrastructure as code
   \item Serverlessness
 \end{enumerate}
-Later, to demonstrate each one, we'll look at \# example applications that display these finer details of software development.
+Later, to demonstrate each one, we'll look at three example applications that display these finer details of software development.
 
 \section{Do your best, then do it again!}
 
 Projects that succeed must succeed over and over again.
 The \textit{worst} kind of software to work on is one where things sometimes work and sometimes fail.
 We usually write test cases to ensure that our code works, but this isn't enough by itself.
-Consider that Google has a team dedicated to understanding and monitoring flaky tests~\cite{google-flaky-blog} (tests which behave inconsistently even when the code doesn't change) and they've written extensively about their research into detecting the causes of flakiness.~\cite{google-deflake}
+Sometimes the tests we write turn out to be flaky, meaning that they behave inconsistently even when the code doesn't change.
+Flakiness is a big deal!
+Consider that Google has a team dedicated to understanding and monitoring flaky tests~\cite{google-flaky-blog} and they've written extensively about their research into detecting the causes of flakiness.~\cite{google-deflake}
 Almost unbelievably, in 2018 Google spent "between 2 and 16\% of [their] compute resources re-running flaky tests."~\cite{google-testing}
 
 Why do tests flake?
@@ -244,18 +222,18 @@ But how can we create a hermetic server whenever we want to run our tests?
 Since deploying our application generally involves (1) building our program from the source repository and (2) running our program on its intended infrastructure, the best way to produce a predictable system is to have everything that could possibly affect the deployment residing in the repository.
 Of course, all of your source code will be there, but all of the packages and libraries you depend on should be too (or at the very least a detailed list of each package and exactly which version you need so that they can be retrieved when the program is being built).
 Additionally, for cloud apps, every resource that the system is comprised of should be detailed in the repository.
-This is the meaning of \term{Infrastructure as code}, discussed in \ref{sec:IAC}.
+This is the meaning of \term{infrastructure as code}, discussed in section 5.
 Furthermore, the test files themselves should be kept in version control alongside the source code.
 
 What do we gain from hermeticity?
 By creating an environment that's consistent and airtight, a commit in your version control software becomes \textit{a complete and accurate account of the behavior of your software project at a single point in time}.
-If you write code later than introduces a bug, you will always be able to revert to a previous commit and expect the exact same (working) behavior that you had before, no exceptions.
+If you write code later that introduces a bug, you will always be able to revert to a previous commit and expect the exact same (working) behavior that you had before, no exceptions.
 
 By the way, if merged commits automatically get deployed then commits are now not just a representation of your application's behavior but also a representation of exactly what your users are seeing. \ref{sec:CD}
 That is pretty sweet because it means that you will be confident that any issue in production can be immediately remedied by rolling back to a previous version that your users were happy with.
 
-This only works if deploying an old version of your app doesn't cause loss of valuable state that's been built up as the program has been running.
-So it's time to\ldots.
+But this only works if deploying an old version of your app doesn't cause loss of valuable state that's been built up as the program has been running.
+If you can limit the influence of state on your app, there won't be an issue.
 
 \section{Remove state!}
 
@@ -294,20 +272,19 @@ This way, the Rule of State is not violated.
   Instead, consider \term{horizontal scaling}, the practice of deploying your app to multiple servers at once.
 
   The benefits are huge:
-  You no longer have a single point of failure, so if a machine goes down, traffic can be transparently directed to the others.
-  Your app can dynamically scale by automatically launching or terminating instances in response to load.
+  You no longer have a single point of failure, so if a machine goes down, traffic can be transparently directed to others.
+  Also, your app can dynamically scale by automatically launching or terminating instances in response to load.
 }
 
 To summarize, the particular server that a user's session lives on should be functionally transparent to the user.
-(In section \ref{sec:serverless}, we take this to the extreme and discuss how to make the server transparent to the developer as well.)
-
-And in general, any local state should be ephemeral.
-It's hard to back up state that's kept on the same machine as your application code, but that's okay if the data isn't all that important.
+(In section 7, we take this to the extreme and discuss how to make the server transparent to the developer as well.)
 
 However, there \textit{are} times (when the user can't perceive a functional difference) where local state is acceptable.
 For example, if each server running your code builds up a local cache of data in its filesystem to speed up transactions, the user will only ever be positively impacted by this use of state.
 It's okay for each server to have a different cache; the cache does not affect the behavior of the code, only its performance.
 And if one of the servers gets terminated, no important information was lost.
+
+So in general, any local state that you keep should be ephemeral; it's hard to back up state that's kept on the same machine as your application code, but that's okay if the data doesn't need to be backed up.
 
 \section{Infrastructure-as-Code}
 \label{IAC}
@@ -417,14 +394,14 @@ My recommendation is to have a single deploy script that takes the name of the e
 Its output should be the addresses of the resources that were actually deployed (whether on a public or private network).
 This makes it really easy to integrate automatic end-to-end tests into your development pipeline.
 Simply have your test runner deploy your app to a test environment, run tests on it, then clean up.
-Congratulations, you've just tested a complete version of your app, exactly like your users will see it.
+You've just tested a complete version of your app, exactly like your users will see it.
 
 \infobox{More on remote tests}{
   If you have many developers running tests at the same time (or an automated system running your test suite on multiple commits at once), it won't be enough to just have a single test environment.
 
   It's best to have multiple completely separate test environments, but this may get expensive if tests are constantly running.
 
-  You may need to scale down the resources for each deployment to save costs, especially if your tests take a long time to run.
+  You may need to scale down the resources for each test deployment to save costs, especially if your tests take a long time to run.
   But remember that every change you make will set your test environment apart from production so do so sparingly.
 }
 
@@ -480,7 +457,7 @@ The server doesn't appear to be working, but after a while they realize that the
 Now everything is set.
 
 Well, there's no plan in place for deploying new versions of the backend, or for recovering the application should the server fail, so if they're smart they'll use IaC to make it really easy to at least redeploy the infrastructure.
-As for the code itself, they'll have to find another way to get the code up and running automatically during deployment if they want to have a really tight development and iteration pipeline.
+As for the code itself, they'll have to find a way to get the code up and running automatically during deployment if they want to have a really tight development and iteration pipeline.
 
 What about scaling in response to load?
 If this app goes viral the volume of requests to the backend may bring the system to its knees.
@@ -493,7 +470,7 @@ To use ELB they'll need to set up a target group, an autoscaling group, configur
 But wait!
 This is getting out of hand!
 
-The develop just wanted to expose some functions over the internet.
+The developer just wanted to expose some functions over the internet.
 To do that, they encapsulated the routes in a "server" using Flask, then used EC2 to host the server (though of course little more than the server's intermittent computing power and network connectivity was needed), then set up a whole bunch of infrastructure to replicate the code across servers and direct user requests.
 
 This seems like a lot of trouble for something so ubiquitous as a web API!
@@ -532,15 +509,16 @@ Now stateless is certainly a spectrum.
 An application riddled with global variables has more persistent state than one that acts mostly as a pure function with the exception of occasional trips to an external database to save some data.
 
 But FaaS products like AWS Lambda are not really stateless.
-Not just because lambdas can read and write external storage, but also because individual invocations are not completely isolated.
+Not just because Lambdas can read and write external storage, but also because individual invocations are not completely isolated.
 Lambdas can keep state both in their local memory and in their temporary filesystem.
 Why isn't local memory wiped between invocations?
-Because in practice this would lead to too many \term{cold starts}, users waiting a long time because the lambdas they are trying to invoke are booting up.
+Because in practice this would lead to too many \term{cold starts}, users waiting a long time because the Lambdas they are trying to invoke are booting up.
 
 Another type of serverless computing, serverless compute containers (such as those offered by AWS Fargate~\cite{fargate}) are clearly not stateless.
 Much like with any containerized application, you can keep state however you want; the difference is that Fargate does not make you choose an instance type to run your containers on.
 
-(And of course actual servers are sometimes stateless too\ldots.~\cite{xkcd-1})
+So while serverless applications \textit{may} forgo state and probably \textit{should} in many instances, it is not a guarantee.
+On the other hand, it's entirely possible for serverful applications to be stateless.~\cite{xkcd-1}
 
 \section{What we've learned}
 
@@ -562,7 +540,7 @@ For example:
   \item Set an alarm.
 \end{enumerate}
 
-Anywhere you might use your phone's voice assistant ("add an event/reminder to my calendar today at 6PM") you might wish to do with Marcus instead.
+Anywhere you might use your phone's voice assistant ("add an event/reminder to my calendar today at 6PM") you might wish to use Marcus instead.
 Marcus is faster to use than Siri or Google Assistant and there's no risk of your voice being misunderstood.
 I like to think of Marcus as the command line for your phone.
 
@@ -612,8 +590,8 @@ AWS Lambda will suit us well.
 Our architecture will thus consist of:
 
 \begin{enumerate}
-  \item A lambda to resolve SMS "queries" and return SMS "responses."
-  \item An API Gateway to expose the lambda through a public HTTP endpoint. This is not strictly necessary anymore as lambdas now support the assignment of function URLs directly. This feature just came out five days ago! But we'll stick with the old way for the time being.
+  \item A Lambda to resolve SMS "queries" and return SMS "responses."
+  \item An API Gateway to expose the Lambda through a public HTTP endpoint. This is not strictly necessary anymore as Lambdas now support the assignment of function URLs directly. This feature just came out five days ago! But we'll stick with the old way for the time being.
   \item Whatever else we need to store persistent data.
     For example, to implement the List application from above, we may want an object bucket to store the lists as files.
 \end{enumerate}
@@ -623,9 +601,9 @@ Compare this approach to one which does not use FaaS.
 To launch your desired application logic (a single function which transforms input text messages to output text messages) you would need to launch an entire, say, Flask application on a server, or at the very least put your application inside a container and use a container orchestration service.
 It would be much more expensive because you will be paying even when your function is not running, but even more importantly, it would be much more difficult to deploy and test.
 This is because the more infrastructure that you manage yourself, the more time it takes to configure your app.
-Furthermore, since lambda scales in response to load automatically, you don't even need to think about your app throttling.
+Furthermore, since Lambda scales in response to load automatically, you don't need to think about your app throttling.
 
-Now we consider what needs to go into this lambda.
+Now we consider what needs to go into this Lambda.
 Modulo some error checking and details of the Twilio API, the code boils down to:
 
 \begin{verbatim}
@@ -661,7 +639,7 @@ const lambdaHandler: SmsLambdaHandler = async (event) => {
 
 where \texttt{lexTokens}, \texttt{parseCommand}, and each command's \texttt{execute} function is defined elsewhere.
 
-As you can see, the code for Marcus isn't very complex, and all commands can be handled by a single lambda handler, so there's really no need to launch a server or run a managed container.
+As you can see, the code for Marcus isn't very complex, and all commands can be handled by a single Lambda handler, so there's really no need to launch a server or run a managed container.
 What we want is a function running in the cloud and that's exactly what we get.
 
 As you've guessed by now, we'll encode the infrastructure using IaC.
@@ -712,9 +690,9 @@ First, we create an S3 bucket to store the lists for the List program.
 By storing on the cloud, multiple users of Marcus can interact with the same lists.
 Of course, we can add access controls if we don't want lists to always be public.
 
-Second, we create the TypeScript lambda to resolve the SMS queries.
-Notice how we pass environment variables into the lambda function.
-This is how we "connect" the lambda to the S3 bucket and tell the lambda who is approved to use Marcus.
+Second, we create a TypeScript Lambda to resolve SMS queries.
+Notice how we pass environment variables into the Lambda function.
+This is how we "connect" the Lambda to the S3 bucket and tell the Lambda who is approved to use Marcus.
 Since \texttt{userPhoneNumbersFileName} refers to a text file in the repository, the data we are injecting here is completely controlled by the version control commit.
 
 Third, we expose our Lambda to the internet through an API Gateway whose single HTTP POST endpoint "/receiveSms" will be given to Twilio as the webhook.
@@ -757,12 +735,12 @@ A small note on interfaces.
 The Marcus project interfaces with the user through SMS.
 This means that you can talk to Marcus through the messages app on your phone.
 
-Many cloud applications are web apps which interface with the user through their browser.
+Many cloud applications are web apps which interface with the user through the browser.
 To make an app for the browser, there are two main paths.
 
 The first is to have a server generate HTML files upon request and return them to the user.
 This is called server side rendering (SSR) and should be familiar from the days of PHP.
-Below we'll discuss Jongleur which uses this approach.
+Later we'll discuss Jongleur which uses this approach.
 
 The second is to host static files that are served as-is to the user.
 Those files can have JavaScript in them that pull down dynamic data at runtime, but this is different from SSR which injects the data into the page before the client sees it.
@@ -815,7 +793,7 @@ The architecture of the app follows the design patterns we've developed.
 Great care went into the quality of its code; it's well organized, doesn't make "tech-debt" compromises in many places, and is extremely extensible and easy to build off of.
 Where security is important, I've made it a focus.
 
-On the frontend, I'm using Remix,~\cite{remix} a new React framework (it went open source just this past Thanksgiving).
+The frontend uses Remix,~\cite{remix} a new React framework (it went open source just this past Thanksgiving).
 Its focus is on nested routing and server-side generation of pages.
 
 The backend consists of four main components:
@@ -827,7 +805,7 @@ The backend consists of four main components:
   \item GraphQL
 \end{enumerate}
 
-How would we scope out and design this app?
+How should we scope out and design this app?
 
 \subsection{Features}
 First, consider the features we want to support.
@@ -933,7 +911,7 @@ Thus, it is sensible to use GraphQL to expose our queries and mutations.
 GraphQL makes us define a resolver, basically a piece of code that connects the API to the data store.
 This is a great time to use our old friend, AWS Lambda.
 
-Our lambda will take as input the object and field that we're trying to resolve and, respecting the current user session, retrieve from or update the database.
+Our Lambda will take as input the object and field that we're trying to resolve and, respecting the current user session, retrieve from or update the database.
 Thus, this resolver will contain the majority of our backend code.
 
 When a user signs up or signs in, it is the resolver that will invoke Cognito to take the appropriate action.
@@ -945,25 +923,25 @@ To tell AppSync about the API surface we want to support, we will write a GraphQ
 Using a tool called \texttt{graphql-codegen} we'll generate TypeScript interfaces for all the types in our schema whenever we edit the file.
 This will help immensely when it comes to programming the frontend, because our React code will know exactly what fields to expect from the backend.
 
-This will also help in programming the backend resolver because it is also written in TypeScript and as such will be able to know exactly what fields to expect from the data stores.
+This will also help in programming the backend resolver because it is also written in TypeScript so the generated types will let us know exactly what fields to expect from the data stores.
 
 \subsubsection{Audio}
 
 The other part to our backend is the audio processing pipeline which is also built from AWS Lambda.
 Here, every decision we make must keep in mind that audio files can be quite large, especially as we expect our users to upload practice recordings that are a few hours long.
-Because of this, we can't assume that our lambdas will be able to fit the entire file in memory at once.
+Because of this, we can't assume that our Lambdas will be able to fit the entirety of any particular audio file in memory at once.
 
 \isubsubsubsection{Uploading audio}
 
 The pipeline will begin when the user uploads an audio file.
 Here's the first challenge.
 Almost all of our client-server interaction happens through our GraphQL API, but it would be wasteful to try and stream large audio files through any excess middleware.
-We want the user to be able to upload a file directly to an audio intake S3 bucket, using the browser's native capabilities for multi-part background uploads.
+We want the user to be able to upload a file directly to our audio intake S3 bucket, using the browser's native capabilities for multi-part background uploads.
 
-The thing is, we don't want to expose our S3 bucket to the public and allow anyone to upload files, so the upload process will actually consist of two steps.
+The thing is, we don't want to expose our S3 bucket to the public and allow anyone to upload files, so the upload process will actually consist of two steps:
 
-First, the user requests a \term{presigned url} from the backend, which is an upload target to a specific spot in S3 that is associated with their account.
-Then, using this URL (before it expires), the user can make the upload directly to the bucket.
+First, the user will request a \term{presigned url} from the backend, which is an upload target to a specific spot in S3 that is associated with their account.
+Then, using this URL (before it expires), the user will make the upload directly to the bucket.
 
 One of the hallmarks of serverless design is the \term{event}.
 When an upload completes, S3 will generate an event to kick off the audio processing.
@@ -971,7 +949,6 @@ When an upload completes, S3 will generate an event to kick off the audio proces
 \isubsubsubsection{Processing audio}
 
 We'll do audio analysis on the backend using the Python library librosa.~\cite{librosa}
-We want to do this in a lambda, but this might take a while, so we want to let the user know something is happening.
 
 Let's pull another serverless tool out of our belt, the AWS Step Function.
 A Step Function can run a sequence of tasks in series, gracefully catching errors and retrying or recovering.
@@ -982,7 +959,7 @@ Second, do the actual processing.\footnote{https://github.com/josephrubin/jongle
 Third, record that we are done (either successfully or with an error).
 
 The actual processing will be done on the audio file in chunks because we can't load the entire thing at once.
-We'll pull the entire file down from S3 into the lambda's temporary file system and then read it one block at a time using librosa's streaming capabilities.
+We'll pull the entire file down from S3 into the Lambda's temporary file system and then read it one block at a time using librosa's streaming capabilities.
 
 The main thing we want to do is identify non-silent intervals of music.
 Each block can be easily split on its own, but we'll have to implement a custom algorithm to merge the results of adjacent blocks.
@@ -992,12 +969,12 @@ Now that we have a list of pairs of frame indices representing intervals, we'll 
 Because each interval could ostensibly be as long as the entire audio file (if there is no silence at all), we have to assemble each audio chunk in blocks.
 Librosa can't do this, but luckily, we can use ffmpeg.
 
-As mentioned previously, our destination S3 bucket will be hooked up to CloudFront so our backend can return authenticated URLs to user audio content that streams to the user's device extremely quickly.
+As mentioned previously, our destination S3 bucket will be hooked up to CloudFront so our backend can return authenticated URLs to user audio content that stream to the user's device extremely quickly.
 
 \subsubsection{Web}
 
-The Remix web app contains frontend TypeScript and data loaders which technically run on the server and make requests to our GraphQL API.
-It's not super easy to pull out all of the server-side code and make lambdas out of them while hosting the frontend statically.
+The Remix web app contains frontend TypeScript and data loaders which technically run on the backend and make requests to our GraphQL API.
+It's not super easy to pull out all of the server-side code and make Lambdas out of them while hosting the frontend statically.
 Instead, we'll package the whole Remix app into a Docker image and run it on AWS Fargate, Amazon's serverless container engine.
 
 Because Fargate expects a container definition in order to deploy our app's tasks, uploading the code is just another part of the deployment pipeline.
@@ -1016,9 +993,9 @@ For example, I have a script that runs the Remix app locally for development, bu
 \subsubsection{Challenges}
 
 A few challenges came up as I was completing the project.
-One of them was that the Python audio and data libraries were so large that they couldn't fit in a standard lambda so I had to create a Docker image that runs the lambda service and make a container lambda out of it which is allowed to be larger.
+One of them was that the Python audio and data libraries were so large that they couldn't fit in a standard Lambda so I had to create a Docker image that runs the Lambda service and make a container Lambda out of it which is allowed to be larger.
 
-Another challenge was that S3 events can't actually trigger Step Functions directly but rather only lambdas so I had to create a small lambda to bridge the gap.
+Another challenge was that S3 events can't actually trigger Step Functions directly but rather only Lambdas so I had to create a small Lambda to bridge the gap.
 
 At the end of the day we have a fully fledged app that tailors itself to the user.
 
@@ -1049,7 +1026,7 @@ You can launch the full stack with one command.~\cite{jongleur}
 \subsection{Conclusions and a thought toward the future}
 
 The design opinions I've expressed in this paper aren't just theoretical.
-These guidelines that I've researched and written about are in use in the projects I've discussed above as well in the Full Measure Education Campus Visit Experience~\cite{cve}, a project that I co-founded that is currently in use by visitors to over $60$ universities across the country.
+These guidelines that I've researched and written about are in use in the projects I've discussed above as well in the Full Measure Education Campus Visit Experience~\cite{cve}, a project that I co-founded that is currently in use by visitors to over 60 universities across the country.
 
 The issue with writing software without regard for proper design is that your project will not outlast you.
 Do your future collaborators a favor and allow them to build off your work, not replace it.
@@ -1068,7 +1045,7 @@ Signed, /Joseph Rubin/.
 
 % References.
 
-\bibliographystyle{plain}
+\bibliographystyle{unsrt}
 \bibliography{references}
 
 % Index of terms.
@@ -1078,11 +1055,8 @@ Signed, /Joseph Rubin/.
 
 \screenshot{jong-home-out}{The Jongleur homepage when not logged in.}
 \screenshot{jong-signin}{The Jongleur page for signing in.}
-\screenshot{marcus-demo}{Sample interaction with Marcus.}
+\screenshottwo{marcus-demo}{Sample interaction with Marcus.}
 \screenshot{traxler-home}{The Traxler homepage.}
-
-TODO: any additional screenshots.
-jong and marcus and traxler.
 
 \end{document}
 
