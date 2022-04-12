@@ -155,7 +155,7 @@ It's no wonder that the software development lifecycle consists heavily of plann
 Thus, is seems prudent to focus on these phases, the output of which is your \term{architecture}, a high-level description of all the components of your software, such as modules of code and cloud resources, and the mechanisms by which they interact with each other.
 
 This thesis contains the knowledge I've gained as a result of researching, designing, and writing cloud software.
-In section 2, we'll propose a list of design principals for architecting cloud software, in sections 3 through 9 we'll explore those patterns, and in sections 10 through 12 we'll apply them to real projects.
+In section 2, we'll propose a list of design principles for architecting cloud software, in sections 3 through 9 we'll explore those patterns, and in sections 10 through 12 we'll apply them to real projects.
 
 \section{Applications that scale}
 \label{scale}
@@ -401,7 +401,7 @@ You've just tested a complete version of your app, exactly like your users will 
   It's best to have multiple completely separate test environments, but this may get expensive if tests are constantly running.
 
   You may need to scale down the resources for each test deployment to save costs, especially if your tests take a long time to run.
-  But remember that every change you make will set your test environment apart from production so do so sparingly.
+  But remember that every change you make will set your test environment apart from production so make changes sparingly.
 }
 
 \subsection{Fusion}
@@ -1018,7 +1018,7 @@ There are no bare EC2 instances or ECS containers running Jongleur code.
 That means we'll never have to worry about individual machines going down and we will be paying as little as possible when our application isn't being heavily used.
 
 All the infrastructure is written as code in CDK which makes it reproducible and also easy to deploy.
-You can launch the full stack with one command.~\cite{jongleur}
+You can launch the full stack with one command~\cite{jongleur} and view a live version of the app at https://www.jongleur.app/.
 
 \screenshot{jong-infra}{Infrastructure diagram for Jongleur. In the interest of clarity, I've included only the most important components of each layer and have abstractly represented the inter-layer dependencies.}
 
