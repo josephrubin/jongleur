@@ -79,14 +79,14 @@
 % The Abstract and Introduction work together to motivate the thesis and launch the reader forward.
 
 \begin{abstract}
-  University students studying computer science are often asked to complete solo coding assigments with lifespans of just a couple weeks or build projects that last one or two semesters.
+  University students studying computer science are often asked to complete solo coding assignments with lifespans of just a couple weeks or build projects that last one or two semesters.
   For those of us going into industry, the real world has rules that challenge our experiences:
   Software can't be thrown out after a fortnight because it might have to work for years, and projects with any amount of complexity are often completed by teams and not individuals.
   How are production-grade applications built to persist across many person-months of development and years of use?
   This thesis provides the answer.
   This is a report in software design, and more specifically, in architecting cloud applications.
   First we develop key ideas by examining the current cloud landscape and then we practice our method by building and examining a number of applications.
-  Of particular note is Jongleur, a web application for musicians that ingests and catalogues audio recordings, but we approach this capstone project by working our way through an assortment of interesting cloud apps.
+  Of particular note is Jongleur, a web application for musicians that ingests and catalogs audio recordings, but we approach this capstone project by working our way through an assortment of interesting cloud apps.
 \end{abstract}
 
 \newpage
@@ -223,13 +223,13 @@ Later, to demonstrate each one, we'll look at \# example applications that displ
 
 Projects that succeed must succeed over and over again.
 The \textit{worst} kind of software to work on is one where things sometimes work and sometimes fail.
-We usually write test casess to ensure that our code works, but this isn't enough by itself.
+We usually write test cases to ensure that our code works, but this isn't enough by itself.
 Consider that Google has a team dedicated to understanding and monitoring flaky tests~\cite{google-flaky-blog} (tests which behave inconsistently even when the code doesn't change) and they've written extensively about their research into detecting the causes of flakiness.~\cite{google-deflake}
 Almost unbelievably, in 2018 Google spent "between 2 and 16\% of [their] compute resources re-running flaky tests."~\cite{google-testing}
 
 Why do tests flake?
 Most often it's because they rely on some external agent to run.
-If the test needs to make a request over the public internet, for example, any number of network-dependant factors could vary between runs.
+If the test needs to make a request over the public internet, for example, any number of network-dependent factors could vary between runs.
 And if the data that comes back from the request isn't generated from scratch at the beginning of the test, you can't be sure that the test will execute the same way every time.
 Of course, tests which rely on pseudorandom number generation will also be prone to flakiness unless you fix the seed at the beginning of testing.
 
@@ -268,7 +268,7 @@ A functional programmer might argue that \textit{global state} is bad because it
 For example, if a method relies on the value of a global variable, you might invoke the method twice with the same explicit input and get two different results if the global was modified in between.
 
 But we aren't functional programmers; we build real apps that do useful things!
-Still, state is bad because it hinders \term{repeatablility}.
+Still, state is bad because it hinders \term{repeatability}.
 This is because state is the result of \term{progress} and \term{progress} can't always be replayed later, especially if our state was caused by user interaction.
 But not \textit{all} state is bad, just as not all state affects repeatability in a harmful way.
 
@@ -282,29 +282,29 @@ Just think about it this way.
 If you wanted to run your application on multiple servers you wouldn't be able to, because each server would be tracking a different value.
 Now users who connect to different servers will see a different number on the homepage.
 Instead, the website could read from and write to an external, atomic data store to manage this kind of usage data.
-A database is definitely a form of global application state, but it's acceptable in this instance because it is separated from the business logic and thus can be scaled independantly of the application runtime.
+A database is definitely a form of global application state, but it's acceptable in this instance because it is separated from the business logic and thus can be scaled independently of the application runtime.
 This way, the Rule of State is not violated.
 
-\infobox{Horizonal scaling}{
+\infobox{Horizontal scaling}{
   Why would you want to run an application on multiple servers at once?
   If this website was receiving too much traffic for the original server to handle, you might try to increase the CPU or memory of the machine.
   This is called \term{vertical scaling}, and it is generally easy to do using a cloud provider.
 
   However, at a certain point it will become prohibitively costly or impossible to grow the single instance any further.
-  Instead, consider \term{horizonal scaling}, the practice of deploying your app to multiple servers at once.
+  Instead, consider \term{horizontal scaling}, the practice of deploying your app to multiple servers at once.
 
   The benefits are huge:
-  You no longer have a single point of failure, so if a machine goes down, traffic can be transparantly directed to the others.
+  You no longer have a single point of failure, so if a machine goes down, traffic can be transparently directed to the others.
   Your app can dynamically scale by automatically launching or terminating instances in response to load.
 }
 
 To summarize, the particular server that a user's session lives on should be functionally transparent to the user.
-(In section \ref{sec:serverless}, we take this to the extreme and discuss how to make the server transparant to the developer as well.)
+(In section \ref{sec:serverless}, we take this to the extreme and discuss how to make the server transparent to the developer as well.)
 
 And in general, any local state should be ephemeral.
 It's hard to back up state that's kept on the same machine as your application code, but that's okay if the data isn't all that important.
 
-However, there \textit{are} times (when the user can't percieve a functional difference) where local state is acceptable.
+However, there \textit{are} times (when the user can't perceive a functional difference) where local state is acceptable.
 For example, if each server running your code builds up a local cache of data in its filesystem to speed up transactions, the user will only ever be positively impacted by this use of state.
 It's okay for each server to have a different cache; the cache does not affect the behavior of the code, only its performance.
 And if one of the servers gets terminated, no important information was lost.
@@ -320,7 +320,7 @@ AWS CDK, the IaC tool we'll discuss in the most depth, only became generally ava
 Also, you'll find that the opinions expressed here differ from those that other authors express. Let's get into it.
 
 Infrastructure as code (IaC) is primarily a way to integrate the resources used by your app into your source code (and thus your version control).
-This provides many benefits over manually privisioning your infrastructure in a GUI or command-line.
+This provides many benefits over manually provisioning your infrastructure in a GUI or command-line.
 Consistent with the pattern of repeatability, using IaC means that you will produce the same infrastructure every time, and having your infrastructure in your repository means you can apply version control to it like the rest of your code.
 
 There are a few different ways that we can encode our infrastructure into our source repository.
@@ -360,7 +360,7 @@ resource "aws_instance" "app_server" {
 \end{verbatim}~\cite{terraform-example}
 
 Each resource is \textit{declared} along with its configuration arguments and Terraform figures out how to deploy your infrastructure when you tell it to.
-Also using a DSL means you have to learn a new language, the resultant code is much clearer thatn the equivalent JSON or YAML.
+Also using a DSL means you have to learn a new language, the resultant code is much clearer than the equivalent JSON or YAML.
 
 The last option is an IaC framework for an imperative language.
 The framework provides a library of classes and functions for describing infrastructure in a familiar language like TypeScript, Python, or Java, and tools to turn your code into a representation template that is read by a classical IaC system like CloudFormation.
@@ -390,7 +390,7 @@ Using a general-purpose language has many advantages:
   \item You can use the same tools and programming practices you use for the rest of your code, including testing frameworks and IDE autocompletion, not to mention programming paradigms like modules and classes.
   \item Control-flow statements are useful when templating infrastructure because they allow you to specify complex behavior with fewer lines of code.
   \item You can write your IaC in the same language as your application's source code; doing so allows you to share types, constants, and utilities easily, eliminating lots of bugs.
-  \item The software engineer takes back control of their own infrastrcture from the sysadmins by writing in a language they are already familiar with.
+  \item The software engineer takes back control of their own infrastructure from the sysadmins by writing in a language they are already familiar with.
     After all, the developer is the expert in their application; not the system administrator.
 \end{enumerate}
 
@@ -422,10 +422,10 @@ Congratulations, you've just tested a complete version of your app, exactly like
 \infobox{More on remote tests}{
   If you have many developers running tests at the same time (or an automated system running your test suite on multiple commits at once), it won't be enough to just have a single test environment.
 
-  It's best to have mutiple completely separate test environments, but this may get expensive if tests are constantly running.
+  It's best to have multiple completely separate test environments, but this may get expensive if tests are constantly running.
 
   You may need to scale down the resources for each deployment to save costs, especially if your tests take a long time to run.
-  But remember that every change you make will set your test enviroment apart from production so do so sparingly.
+  But remember that every change you make will set your test environment apart from production so do so sparingly.
 }
 
 \subsection{Fusion}
@@ -446,7 +446,7 @@ Nevertheless people persevered, until the 2000s when the launch of AWS brought I
 AWS's product Elastic Compute Cloud (EC2)~\cite{ec2} offers (to this day) virtual compute instances that can be launched, programmed, and terminated at the click of a button.
 
 Here's how development on EC2 might go.
-A programmer wants to build the backend for their app (perhaps it's a music app that needs to fetch the user's song playlist from a database), so they put together a Flask~\cite{flask} scafolding like the following:
+A programmer wants to build the backend for their app (perhaps it's a music app that needs to fetch the user's song playlist from a database), so they put together a Flask~\cite{flask} scaffolding like the following:
 
 \begin{verbatim}
 import api
@@ -529,7 +529,7 @@ But it's probably best encapsulated by the tagline "build and run applications w
 On the other hand, \term{stateless} is purely a software-architectural pattern.
 It refers to applications that handle each invocation instance separately, without persisting any data between executions.
 Now stateless is certainly a spectrum.
-An application riddled with global variables has more persistant state than one that acts mostly as a pure function with the exception of occasional trips to an external database to save some data.
+An application riddled with global variables has more persistent state than one that acts mostly as a pure function with the exception of occasional trips to an external database to save some data.
 
 But FaaS products like AWS Lambda are not really stateless.
 Not just because lambdas can read and write external storage, but also because individual invocations are not completely isolated.
@@ -537,7 +537,7 @@ Lambdas can keep state both in their local memory and in their temporary filesys
 Why isn't local memory wiped between invocations?
 Because in practice this would lead to too many \term{cold starts}, users waiting a long time because the lambdas they are trying to invoke are booting up.
 
-Another type of serverless computing, serverless compute containers (such as those offerd by AWS Fargate~\cite{fargate}) are clearly not stateless.
+Another type of serverless computing, serverless compute containers (such as those offered by AWS Fargate~\cite{fargate}) are clearly not stateless.
 Much like with any containerized application, you can keep state however you want; the difference is that Fargate does not make you choose an instance type to run your containers on.
 
 (And of course actual servers are sometimes stateless too\ldots.~\cite{xkcd-1})
@@ -551,7 +551,7 @@ Now it's time to move to the more hands-on parts of the software development lif
 
 \section{Marcus}
 
-Marcus is an SMS bot, a chat app that the user interacts with by sending and recieving text messages.
+Marcus is an SMS bot, a chat app that the user interacts with by sending and receiving text messages.
 There are many use-cases for an SMS bot like this one.
 For example:
 
@@ -614,16 +614,16 @@ Our architecture will thus consist of:
 \begin{enumerate}
   \item A lambda to resolve SMS "queries" and return SMS "responses."
   \item An API Gateway to expose the lambda through a public HTTP endpoint. This is not strictly necessary anymore as lambdas now support the assignment of function URLs directly. This feature just came out five days ago! But we'll stick with the old way for the time being.
-  \item Whatever else we need to store persistant data.
+  \item Whatever else we need to store persistent data.
     For example, to implement the List application from above, we may want an object bucket to store the lists as files.
 \end{enumerate}
 
 When you think about it, this is pretty simple.
 Compare this approach to one which does not use FaaS.
-To launch your desired application logic (a single function which transforms input text messages to output text messages) you would need to launch an entire, say, Flask application on a server, or at the very least put your application inside a container and use a container orchistration service.
+To launch your desired application logic (a single function which transforms input text messages to output text messages) you would need to launch an entire, say, Flask application on a server, or at the very least put your application inside a container and use a container orchestration service.
 It would be much more expensive because you will be paying even when your function is not running, but even more importantly, it would be much more difficult to deploy and test.
 This is because the more infrastructure that you manage yourself, the more time it takes to configure your app.
-Furthermore, since lambda scales in reponse to load automatically, you don't even need to think about your app throttling.
+Furthermore, since lambda scales in response to load automatically, you don't even need to think about your app throttling.
 
 Now we consider what needs to go into this lambda.
 Modulo some error checking and details of the Twilio API, the code boils down to:
@@ -739,7 +739,7 @@ I can't stress enough how easy it is to develop and deploy this application.
 All three major pieces of infrastructure we've used do not require us to provision hardware or choose an instance type, and there is no state aside from the lists stored in the bucket.
 CDK is smart.
 If the bucket's configuration doesn't change, it will simply remain during a new deploy.
-If it does change, CDK will create a new bucket, detatch the old one from our stack, and preserve its data.
+If it does change, CDK will create a new bucket, detach the old one from our stack, and preserve its data.
 
 \subsection{Results}
 
@@ -790,7 +790,7 @@ This is the approach used by Traxler~\cite{traxler}, a defunct directory for Pri
 
 Now I present the main object of study in this report: Jongleur.
 
-Jongleur is the musician's assistant; users can upload practice recordings of sessions spent at their instrument and Jongleur will catalogue the audio, tracking how long the user has practiced a piece and storing and splitting the practice waveform into logical segments for playback.
+Jongleur is the musician's assistant; users can upload practice recordings of sessions spent at their instrument and Jongleur will catalog the audio, tracking how long the user has practiced a piece and storing and splitting the practice waveform into logical segments for playback.
 
 \screenshot{jong-practice}{A user's practice recording is displayed along with a timeline of all other practice sessions of this piece. Clicking on any colored part of the waveform will play that segment of the original audio file.}
 
@@ -804,7 +804,7 @@ It even comes with an included metronome.
 
 For those learning with an instructor, Better Practice~\cite{better-practice} lets the student share their practice log with their teacher.
 
-Apps like Simply Piano~\cite{simply-piano} help the student learn their instrument in a lesson-based style; on the other hand, Jongleur does not distract the user while they are playingbut instead waits for them to upload an audio file at the end of their session.
+Apps like Simply Piano~\cite{simply-piano} help the student learn their instrument in a lesson-based style; on the other hand, Jongleur does not distract the user while they are playing but instead waits for them to upload an audio file at the end of their session.
 
 \subsection{Overview}
 Jongleur is a full-stack web app built on AWS in several thousand lines of code.
@@ -980,12 +980,12 @@ Our state machine will consist of three parts:
 
 First, record in DynamoDB that we are processing a new audio file.
 Second, do the actual processing.\footnote{https://github.com/josephrubin/jongleur/blob/master/audio/process/main.py}
-Third, record that we are done (either succeefully or with an error).
+Third, record that we are done (either successfully or with an error).
 
 The actual processing will be done on the audio file in chunks because we can't load the entire thing at once.
 We'll pull the entire file down from S3 into the lambda's temporary file system and then read it one block at a time using librosa's streaming capabilities.
 
-The main thing we want to do is identify nonsilent intervals of music.
+The main thing we want to do is identify non-silent intervals of music.
 Each block can be easily split on its own, but we'll have to implement a custom algorithm to merge the results of adjacent blocks.
 We won't go into depth on this here because that's not the point of this paper, but feel free to take a look at the code.
 
@@ -1008,10 +1008,10 @@ This is a big win for us because it means that no additional work needs to be do
 
 Now that we know how all the pieces fit together it's time to write the code!
 But architecting everything was the hard part; since we know which modules need access to what, we should be able to complete each part in isolation.
-I find that it's best to start with the the GraphQL schema, then the IaC, ensuring that you pass the appropriate environment variables around the stack, then develop the frontend and backend in tandum.
+I find that it's best to start with the the GraphQL schema, then the IaC, ensuring that you pass the appropriate environment variables around the stack, then develop the frontend and backend in tandem.
 
 One thing that will make development easier is setting up scripts for common tasks.
-There's never any reaseon to waste time chaining together a series of commands when you can make a single script to run all of them.
+There's never any reason to waste time chaining together a series of commands when you can make a single script to run all of them.
 For example, I have a script that runs the Remix app locally for development, but first that same script also runs type generation on the graphql schema to keep everything in sync.
 
 \subsubsection{Challenges}
@@ -1034,8 +1034,8 @@ The app can handle audio files of any size that I've thrown at it, and it does s
 There are some things lacking, though.
 For one, users are not able to add their own pieces to the platform; they must choose a piece that is already there under which to file their recording.
 
-For another, while GraphQL's ability to define structured queries that the client can use to retreive precisely the desired data is incredibly useful, it is not a free lunch.
-It is well known that GraphQL APIs can suffer from server-side overfetching and indeed Jongleur can be slow at times.
+For another, while GraphQL's ability to define structured queries that the client can use to retrieve precisely the desired data is incredibly useful, it is not a free lunch.
+It is well known that GraphQL APIs can suffer from server-side over-fetching and indeed Jongleur can be slow at times.
 I implemented some data caching to speed up the app, but caching in general is a hard problem in computer science and I felt that my time was better spent developing the architecture to make a clean demonstration of software design for this report.
 
 The best part about Jongleur is that the infrastructure is all serverless.
@@ -1045,7 +1045,7 @@ That means we'll never have to worry about individual machines going down and we
 All of the infrastructure is written as code in CDK which makes it reproducible and also easy to deploy.
 You can launch the full stack with one command.~\cite{jongleur}
 
-\screenshot{jong-infra}{Infrastructure diagram for Jongleur. In the interest of clarity, I've included only the most important components of each layer and have abstractly represented the inter-layer dependancies.}
+\screenshot{jong-infra}{Infrastructure diagram for Jongleur. In the interest of clarity, I've included only the most important components of each layer and have abstractly represented the inter-layer dependencies.}
 
 \subsection{Conclusions and a thought toward the future}
 
@@ -1055,7 +1055,7 @@ These guidelines that I've researched and written about are in use in the projec
 The issue with writing software without regard for proper design is that your project will not outlast you.
 Do your future collaborators a favor and allow them to build off your work, not replace it.
 
-\section{Acknowledgements}
+\section{Acknowledgments}
 
 A genuine appreciation for Dr. Jérémie Lumbroso for advising this project.
 
