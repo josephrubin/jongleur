@@ -229,7 +229,7 @@ What do we gain from hermeticity?
 By creating an environment that's consistent and airtight, a commit in your version control software becomes \textit{a complete and accurate account of the behavior of your software project at a single point in time}.
 If you write code later that introduces a bug, you will always be able to revert to a previous commit and expect the exact same (working) behavior that you had before, no exceptions.
 
-By the way, if merged commits automatically get deployed then commits are now not just a representation of your application's behavior but also a representation of exactly what your users are seeing. \ref{sec:CD}
+By the way, if merged commits automatically get deployed then commits are now not just a representation of your application's behavior but also a representation of exactly what your users are seeing.
 That is pretty sweet because it means that you will be confident that any issue in production can be immediately remedied by rolling back to a previous version that your users were happy with.
 
 But this only works if deploying an old version of your app doesn't cause loss of valuable state that's been built up as the program has been running.
@@ -287,7 +287,6 @@ And if one of the servers gets terminated, no important information was lost.
 So in general, any local state that you keep should be ephemeral; it's hard to back up state that's kept on the same machine as your application code, but that's okay if the data doesn't need to be backed up.
 
 \section{Infrastructure-as-Code}
-\label{IAC}
 
 Megillahs have been written about this topic~\cite{iac-book}, so what makes this section worth reading?
 Well this report is being written in 2022 while the above book came out at the end of 2020.
@@ -387,7 +386,7 @@ It's a good thing when you only have to maintain less than 20\% of the code!
 A major part of consistency is ensuring that your test/qa/stage environments behave exactly the same as your production environment.
 You would be extremely displeased if you spent hours writing an extensive suite of end-to-end tests for your application and got all of them to pass during QA if the actual production deployment had issues.
 
-\term{Infrastructure as code} really helps in this regard because a stack will deploy the same way every time.
+Infrastructure as code really helps in this regard because a stack will deploy the same way every time.
 You can change the line of code that says what account to provision the resources in and just like that you've created an isolated environment with a full copy of all of your infrastructure running your code.
 
 My recommendation is to have a single deploy script that takes the name of the environment you want to deploy to (\texttt{stage}, \texttt{prod}, \texttt{test}, \texttt{qa}, whatever) and starts the deployment process targeting the chosen environment so you don't need to modify any code to switch deployment targets.
@@ -1023,17 +1022,19 @@ You can launch the full stack with one command.~\cite{jongleur}
 
 \screenshot{jong-infra}{Infrastructure diagram for Jongleur. In the interest of clarity, I've included only the most important components of each layer and have abstractly represented the inter-layer dependencies.}
 
-\subsection{Conclusions and a thought toward the future}
+\subsection{Final thoughts}
 
 The design opinions I've expressed in this paper aren't just theoretical.
 These guidelines that I've researched and written about are in use in the projects I've discussed above as well in the Full Measure Education Campus Visit Experience~\cite{cve}, a project that I co-founded that is currently in use by visitors to over 60 universities across the country.
 
-The issue with writing software without regard for proper design is that your project will not outlast you.
+I've learned firsthand that giving special attention to the way an app is built is the best way to ensure that the pace of development does not slow.
+
+When you write software without regard for proper design, your project will not outlast you.
 Do your future collaborators a favor and allow them to build off your work, not replace it.
 
 \section{Acknowledgments}
 
-A genuine appreciation for Dr. Jérémie Lumbroso for advising this project.
+I want to express genuine appreciation to Dr. Jérémie Lumbroso for advising me on this project and giving me the freedom to take it in the direction that most appealed to me.
 
 \section*{Statement of Academic Integrity}
 
@@ -1051,7 +1052,7 @@ Signed, /Joseph Rubin/.
 % Index of terms.
 \printindex
 
-\section{Appendix}
+\section*{Appendix}
 
 \screenshot{jong-home-out}{The Jongleur homepage when not logged in.}
 \screenshot{jong-signin}{The Jongleur page for signing in.}
