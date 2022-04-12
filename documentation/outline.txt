@@ -1,23 +1,8 @@
-What's the main idea?
-
-The main idea is that we are talking about architecting cloud apps.
-
-This is a report in software design.
-
-
-Abstract
-  As students we make things that last for only a weeklong assignment or a semester
-  After working for a while on trash, development slows down
-  What is it about bigger applications that things scale up
-
-Introduction
-  reference joel on software astronauts (rebuilding old stuff) so like if it is important
-    not to, then we better make this stuff mantainable
-
 Applications that Scale
   (maybe mention here that I made blodkorv but can't speak to it due to legal)
   (used by over 60 universities and touched by half a dozen engineers)
   (across FE, mobile, backend)
+  ! PUT THIS IN CONCLUSION !
 
 Items from that section:
   Removing State
@@ -36,16 +21,8 @@ Agora
 Maybe kentcdodds??
 (maybe use this for a data section, like, how well did I do with my suggestions)
 
-Jongleur
-As this is the project I made, we should really be talking about it.
-
-1. Summary
-2. Screenshots
-3. Features
-4. Infrastructure
-5. How certain things were implemented
-
 One reason this IaC stuff id better than old servers is because of AWS APIs and IaC. Don't believe me? then why do so many companies use the EC2 APIs even on their own servers.
 
-Challenges:
-audio processing requres big libraries. Must make a whole docker image out of our lambda
+TODO:
+Section refs
+spelling

@@ -749,7 +749,7 @@ With only a few users, the entire AWS side of things is nearly free.
 
 I use Marcus all the time to create lists because it is extremely fast and convenient and I encourage anybody who is interested in learning how to write cloud software to fork the project and start writing Marcus commands of their own.
 
-TODO: infra diagram
+\screenshot{marcus-infra}{Infrastructure diagram for Marcus.}
 
 \section{Traxler}
 
@@ -1045,13 +1045,19 @@ That means we'll never have to worry about individual machines going down and we
 All of the infrastructure is written as code in CDK which makes it reproducible and also easy to deploy.
 You can launch the full stack with one command.~\cite{jongleur}
 
-\subsection{Conclusions}
+\screenshot{jong-infra}{Infrastructure diagram for Jongleur. In the interest of clarity, I've included only the most important components of each layer and have abstractly represented the inter-layer dependancies.}
 
-TODO: conclusions here.
+\subsection{Conclusions and a thought toward the future}
+
+The design opinions I've expressed in this paper aren't just theoretical.
+These guidelines that I've researched and written about are in use in the projects I've discussed above as well in the Full Measure Education Campus Visit Experience~\cite{cve}, a project that I co-founded that is currently in use by visitors to over $60$ universities across the country.
+
+The issue with writing software without regard for proper design is that your project will not outlast you.
+Do your future collaborators a favor and allow them to build off your work, not replace it.
 
 \section{Acknowledgements}
 
-A genuine appreciation for Dr. Jérémie Lumbroso.
+A genuine appreciation for Dr. Jérémie Lumbroso for advising this project.
 
 \section*{Statement of Academic Integrity}
 
