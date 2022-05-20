@@ -1,12 +1,25 @@
-REPORT_BUILD_DIR=./build
-PDFLATEX=pdflatex -interaction=nonstopmode -halt-on-error -file-line-error -output-directory=$(REPORT_BUILD_DIR) ./report.tex 
-BIBTEX=bibtex $(REPORT_BUILD_DIR)/report
+BUILD_DIR=build
+
+REPORT_DIR=thesis
+REPORT_BUILD_DIR=$(REPORT_DIR)/$(BUILD_DIR)
+
+TALK_DIR=presentation
+TALK_BUILD_DIR=$(TALK_DIR)/$(BUILD_DIR)
+
+.PHONY: all
+all: report talk
 
 report: $(REPORT_BUILD_DIR)/report.pdf
 
-$(REPORT_BUILD_DIR)/report.pdf: report.tex arxiv.sty references.bib
+$(REPORT_BUILD_DIR)/report.pdf: $(REPORT_DIR)/report.tex $(REPORT_DIR)/arxiv.sty $(REPORT_DIR)/references.bib
 	mkdir -p $(REPORT_BUILD_DIR)
-	latexmk -outdir=$(REPORT_BUILD_DIR) -pdf
+	cd $(REPORT_DIR) && latexmk -outdir=$(BUILD_DIR) -pdf
+
+talk: $(TALK_BUILD_DIR)/talk.pdf
+
+$(TALK_BUILD_DIR)/talk.pdf: $(TALK_DIR)/talk.tex $(TALK_DIR)/references.bib
+	mkdir -p $(TALK_BUILD_DIR)
+	cd $(TALK_DIR) && latexmk -outdir=$(BUILD_DIR) -pdf
 
 .PHONY: clean
 clean:
